@@ -22,8 +22,8 @@ const mahasiswa = [
     role: "Full Stack Developer",
     image: "/team/mahasiswa1.png",
     github: "https://github.com/ardhitya13",
-    linkedin: "https://linkedin.com/in/ardhitya",
-    facebook: "#",
+    linkedin: "https://www.linkedin.com/in/ardhitya-siswondo-7361552b8/",
+    facebook: "https://www.facebook.com/ardhitya.siswondo.3/",
     instagram: "https://www.instagram.com/ardhitya__/",
   },
   {
