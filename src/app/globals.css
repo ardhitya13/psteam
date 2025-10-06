@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes slide {
+  0% { transform: translateX(0%); }
+  33% { transform: translateX(-100%); }
+  66% { transform: translateX(-200%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-slide {
+  display: flex;
+  width: 300%; /* 3 gambar */
+  height: 100%;
+  animation: slide 20s infinite linear;
+}
+
+@import "flowbite";
