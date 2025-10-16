@@ -40,3 +40,80 @@ body {
 }
 
 @import "flowbite";
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  animation: gradientMove 6s ease infinite;
+}
+
+@keyframes colorShift {
+  0% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(180deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+.animate-colorShift {
+  animation: colorShift 8s linear infinite;
+}
+
+.glow-text {
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.6),
+               0 0 20px rgba(37, 99, 235, 0.5),
+               0 0 30px rgba(29, 78, 216, 0.4);
+}
+
+/* === Hero Section Fullscreen Video === */
+.hero-section {
+  position: relative;
+  width: 99vw;
+  height: 90vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.hero-section video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  object-position: center;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}
+
+/* === Fix untuk iPhone & Safari agar video full layar === */
+@supports (-webkit-touch-callout: none) {
+  .hero-section {
+    height: -webkit-fill-available !important;
+    min-height: 100dvh;
+  }
+
+  .hero-section video {
+    height: -webkit-fill-available !important;
+    min-height: 100dvh;
+    object-fit: cover;
+  }
+}
+
+/* Tambahan umum biar tetap responsif */
+@media (max-width: 768px) {
+  .hero-section {
+    width: 100vw;
+    height: 100dvh;
+  }
+
+  .hero-section video {
+    width: 100vw;
+    height: 100dvh;
+    object-fit: cover;
+    object-position: center;
+  }
+}
