@@ -3,30 +3,38 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation"; // ✅ Untuk deteksi halaman aktif
 
 export default function NavBar() {
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname(); // ✅ ambil path aktif
 
-  // Efek untuk menyembunyikan navbar ketika scroll ke bawah
+  // Efek untuk sembunyiin navbar saat scroll ke bawah
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scroll ke bawah → sembunyikan navbar
         setHidden(true);
       } else {
-        // Scroll ke atas → tampilkan navbar
         setHidden(false);
       }
-
       setLastScrollY(currentScrollY);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  const menuItems = [
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+    { name: "Team", path: "/team" },
+    { name: "Research", path: "/research" },
+    { name: "Publications", path: "/publications" },
+    { name: "Projects", path: "/projects" },
+    { name: "Services", path: "/services" },
+  ];
 
   return (
     <nav
@@ -41,16 +49,16 @@ export default function NavBar() {
           className="flex items-center space-x-3 rtl:space-x-reverse transform transition-transform duration-300 hover:scale-105"
         >
           <Image
-            src="/logopsteam1.png"
+            src="/logopsteam4.png"
             alt="PSTeam Logo"
-            width={130}
-            height={130}
+            width={90}
+            height={80}
             priority
             className="drop-shadow-md hover:drop-shadow-xl transition-all duration-300"
           />
         </Link>
 
-        {/* Button kanan */}
+        {/* Tombol kanan */}
         <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           <Link
             href="/login"
@@ -61,15 +69,15 @@ export default function NavBar() {
             Login
           </Link>
 
-          {/* Burger menu untuk mobile */}
+          {/* Burger menu */}
           <button
-            data-collapse-toggle="navbar-sticky"
+            onClick={() => setMenuOpen(!menuOpen)}
             type="button"
             className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm 
                        text-gray-600 rounded-lg md:hidden hover:bg-gray-100 
                        focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-300"
             aria-controls="navbar-sticky"
-            aria-expanded="false"
+            aria-expanded={menuOpen}
           >
             <span className="sr-only">Open main menu</span>
             <svg
@@ -90,30 +98,29 @@ export default function NavBar() {
           </button>
         </div>
 
-        {/* Menu */}
+        {/* Menu navigasi */}
         <div
-          className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
+          className={`items-center justify-between w-full md:flex md:w-auto md:order-1 transition-all duration-300 ease-in-out ${
+            menuOpen ? "block" : "hidden"
+          }`}
           id="navbar-sticky"
         >
           <ul
             className="flex flex-col p-4 md:p-0 mt-4 font-semibold text-lg border border-gray-100 rounded-lg 
-                         bg-gray-50 md:space-x-10 rtl:space-x-reverse md:flex-row md:mt-0 
-                         md:border-0 md:bg-white"
+                       bg-gray-50 md:space-x-10 rtl:space-x-reverse md:flex-row md:mt-0 
+                       md:border-0 md:bg-white"
           >
-            {[
-              { name: "Home", path: "/" },
-              { name: "About", path: "/about" },
-              { name: "Team", path: "/team" },
-              { name: "Research", path: "/research" },
-              { name: "Publication", path: "/publication" },
-              { name: "Projects", path: "/projects" },
-              { name: "Services", path: "/services" },
-            ].map((item) => (
+            {menuItems.map((item) => (
               <li key={item.name}>
                 <Link
                   href={item.path}
-                  className="block py-2 px-3 text-gray-800 hover:text-blue-600 transition-colors duration-200 md:p-0 
-                             tracking-wide hover:scale-110 transform transition-transform duration-200 text-lg"
+                  onClick={() => setMenuOpen(false)}
+                  className={`block py-2 px-3 md:p-0 text-lg tracking-wide transform transition-transform duration-200
+                    ${
+                      pathname === item.path
+                        ? "text-blue-600 border-b-2 border-blue-600" // ✅ aktif: biru + garis bawah
+                        : "text-gray-800 hover:text-blue-600 hover:scale-110"
+                    }`}
                 >
                   {item.name}
                 </Link>

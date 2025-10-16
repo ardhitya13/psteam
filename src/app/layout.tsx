@@ -1,23 +1,29 @@
 import "./globals.css";
-import NavBar from "./components/Navbar";
+import LayoutWrapper from "./LayoutWrapper";
 import "flowbite";
 import "flowbite-react";
 
 export const metadata = {
   title: "PSTeam",
   description: "Website resmi PSTeam - Web, IoT, Mobile, dan AI Solution",
+  icons: {
+    icon: "/logopsteam4.png",
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
       <head>
-        <link rel="icon" href="/logopsteam1.png" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+        />
+        <link rel="icon" href="/logopsteam4.png" sizes="any" type="image/png" />
+        <link rel="shortcut icon" href="/logopsteam4.png" type="image/png" />
       </head>
-      {/* Tambahkan padding-top agar konten tidak ketiban navbar fixed */}
-      <body className="pt-[120px] bg-white">
-        <NavBar />
-        <main>{children}</main>
+      <body className="bg-white flex flex-col min-h-screen">
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

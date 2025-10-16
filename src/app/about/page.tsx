@@ -1,9 +1,18 @@
-import AboutSection from "../components/AboutSection";
+
+import HeroSection from "../about/components/HeroSection";
+import AboutVisionMission from "./components/AboutVisionMission";
+import AboutTeamSummary from "./components/AboutTeamSummary";
+import AboutHistory from "./components/AboutHistory";
+import AboutSection from "./components/AboutSection"
 
 export default function AboutPage() {
   return (
-    <main className="pt-20">
+    <main className="">
+      <HeroSection />
       <AboutSection />
+      <AboutVisionMission />
+      <AboutTeamSummary />
+      <AboutHistory />
     </main>
   );
 }
