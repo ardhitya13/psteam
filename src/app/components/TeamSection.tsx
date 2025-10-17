@@ -55,33 +55,21 @@ const mahasiswa = [
     name: "Anggun Salsa Faradita",
     role: "UI/UX Designer",
     image: "/team/mahasiswa3.png",
-<<<<<<< HEAD
+    email: "anggun@example.com",
+    website: "#",
     github: "https://github.com/anggun07",
     linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
     facebook: "https://www.facebook.com/share/169XkGzGJo/",
     instagram: "https://www.instagram.com/anggunslsa_",
-=======
-    email: "anggun@example.com",
-    website: "#",
-    github: "#",
-    linkedin: "#",
-    facebook: "#",
-    instagram: "#",
->>>>>>> 9f0e74d80a94a356941cf902442c95d7efc5b434
   },
   {
     name: "Farhan",
     role: "Backend Developer",
     image: "/team/mahasiswa4.png",
-<<<<<<< HEAD
-    github: "https://github.com/farhanrasyid20",
-    linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
-=======
     email: "farhan@example.com",
     website: "#",
-    github: "#",
-    linkedin: "#",
->>>>>>> 9f0e74d80a94a356941cf902442c95d7efc5b434
+    github: "https://github.com/farhanrasyid20",
+    linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
     facebook: "#",
     instagram: "https://www.instagram.com/frhanr20",
   },
@@ -121,7 +109,6 @@ export default function TeamSection() {
                 {dosen.name}
               </h3>
               <p className="text-blue-200 font-medium">{dosen.role}</p>
-
               <p className="text-sm text-gray-200 mt-3">{dosen.email}</p>
 
               <a
@@ -203,16 +190,16 @@ export default function TeamSection() {
                 </a>
 
                 <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">
-                  <a href={member.github}>
+                  <a href={member.github} target="_blank">
                     <FaGithub />
                   </a>
-                  <a href={member.linkedin}>
+                  <a href={member.linkedin} target="_blank">
                     <FaLinkedin />
                   </a>
-                  <a href={member.facebook}>
+                  <a href={member.facebook} target="_blank">
                     <FaFacebook />
                   </a>
-                  <a href={member.instagram}>
+                  <a href={member.instagram} target="_blank">
                     <FaInstagram />
                   </a>
                 </div>
