@@ -109,7 +109,6 @@ export default function TeamSection() {
                 {dosen.name}
               </h3>
               <p className="text-blue-200 font-medium">{dosen.role}</p>
-
               <p className="text-sm text-gray-200 mt-3">{dosen.email}</p>
 
               <a
