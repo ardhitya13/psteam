@@ -22,14 +22,13 @@ export default function DaftarProyekPage() {
         <div className="min-h-screen bg-gray-50 overflow-x-hidden">
             {/* Navbar */}
             <NavbarAdmin />
-
             {/* Sidebar */}
             <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
             {/* Main Content */}
             <main
                 className={`transition-all duration-300 pt-0 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-                    } mt-[58px]`}
+                    } mt-[85px]`}
             >
                 {/* Judul */}
                 <h1 className="text-3xl font-semibold text-center mb-4 text-gray-800">
@@ -54,8 +53,7 @@ export default function DaftarProyekPage() {
                 <div className="flex justify-start mb-4">
                     <div className="relative inline-block">
                         <select
-                            className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-700 cursor-pointer"
-                        >
+                            className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-700 cursor-pointer">
                             <option>Tipe Riwayat</option>
                             <option>Diterima</option>
                             <option>Ditolak</option>
@@ -88,8 +86,7 @@ export default function DaftarProyekPage() {
                                     key={index}
                                     whileHover={{ scale: 1.01 }}
                                     transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                                    className="bg-white hover:bg-gray-50"
-                                >
+                                    className="bg-white hover:bg-gray-50" >
                                     <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
                                     <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
                                     <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
