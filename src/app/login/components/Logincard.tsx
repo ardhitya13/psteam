@@ -1,4 +1,4 @@
- "use client";
+"use client";
 import React, { useState } from "react";
 
 export default function Logincard() {
@@ -15,7 +15,7 @@ export default function Logincard() {
     <div className="flex flex-col items-center">
       {/* Logo */}
       <img
-        src="/logopoltek.jpg"
+        src="/logopsteam1.png"
         alt="Logo Polibatam"
         className="w-28 mb-3"
       />
@@ -33,7 +33,7 @@ export default function Logincard() {
             placeholder="ID Learning"
             value={idLearning}
             onChange={(e) => setIdLearning(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+            className="w-full bg-white text-gray-900 placeholder-gray-400 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
           />
         </div>
 
@@ -43,7 +43,7 @@ export default function Logincard() {
             placeholder="Kata Sandi"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+            className="w-full bg-white text-gray-900 placeholder-gray-400 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
           />
         </div>
 
