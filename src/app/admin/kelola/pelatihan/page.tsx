@@ -24,7 +24,7 @@ export default function DaftarPelatihanPage() {
       <main
         className={`transition-all duration-300 pt-0 px-8 pb-10 ${
           isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[58px]`}
+        } mt-[85px]`}
       >
         <h1 className="text-3xl font-semibold text-center mb-4 text-gray-800">
           DAFTAR PELATIHAN DI AJUKAN
@@ -62,12 +62,12 @@ export default function DaftarPelatihanPage() {
           <table className="w-full border-collapse text-sm text-gray-700">
             <thead className="bg-gray-300 text-gray-800">
               <tr>
-                <th className="border px-4 py-2">NO</th>
-                <th className="border px-4 py-2">NAMA</th>
-                <th className="border px-4 py-2">EMAIL</th>
-                <th className="border px-4 py-2">NOMOR TELP</th>
-                <th className="border px-4 py-2">TIPE PROYEK</th>
-                <th className="border px-4 py-2">AKSI</th>
+                <th className="border border-gray-200 px-4 py-2">NO</th>
+                <th className="border border-gray-200 px-4 py-2">NAMA</th>
+                <th className="border border-gray-200 px-4 py-2">EMAIL</th>
+                <th className="border border-gray-200 px-4 py-2">NOMOR TELP</th>
+                <th className="border border-gray-200 px-4 py-2">TIPE PROYEK</th>
+                <th className="border border-gray-200 px-4 py-2">AKSI</th>
               </tr>
             </thead>
             <tbody>
@@ -78,12 +78,12 @@ export default function DaftarPelatihanPage() {
                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
                   className="bg-white hover:bg-gray-50"
                 >
-                  <td className="border px-4 py-2 text-center">{item.no}</td>
-                  <td className="border px-4 py-2">{item.nama}</td>
-                  <td className="border px-4 py-2">{item.email}</td>
-                  <td className="border px-4 py-2 text-center">{item.telp}</td>
-                  <td className="border px-4 py-2 text-center">{item.tipe}</td>
-                  <td className="border px-4 py-2 text-center flex justify-center gap-2">
+                  <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
+                  <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
+                  <td className="border border-gray-200 px-4 py-2">{item.email}</td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">{item.telp}</td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">{item.tipe}</td>
+                  <td className="border border-gray-200 px-4 py-2 text-center flex justify-center gap-2">
                     <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded">
                       Terima
                     </button>

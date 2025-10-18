@@ -10,34 +10,10 @@ export default function DaftarPenelitianPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const data = [
-        {
-            no: 1,
-            nama: "Anggun Salsa F",
-            judul: "Website pemesanan online coffee shop",
-            tanggal: "08 Oktober 2025",
-            dokumen: "Penelitian Anggun Salsa F",
-        },
-        {
-            no: 2,
-            nama: "Ardithya Danur S",
-            judul: "Aplikasi mobile penjualan tshirt",
-            tanggal: "16 Oktober 2025",
-            dokumen: "Penelitian Ardithya Danur S",
-        },
-        {
-            no: 3,
-            nama: "Arifah Husaini",
-            judul: "Website antrian parkir mobil",
-            tanggal: "20 Oktober 2025",
-            dokumen: "Hasil Penelitian Arifah",
-        },
-        {
-            no: 4,
-            nama: "Farhan Rasyid",
-            judul: "Game adventure online",
-            tanggal: "25 September 2025",
-            dokumen: "Hasil Penelitian Farhan Rasyid",
-        },
+        { no: 1, nama: "Anggun Salsa F", judul: "Website pemesanan online coffee shop", tanggal: "08 Oktober 2025", dokumen: "Penelitian Anggun Salsa F", },
+        { no: 2, nama: "Ardithya Danur S", judul: "Aplikasi mobile penjualan tshirt", tanggal: "16 Oktober 2025", dokumen: "Penelitian Ardithya Danur S", },
+        { no: 3, nama: "Arifah Husaini", judul: "Website antrian parkir mobil", tanggal: "20 Oktober 2025", dokumen: "Hasil Penelitian Arifah", },
+        { no: 4, nama: "Farhan Rasyid", judul: "Game adventure online", tanggal: "25 September 2025", dokumen: "Hasil Penelitian Farhan Rasyid", },
     ];
 
     return (
@@ -47,7 +23,7 @@ export default function DaftarPenelitianPage() {
 
             <main
                 className={`transition-all duration-300 pt-0 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-                    } mt-[58px]`}
+                    } mt-[85px]`}
             >
                 <h1 className="text-3xl font-semibold text-center mb-4 text-gray-800">
                     DAFTAR PENELITIAN DOSEN
@@ -84,12 +60,12 @@ export default function DaftarPenelitianPage() {
                     <table className="w-full border-collapse text-sm text-gray-700">
                         <thead className="bg-gray-300 text-gray-800">
                             <tr>
-                                <th className="border px-4 py-2">NO</th>
-                                <th className="border px-4 py-2">NAMA</th>
-                                <th className="border px-4 py-2">JUDUL PENELITIAN</th>
-                                <th className="border px-4 py-2">TANGGAL UNGGAH</th>
-                                <th className="border px-4 py-2">DOKUMEN</th>
-                                <th className="border px-4 py-2">AKSI</th>
+                                <th className="border border-gray-200 px-4 py-2">NO</th>
+                                <th className="border border-gray-200 px-4 py-2">NAMA</th>
+                                <th className="border border-gray-200 px-4 py-2">JUDUL PENELITIAN</th>
+                                <th className="border border-gray-200 px-4 py-2">TANGGAL UNGGAH</th>
+                                <th className="border border-gray-200 px-4 py-2">DOKUMEN</th>
+                                <th className="border border-gray-200 px-4 py-2">AKSI</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -100,12 +76,12 @@ export default function DaftarPenelitianPage() {
                                     transition={{ type: "spring", stiffness: 200, damping: 15 }}
                                     className="bg-white hover:bg-gray-50"
                                 >
-                                    <td className="border px-4 py-2 text-center">{item.no}</td>
-                                    <td className="border px-4 py-2">{item.nama}</td>
-                                    <td className="border px-4 py-2">{item.judul}</td>
-                                    <td className="border px-4 py-2 text-center">{item.tanggal}</td>
-                                    <td className="border px-4 py-2">{item.dokumen}</td>
-                                    <td className="border px-4 py-2 text-center flex justify-center gap-2">
+                                    <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
+                                    <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
+                                    <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
+                                    <td className="border border-gray-200 px-4 py-2 text-center">{item.tanggal}</td>
+                                    <td className="border border-gray-200 px-4 py-2">{item.dokumen}</td>
+                                    <td className="border border-gray-200 px-4 py-2 text-center flex justify-center gap-2">
                                         <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded">
                                             Terbitkan
                                         </button>
