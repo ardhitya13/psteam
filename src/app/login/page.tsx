@@ -1,5 +1,5 @@
 import React from "react";
-import Logincard from "./components/LoginCard";
+import Logincard from "./components/Logincard";
 
 export const metadata = {
   title: "Login - PSteam",
