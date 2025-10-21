@@ -85,9 +85,9 @@ export default function AdminPage() {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-gray-800 font-semibold">{card.title}</h2>
-                <Users className="text-blue-600" />
+                <Users className="text-gray-900" />
               </div>
-              <p className="text-3xl font-bold text-blue-700">{card.value}</p>
+              <p className="text-3xl font-bold text-gray-900">{card.value}</p>
             </motion.div>
           ))}
         </div>
@@ -96,7 +96,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Grafik Batang */}
           <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
-            <h3 className="text-gray-800 text-base font-semibold mb-4">
+            <h3 className="text-gray-900 text-base font-semibold mb-4">
               Update Data Bulanan Penelitian & Proyek
             </h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -132,8 +132,8 @@ export default function AdminPage() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute text-center">
-                <p className="text-2xl font-semibold text-blue-800">80%</p>
-                <p className="text-sm text-gray-500">Selesai</p>
+                <p className="text-2xl font-semibold text-gray-900">80%</p>
+                <p className="text-sm text-gray-900">Selesai</p>
               </div>
             </div>
           </div>
