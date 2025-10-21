@@ -27,13 +27,13 @@ export default function NavBar() {
   }, [lastScrollY]);
 
   const menuItems = [
-    { name: "Home", path: "/" },
-    { name: "About", path: "/about" },
-    { name: "Team", path: "/team" },
-    { name: "Research", path: "/research" },
-    { name: "Publications", path: "/publications" },
-    { name: "Projects", path: "/projects" },
-    { name: "Services", path: "/services" },
+    { name: "Beranda", path: "/" },
+    { name: "Tentang", path: "/about" },
+    { name: "Tim", path: "/team" },
+    { name: "Riset", path: "/research" },
+    { name: "Publikasi", path: "/publications" },
+    { name: "Proyek", path: "/projects" },
+    { name: "Layanan", path: "/services" },
   ];
 
   return (
@@ -66,7 +66,7 @@ export default function NavBar() {
                        focus:ring-blue-300 font-semibold rounded-lg text-base px-6 py-2 text-center 
                        shadow-sm hover:shadow-md transition-all duration-300"
           >
-            Login
+            Masuk
           </Link>
 
           {/* Burger menu */}
