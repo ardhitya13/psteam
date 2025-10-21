@@ -18,7 +18,7 @@ export default function DaftarPelatihanPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <NavbarAdmin />
+      <NavbarAdmin toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
