@@ -21,7 +21,8 @@ export default function DaftarProyekPage() {
     return (
         <div className="min-h-screen bg-gray-50 overflow-x-hidden">
             {/* Navbar */}
-            <NavbarAdmin />
+            <NavbarAdmin toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+
             {/* Sidebar */}
             <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 

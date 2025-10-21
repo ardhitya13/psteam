@@ -4,7 +4,11 @@ import { useEffect } from "react";
 import Image from "next/image";
 import { initFlowbite } from "flowbite";
 
-export default function NavbarAdmin() {
+interface NavbarAdminProps {
+  toggle: () => void;
+}
+
+export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
   useEffect(() => {
     initFlowbite();
   }, []);
