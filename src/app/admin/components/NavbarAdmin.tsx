@@ -11,7 +11,7 @@ export default function NavbarAdmin() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md dark:bg-gray-900"
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md :bg-white"
     >
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         {/* LOGO */}
@@ -65,7 +65,7 @@ export default function NavbarAdmin() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/login"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                 >
                   Keluar
