@@ -2,7 +2,6 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Search, FileText } from "lucide-react";
 import NavbarAdmin from "../../components/NavbarAdmin";
 import SidebarAdmin from "../../components/SidebarAdmin";
@@ -83,11 +82,7 @@ export default function DaftarProyekPage() {
                         </thead>
                         <tbody>
                             {data.map((item, index) => (
-                                <motion.tr
-                                    key={index}
-                                    whileHover={{ scale: 1.01 }}
-                                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                                    className="bg-white hover:bg-gray-50" >
+                                <tr>
                                     <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
                                     <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
                                     <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
@@ -105,7 +100,7 @@ export default function DaftarProyekPage() {
                                             Tolak
                                         </button>
                                     </td>
-                                </motion.tr>
+                                </tr>
                             ))}
                         </tbody>
                     </table>
