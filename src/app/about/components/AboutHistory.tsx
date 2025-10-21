@@ -1,12 +1,33 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useLocale } from "../../context/LocaleContext";
+
+interface Translation {
+  title?: string;
+  paragraph?: string;
+}
 
 export default function AboutHistory() {
+  const { locale } = useLocale();
+  const [t, setT] = useState<Translation>({});
+
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        const module = await import(`../../locales/${locale}/about/abouthistory.json`);
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan AboutHistory:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
   return (
     <section className="bg-gray-50 text-gray-800 py-16 sm:py-20 overflow-hidden">
       <div className="max-w-5xl mx-auto px-6 text-center">
-        {/* Judul animasi */}
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -14,26 +35,16 @@ export default function AboutHistory() {
           viewport={{ once: true }}
           className="text-3xl sm:text-4xl font-bold text-blue-700 mb-6"
         >
-          Sejarah Kami
+          {t.title || "Sejarah Kami"}
         </motion.h2>
-
-        {/* Paragraf animasi */}
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
           viewport={{ once: true }}
           className="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto"
-        >
-          <span className="font-semibold text-black">PSTeam</span> berawal dari inisiatif
-          kelompok mahasiswa Polibatam yang ingin mengembangkan proyek riset berbasis
-          teknologi digital. Seiring waktu, PSTeam tumbuh menjadi tim profesional yang
-          berpengalaman dalam berbagai proyek{" "}
-          <span className="font-medium text-blue-600">Web</span>,{" "}
-          <span className="font-medium text-blue-600">Mobile</span>,{" "}
-          <span className="font-medium text-blue-600">IoT</span>, dan{" "}
-          <span className="font-medium text-blue-600">AI</span>.
-        </motion.p>
+          dangerouslySetInnerHTML={{ __html: t.paragraph || "" }}
+        />
       </div>
     </section>
   );

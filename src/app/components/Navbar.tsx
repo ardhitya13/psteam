@@ -3,37 +3,50 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation"; // ✅ Untuk deteksi halaman aktif
+import { usePathname } from "next/navigation";
+import { useLocale } from "../context/LocaleContext"; // pakai context
 
 export default function NavBar() {
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const pathname = usePathname(); // ✅ ambil path aktif
+  const [langOpen, setLangOpen] = useState(false);
+  const pathname = usePathname();
 
-  // Efek untuk sembunyiin navbar saat scroll ke bawah
+  const { locale, setLocale } = useLocale(); // pakai context
+  const [t, setT] = useState<{ [key: string]: string }>({});
+
+  // Load file JSON sesuai bahasa
+  useEffect(() => {
+    import(`../locales/${locale}/navbar.json`)
+      .then((res) => setT(res.default || res))
+      .catch((err) => console.error("Gagal memuat terjemahan navbar:", err));
+  }, [locale]);
+
+  // Navbar sembunyi saat scroll
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setHidden(true);
-      } else {
-        setHidden(false);
-      }
-      setLastScrollY(currentScrollY);
+      const currentY = window.scrollY;
+      setHidden(currentY > lastScrollY && currentY > 100);
+      setLastScrollY(currentY);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  const handleChangeLocale = (lang: string) => {
+    setLocale(lang); // update context
+    setLangOpen(false);
+  };
+
   const menuItems = [
-    { name: "Beranda", path: "/" },
-    { name: "Tentang", path: "/about" },
-    { name: "Tim", path: "/team" },
-    { name: "Riset", path: "/research" },
-    { name: "Publikasi", path: "/publications" },
-    { name: "Proyek", path: "/projects" },
-    { name: "Layanan", path: "/services" },
+    { name: t.beranda || "Beranda", path: "/" },
+    { name: t.tentang || "Tentang", path: "/about" },
+    { name: t.tim || "Tim", path: "/team" },
+    { name: t.riset || "Riset", path: "/research" },
+    { name: t.publikasi || "Publikasi", path: "/publications" },
+    { name: t.proyek || "Proyek", path: "/projects" },
+    { name: t.layanan || "Layanan", path: "/services" },
   ];
 
   return (
@@ -44,83 +57,74 @@ export default function NavBar() {
     >
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center space-x-3 rtl:space-x-reverse transform transition-transform duration-300 hover:scale-105"
-        >
+        <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <Image
             src="/logopsteam4.png"
             alt="PSTeam Logo"
             width={90}
             height={80}
             priority
-            className="drop-shadow-md hover:drop-shadow-xl transition-all duration-300"
           />
         </Link>
 
         {/* Tombol kanan */}
-        <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-          <Link
-            href="/login"
-            className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none 
-                       focus:ring-blue-300 font-semibold rounded-lg text-base px-6 py-2 text-center 
-                       shadow-sm hover:shadow-md transition-all duration-300"
-          >
-            Masuk
+        <div className="flex items-center space-x-4 md:order-2 relative">
+          {/* Tombol Masuk */}
+          <Link href="/login" className="text-white bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold">
+            {t.masuk || "Masuk"}
           </Link>
 
-          {/* Burger menu */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            type="button"
-            className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm 
-                       text-gray-600 rounded-lg md:hidden hover:bg-gray-100 
-                       focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-300"
-            aria-controls="navbar-sticky"
-            aria-expanded={menuOpen}
-          >
-            <span className="sr-only">Open main menu</span>
-            <svg
-              className="w-6 h-6"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 17 14"
+          {/* Dropdown Bahasa */}
+          <div className="relative">
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className="flex items-center gap-2 border px-3 py-1 rounded-md"
             >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M1 1h15M1 7h15M1 13h15"
+              <Image
+                src={locale === "id" ? "/flags/id.png" : "/flags/en.png"}
+                alt={locale === "id" ? "Bendera Indonesia" : "Bendera Inggris"}
+                width={22}
+                height={22}
               />
-            </svg>
-          </button>
+              <span className="text-sm font-medium">{locale.toUpperCase()}</span>
+            </button>
+
+            {langOpen && (
+              <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50">
+                <button
+                  onClick={() => handleChangeLocale("id")}
+                  className={`flex items-center w-full px-3 py-2 text-sm ${
+                    locale === "id" ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-800 hover:bg-blue-50"
+                  }`}
+                >
+                  <Image src="/flags/id.png" alt="Bendera Indonesia" width={20} height={20} className="mr-2" />
+                  Indonesia
+                </button>
+                <button
+                  onClick={() => handleChangeLocale("en")}
+                  className={`flex items-center w-full px-3 py-2 text-sm ${
+                    locale === "en" ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-800 hover:bg-blue-50"
+                  }`}
+                >
+                  <Image src="/flags/en.png" alt="Bendera Inggris" width={20} height={20} className="mr-2" />
+                  English
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Menu navigasi */}
-        <div
-          className={`items-center justify-between w-full md:flex md:w-auto md:order-1 transition-all duration-300 ease-in-out ${
-            menuOpen ? "block" : "hidden"
-          }`}
-          id="navbar-sticky"
-        >
-          <ul
-            className="flex flex-col p-4 md:p-0 mt-4 font-semibold text-lg border border-gray-100 rounded-lg 
-                       bg-gray-50 md:space-x-10 rtl:space-x-reverse md:flex-row md:mt-0 
-                       md:border-0 md:bg-white"
-          >
+        {/* Menu Navigasi */}
+        <div className={`items-center justify-between w-full md:flex md:w-auto md:order-1 ${menuOpen ? "block" : "hidden"}`}>
+          <ul className="flex flex-col p-4 md:p-0 mt-4 font-semibold text-lg md:flex-row md:space-x-10">
             {menuItems.map((item) => (
               <li key={item.name}>
                 <Link
                   href={item.path}
                   onClick={() => setMenuOpen(false)}
-                  className={`block py-2 px-3 md:p-0 text-lg tracking-wide transform transition-transform duration-200
-                    ${
-                      pathname === item.path
-                        ? "text-blue-600 border-b-2 border-blue-600" // ✅ aktif: biru + garis bawah
-                        : "text-gray-800 hover:text-blue-600 hover:scale-110"
-                    }`}
+                  className={`block py-2 px-3 md:p-0 ${
+                    pathname === item.path ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-800 hover:text-blue-600"
+                  }`}
                 >
                   {item.name}
                 </Link>

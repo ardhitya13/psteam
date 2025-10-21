@@ -2,13 +2,12 @@ import "./globals.css";
 import LayoutWrapper from "./LayoutWrapper";
 import "flowbite";
 import "flowbite-react";
+import { LocaleProvider } from "./context/LocaleContext";
 
 export const metadata = {
-  title: "PSTeam",
+  title: "PSTEAM",
   description: "Website resmi PSTeam - Web, IoT, Mobile, dan AI Solution",
-  icons: {
-    icon: "/logopsteam4.png",
-  },
+  icons: { icon: "/logopsteam4.png" },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -20,7 +19,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <link rel="shortcut icon" href="/logopsteam4.png" type="image/png" />
       </head>
       <body className="bg-white flex flex-col min-h-screen">
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <LocaleProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </LocaleProvider>
       </body>
     </html>
   );
