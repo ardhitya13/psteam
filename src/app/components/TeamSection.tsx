@@ -55,7 +55,7 @@ const mahasiswa = [
     name: "Anggun Salsa Faradita",
     role: "UI/UX Designer",
     image: "/team/mahasiswa3.png",
-    email: "anggun@example.com",
+    email: "anggunsalsa2807@gmail.com",
     website: "#",
     github: "https://github.com/anggun07",
     linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
