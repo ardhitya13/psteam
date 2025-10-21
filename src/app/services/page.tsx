@@ -1,11 +1,9 @@
-"use client";
+import ServicesOptions from "./components/ServicesOptions";
 
-import ServicesSection from "../components/ServicesSection";
-
-export default function ServicesPage() {
+export default function ServicePage() {
   return (
-    <main className="flex flex-col min-h-screen">
-      <ServicesSection />
+    <main>
+      <ServicesOptions />
     </main>
   );
 }

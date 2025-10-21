@@ -10,7 +10,7 @@ export default function Logincard() {
     console.log("Login:", idLearning, password);
     // nanti bisa sambung ke API login
   };
-
+ 
   return (
     <div className="flex flex-col items-center">
       {/* Logo */}
@@ -60,7 +60,6 @@ export default function Logincard() {
       </form>
 
       <button className="text-blue-600 text-sm mt-3 hover:underline">
-        Lupa Sandi
       </button>
     </div>
   );

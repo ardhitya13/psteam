@@ -29,7 +29,7 @@ export default function ProjectsSection() {
       title: "Website Perusahaan",
       category: "web",
       description:
-        "Website profesional untuk perusahaan dengan desain modern dan responsif.",
+        "Website profesional dengan desain modern dan UI responsif untuk branding bisnis.",
       image:
         "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1000&q=80",
       icon: "🏢",
@@ -39,108 +39,50 @@ export default function ProjectsSection() {
       title: "E-Commerce Platform",
       category: "web",
       description:
-        "Platform online shop lengkap dengan sistem pembayaran otomatis.",
+        "Sistem belanja online lengkap dengan pembayaran otomatis dan dashboard admin.",
       image:
         "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1000&q=80",
       icon: "🛒",
     },
     {
       id: 3,
-      title: "Custom Web Application",
-      category: "web",
-      description: "Aplikasi web custom sesuai kebutuhan bisnis Anda.",
-      image:
-        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=80",
-      icon: "⚙️",
-    },
-    {
-      id: 4,
-      title: "Android Apps",
-      category: "mobile",
-      description: "Aplikasi native Android dengan performa optimal.",
-      image:
-        "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1000&q=80",
-      icon: "🤖",
-    },
-    {
-      id: 5,
-      title: "iOS Apps",
-      category: "mobile",
-      description:
-        "Aplikasi iOS elegan dengan performa tinggi untuk Apple ecosystem.",
-      image:
-        "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=80",
-      icon: "🍎",
-    },
-    {
-      id: 6,
-      title: "Cross-Platform Apps",
-      category: "mobile",
-      description:
-        "Aplikasi berjalan di Android dan iOS hanya dengan satu codebase.",
-      image:
-        "https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=1000&q=80",
-      icon: "📲",
-    },
-    {
-      id: 7,
-      title: "Smart Home System",
-      category: "iot",
-      description:
-        "Sistem automasi rumah pintar dengan kontrol penuh dari smartphone.",
-      image:
-        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1000&q=80",
-      icon: "🏠",
-    },
-    {
-      id: 8,
-      title: "Industrial IoT",
-      category: "iot",
-      description:
-        "Solusi IoT industri untuk memantau dan mengontrol mesin produksi secara real-time.",
-      image:
-        "https://images.unsplash.com/photo-1581094801216-6c88e7e742cc?auto=format&fit=crop&w=1000&q=80",
-      icon: "🏭",
-    },
-    {
-      id: 9,
-      title: "Smart Agriculture",
-      category: "iot",
-      description:
-        "Sistem IoT untuk pertanian modern dengan pemantauan otomatis.",
-      image:
-        "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=1000&q=80",
-      icon: "🌱",
-    },
-    {
-      id: 10,
-      title: "Chatbot AI",
+      title: "AI Chatbot",
       category: "ai",
       description:
-        "Chatbot cerdas untuk layanan pelanggan otomatis 24 jam nonstop.",
+        "Chatbot cerdas yang dapat membantu pelanggan secara otomatis 24/7.",
       image:
         "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=1000&q=80",
       icon: "💬",
     },
     {
-      id: 11,
-      title: "Predictive Analytics",
+      id: 4,
+      title: "Smart Home IoT",
+      category: "iot",
+      description:
+        "Sistem rumah pintar yang dapat dikontrol dari smartphone dengan sensor otomatis.",
+      image:
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1000&q=80",
+      icon: "🏠",
+    },
+    {
+      id: 5,
+      title: "Cross Platform Apps",
+      category: "mobile",
+      description:
+        "Aplikasi multiplatform untuk Android dan iOS dengan satu codebase efisien.",
+      image:
+        "https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=1000&q=80",
+      icon: "📲",
+    },
+    {
+      id: 6,
+      title: "AI Predictive Analytics",
       category: "ai",
       description:
-        "Analisis prediktif untuk pengambilan keputusan berbasis data.",
+        "Analisis data cerdas berbasis AI untuk memprediksi tren dan keputusan bisnis.",
       image:
         "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
       icon: "📊",
-    },
-    {
-      id: 12,
-      title: "Computer Vision",
-      category: "ai",
-      description:
-        "Sistem pengenalan visual berbasis AI untuk automasi industri.",
-      image:
-        "https://images.unsplash.com/photo-1555255707-c07966088b7b?auto=format&fit=crop&w=1000&q=80",
-      icon: "👁️",
     },
   ];
 
@@ -153,40 +95,33 @@ export default function ProjectsSection() {
     ? filteredProjects
     : filteredProjects.slice(0, 6);
 
-  const getCategoryIcon = (categoryId: string) => {
-    const cat = categories.find((c) => c.id === categoryId);
-    return cat ? cat.icon : "🔹";
-  };
-
   return (
-    <section id="projects" className="relative py-20 scroll-mt-20">
-      {/* 🔵 Background Layer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-600 to-blue-500 -z-20"></div>
+    <section id="projects" className="relative py-20 overflow-hidden">
+      {/* Background Parallax */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-30 -z-10"
+        className="absolute inset-0 bg-fixed bg-center bg-cover opacity-25 -z-10"
         style={{
           backgroundImage: "url('/projects/projects1.png')",
-          filter: "blur(4px)",
         }}
       ></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-700 -z-20"></div>
 
-      {/* 🔹 Container */}
-      <div className="max-w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Container */}
+      <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16" data-aos="fade-up">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">
             Proyek & Solusi Digital
           </h1>
-          <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
-          <p className="text-xl text-white max-w-3xl mx-auto">
-            Profesional dalam mengembangkan proyek digital modern untuk bisnis
-            Anda.
+          <p className="text-blue-200 text-lg max-w-3xl mx-auto">
+            Kami mengembangkan berbagai proyek IT inovatif untuk membantu bisnis dan institusi berkembang di era digital.
           </p>
+          <div className="w-24 h-1 bg-white mx-auto mt-6"></div>
         </div>
 
         {/* Category Buttons */}
         <div
-          className="flex flex-wrap justify-center gap-5 mb-12"
+          className="flex flex-wrap justify-center gap-4 mb-12"
           data-aos="zoom-in"
         >
           {categories.map((cat) => (
@@ -196,70 +131,51 @@ export default function ProjectsSection() {
                 setActiveCategory(cat.id);
                 setShowAll(false);
               }}
-              className={`px-6 py-4 rounded-xl border-2 font-semibold transition-all duration-300 min-w-[130px]
+              className={`px-6 py-3 rounded-full border font-semibold transition-all duration-300 
                 ${
                   activeCategory === cat.id
                     ? "bg-white text-blue-700 border-white scale-105 shadow-md"
-                    : "bg-white/30 text-white border-white/40 hover:bg-white/50 hover:text-blue-700 hover:scale-105"
+                    : "bg-white/20 text-white border-white/40 hover:bg-white/40 hover:text-blue-700 hover:scale-105"
                 }`}
             >
-              <div className="text-2xl mb-1">{cat.icon}</div>
-              {cat.name}
+              {cat.icon} {cat.name}
             </button>
           ))}
         </div>
 
-        {/* Info Label */}
-        <div className="text-center mb-10" data-aos="fade-up">
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold border-2 bg-white/30 text-white border-white/40 backdrop-blur-md">
-            <span className="text-xl">{getCategoryIcon(activeCategory)}</span>
-            <span>
-              {activeCategory === "all" && "Menampilkan semua proyek"}
-              {activeCategory === "web" && "Web Development Projects"}
-              {activeCategory === "mobile" && "Mobile Application Projects"}
-              {activeCategory === "iot" && "Internet of Things Projects"}
-              {activeCategory === "ai" && "Artificial Intelligence Projects"}
-            </span>
-          </div>
-        </div>
-
         {/* Project Cards */}
-        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {displayedProjects.map((project, idx) => (
             <div
               key={project.id}
-              className="bg-white/20 backdrop-blur-xl rounded-xl border border-white/30 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden group"
+              className="bg-white/15 backdrop-blur-xl rounded-xl border border-white/20 overflow-hidden shadow-md hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500"
               data-aos="fade-up"
               data-aos-delay={idx * 100}
             >
-              {/* Image */}
-              <div className="relative h-52 overflow-hidden">
+              <div className="relative h-56">
                 <Image
                   src={project.image}
                   alt={project.title}
                   fill
                   sizes="100%"
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="object-cover hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow">
                   {project.icon} {project.category.toUpperCase()}
                 </div>
               </div>
 
-              {/* Content */}
               <div className="p-6">
-                <h3 className="text-xl font-bold text-white mb-3">
+                <h3 className="text-2xl font-bold text-white mb-2">
                   {project.title}
                 </h3>
-                <p className="text-white mb-4 leading-relaxed">
-                  {project.description}
-                </p>
+                <p className="text-blue-100 mb-4">{project.description}</p>
 
                 <Button
                   as={Link}
                   href={`/projects/${project.category}/${project.id}`}
                   color="blue"
-                  className="w-full font-bold py-3 rounded-lg bg-blue-700 hover:bg-blue-800 transition"
+                  className="w-full bg-blue-600 hover:bg-blue-700 font-semibold rounded-md transition-all"
                 >
                   Lihat Detail
                 </Button>
@@ -268,12 +184,12 @@ export default function ProjectsSection() {
           ))}
         </div>
 
-        {/* Show More / Less Button */}
+        {/* Show More / Less */}
         {filteredProjects.length > 6 && (
-          <div className="text-center mt-10" data-aos="fade-up">
+          <div className="text-center mt-12" data-aos="fade-up">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="px-8 py-3 rounded-full bg-white/30 text-white font-semibold border border-white/50 hover:bg-white hover:text-blue-700 transition duration-300"
+              className="px-8 py-3 rounded-full bg-white/20 text-white font-semibold border border-white/50 hover:bg-white hover:text-blue-700 transition duration-300"
             >
               {showAll ? "Tampilkan Lebih Sedikit ⬆️" : "Lihat Semua Proyek ⬇️"}
             </button>
