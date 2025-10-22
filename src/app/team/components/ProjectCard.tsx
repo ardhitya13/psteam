@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "flowbite-react";
 import Image from "next/image";
 import {
@@ -11,6 +11,16 @@ import {
 } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useLocale } from "../../context/LocaleContext"; // ✅ Tambah LocaleContext
+
+interface Translation {
+  title?: string;
+  advisor?: string;
+  program?: string;
+  education?: string;
+  specialization?: string;
+  website?: string;
+}
 
 const dosen = {
   name: "Swono Sibagariang, S.Kom., M.Kom",
@@ -76,6 +86,22 @@ const mahasiswa = [
 ];
 
 export default function TeamSection() {
+  const { locale } = useLocale(); // ✅ Ambil bahasa aktif
+  const [t, setT] = useState<Translation>({});
+
+  // ✅ Load file JSON sesuai bahasa
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        const module = await import(`../../locales/${locale}/team/projectcard.json`);
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan ProjectCard:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
   useEffect(() => {
     AOS.init({
       duration: 900,
@@ -91,7 +117,7 @@ export default function TeamSection() {
           data-aos="fade-up"
           className="text-4xl font-bold mb-10 text-blue-900 drop-shadow-sm"
         >
-          Tim Pengembang PSTEAM
+          {t.title || "Tim Pengembang PSTEAM"}
         </h2>
 
         {/* === Dosen Pembimbing === */}
@@ -108,7 +134,9 @@ export default function TeamSection() {
               <h3 className="text-xl font-semibold text-white">
                 {dosen.name}
               </h3>
-              <p className="text-blue-200 font-medium">{dosen.role}</p>
+              <p className="text-blue-200 font-medium">
+                {t.advisor || dosen.role}
+              </p>
 
               <p className="text-sm text-gray-200 mt-3">{dosen.email}</p>
 
@@ -117,25 +145,25 @@ export default function TeamSection() {
                 target="_blank"
                 className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 font-medium transition-colors"
               >
-                <FaGlobe /> Personal Website
+                <FaGlobe /> {t.website || "Personal Website"}
               </a>
 
               <div className="mt-4 text-gray-200 text-sm leading-relaxed text-left">
                 <p>
                   <span className="font-semibold text-blue-300">
-                    Program Studi:
+                    {t.program || "Program Studi"}:
                   </span>{" "}
                   {dosen.program}
                 </p>
                 <p>
                   <span className="font-semibold text-blue-300">
-                    Pendidikan:
+                    {t.education || "Pendidikan"}:
                   </span>{" "}
                   {dosen.education}
                 </p>
                 <p>
                   <span className="font-semibold text-blue-300">
-                    Spesialis:
+                    {t.specialization || "Spesialis"}:
                   </span>{" "}
                   {dosen.specialization}
                 </p>
@@ -187,7 +215,7 @@ export default function TeamSection() {
                   target="_blank"
                   className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 transition-colors"
                 >
-                  <FaGlobe /> Personal Website
+                  <FaGlobe /> {t.website || "Personal Website"}
                 </a>
 
                 <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">

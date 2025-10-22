@@ -1,0 +1,12 @@
+{
+  "title": "Proyek Penelitian",
+  "subtitle": "Jelajahi proyek penelitian terbaru kami di berbagai bidang teknologi.",
+  "button": "Lihat Detail",
+  "categories": [
+    { "id": "All", "name": "Semua Kategori", "icon": "🌐" },
+    { "id": "Web", "name": "Web", "icon": "💻" },
+    { "id": "Mobile", "name": "Mobile", "icon": "📱" },
+    { "id": "IoT", "name": "IoT", "icon": "🔗" },
+    { "id": "AI", "name": "AI", "icon": "🤖" }
+  ]
+}

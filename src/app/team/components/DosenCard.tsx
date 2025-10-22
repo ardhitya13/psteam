@@ -7,19 +7,45 @@ import {
   BsFacebook,
   BsInstagram,
 } from "react-icons/bs";
+import { useEffect, useState } from "react";
+import { useLocale } from "../../context/LocaleContext"; // ✅ Tambahkan LocaleContext
+
+interface Translation {
+  title?: string;
+  program?: string;
+  email?: string;
+  educationHistory?: string;
+  specialization?: string;
+}
 
 export default function DosenSection() {
+  const { locale } = useLocale(); // ✅ Ambil locale aktif
+  const [t, setT] = useState<Translation>({});
+
+  // ✅ Load JSON terjemahan sesuai bahasa aktif
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        const module = await import(`../../locales/${locale}/team/dosencard.json`);
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan DosenCard:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
   const dosenList = [
     {
       name: "Dr. Ari Wibowo, S.T., M.T.",
-      title: "Dosen",
+      title: t.title || "Dosen",
       prodi: "Teknologi Rekayasa Multimedia",
       pendidikan: "Doktor (S3) - Teknik Elektro Informatika, Institut Teknologi Bandung",
       email: "wibowo@polibatam.ac.id",
       riwayat: [
         "Sarjana (S1) Institut Teknologi Bandung - Teknik Informatika",
         "Magister (S2) Institut Teknologi Bandung - Informatika",
-        "Doktor (S3) Institut Teknologi Bandung - Teknik Elektro Informatika",
+        "Doktor (S3) Institut Teknologi Bandung - Teknik Elektro Informatika"
       ],
       spesialis: "AI, Computer Vision, Autonomous System",
       image: "/dosen/ari_wibowo.png",
@@ -27,18 +53,18 @@ export default function DosenSection() {
         github: "https://github.com/",
         linkedin: "https://linkedin.com/",
         facebook: "https://facebook.com/",
-        instagram: "https://instagram.com/",
-      },
+        instagram: "https://instagram.com/"
+      }
     },
     {
       name: "Swono Sibagariang, S.Kom., M.Kom",
-      title: "Dosen",
+      title: t.title || "Dosen",
       prodi: "Teknik Informatika",
       pendidikan: "Magister (S2) - Ilmu dan Teknologi, Universitas Sumatera Utara",
       email: "swono@polibatam.ac.id",
       riwayat: [
         "Sarjana (S1) Universitas Katolik Santo Thomas Sumatera Utara - Teknik Informatika",
-        "Magister (S2) Universitas Sumatera Utara - Ilmu dan Teknologi",
+        "Magister (S2) Universitas Sumatera Utara - Ilmu dan Teknologi"
       ],
       spesialis: "Software Development",
       image: "/dosen/swono_sibagariang.png",
@@ -46,16 +72,16 @@ export default function DosenSection() {
         github: "https://github.com/",
         linkedin: "https://linkedin.com/",
         facebook: "https://facebook.com/",
-        instagram: "https://instagram.com/",
-      },
-    },
+        instagram: "https://instagram.com/"
+      }
+    }
   ];
 
   return (
     <section className="py-12 bg-gray-50" id="dosen">
       <div className="max-w-6xl mx-auto px-6 text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-10">
-          Dosen Pembimbing
+          {t.title || "Dosen Pembimbing"}
         </h2>
         <div className="grid gap-8 md:grid-cols-2">
           {dosenList.map((dosen, index) => (
@@ -75,21 +101,21 @@ export default function DosenSection() {
                 <p className="text-sm text-gray-600 mb-2">{dosen.title}</p>
 
                 <p className="text-sm text-gray-700">
-                  <strong>Program Studi:</strong> {dosen.prodi}
+                  <strong>{t.program || "Program Studi"}:</strong> {dosen.prodi}
                 </p>
                 <p className="text-sm text-gray-700 mb-2">
-                  <strong>Email:</strong> {dosen.email}
+                  <strong>{t.email || "Email"}:</strong> {dosen.email}
                 </p>
 
                 <div className="text-left mt-3">
-                  <p className="font-semibold text-gray-800">Riwayat Pendidikan:</p>
+                  <p className="font-semibold text-gray-800">{t.educationHistory || "Riwayat Pendidikan"}:</p>
                   <ul className="list-disc list-inside text-sm text-gray-700">
                     {dosen.riwayat.map((edu, i) => (
                       <li key={i}>{edu}</li>
                     ))}
                   </ul>
                   <p className="mt-2 text-sm text-gray-700">
-                    <strong>Bidang Spesialis:</strong> {dosen.spesialis}
+                    <strong>{t.specialization || "Bidang Spesialis"}:</strong> {dosen.spesialis}
                   </p>
                 </div>
 

@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useLocale } from "../../context/LocaleContext"; // ✅ hanya 2 titik
 
-/* ==================== Data Langsung di Sini ==================== */
-
+/* ==================== Data Tetap (tidak diterjemahkan) ==================== */
 export type Project = {
   title: string;
   description: string;
@@ -29,8 +29,8 @@ const researchData: YearProjects[] = [
         description:
           "Chatbot AI untuk interaksi pintar dengan kemampuan natural language processing",
         image:
-          "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2066&q=80",
-        link: "#",
+          "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=2066&q=80",
+        link: "/research/ai-chatbot",
         category: "AI",
       },
       {
@@ -38,8 +38,8 @@ const researchData: YearProjects[] = [
         description:
           "Sistem rumah pintar dengan IoT untuk automasi dan kontrol perangkat",
         image:
-          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
+          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=2070&q=80",
+        link: "/research/iot-smart-home",
         category: "IoT",
       },
       {
@@ -47,8 +47,8 @@ const researchData: YearProjects[] = [
         description:
           "Aplikasi pembelajaran mobile interaktif dengan konten edukatif",
         image:
-          "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
+          "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=2070&q=80",
+        link: "/research/mobile-learning-app",
         category: "Mobile",
       },
       {
@@ -56,8 +56,8 @@ const researchData: YearProjects[] = [
         description:
           "Website profesional untuk perusahaan dengan desain modern",
         image:
-          "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
+          "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=2070&q=80",
+        link: "/research/company-website",
         category: "Web",
       },
     ],
@@ -70,25 +70,22 @@ const researchData: YearProjects[] = [
         description:
           "Website toko online profesional dengan sistem pembayaran lengkap",
         image:
-          "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+          "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=2070&q=80",
         link: "#",
         category: "Web",
       },
       {
         title: "VR Simulation",
-        description:
-          "Simulasi VR untuk training dan edukasi di berbagai industri",
-        image:
-          "/research/research2.png",
+        description: "Simulasi VR untuk training dan edukasi di berbagai industri",
+        image: "/research/research2.png",
         link: "#",
         category: "AI",
       },
       {
         title: "AI Recommendation System",
-        description:
-          "Sistem rekomendasi berbasis AI untuk personalisasi konten",
+        description: "Sistem rekomendasi berbasis AI untuk personalisasi konten",
         image:
-          "https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+          "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=2070&q=80",
         link: "#",
         category: "AI",
       },
@@ -97,101 +94,23 @@ const researchData: YearProjects[] = [
         description:
           "Aplikasi fitness dan kesehatan dengan tracking progress",
         image:
-          "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+          "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=2070&q=80",
         link: "#",
         category: "Mobile",
-      },
-    ],
-  },
-  {
-    year: 2023,
-    projects: [
-      {
-        title: "Company Profile Website",
-        description:
-          "Website profil perusahaan dengan portfolio dan informasi lengkap",
-        image:
-          "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2015&q=80",
-        link: "#",
-        category: "Web",
-      },
-      {
-        title: "Data Analytics Dashboard",
-        description:
-          "Dashboard analisis data real-time dengan visualisasi interaktif",
-        image:
-          "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
-        category: "AI",
-      },
-      {
-        title: "IoT Sensor Monitoring",
-        description:
-          "Monitoring sensor IoT untuk data lingkungan dan industri",
-        image:
-          "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
-        category: "IoT",
-      },
-      {
-        title: "Social Media Mobile App",
-        description:
-          "Aplikasi media sosial dengan fitur komunikasi real-time",
-        image:
-          "https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&auto=format&fit=crop&w=1974&q=80",
-        link: "#",
-        category: "Mobile",
-      },
-    ],
-  },
-  {
-    year: 2022,
-    projects: [
-      {
-        title: "Inventory Management System",
-        description:
-          "Sistem manajemen inventory dengan tracking dan reporting",
-        image:
-          "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
-        category: "Web",
-      },
-      {
-        title: "Smart Agriculture IoT",
-        description:
-          "Sistem IoT untuk monitoring dan automasi pertanian",
-        image:
-          "https://images.unsplash.com/photo-1592982537447-7448a3cfbcc1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
-        category: "IoT",
-      },
-      {
-        title: "Machine Learning Model",
-        description:
-          "Model machine learning untuk prediksi dan klasifikasi data",
-        image:
-          "https://images.unsplash.com/photo-1555255707-c07966088b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-        link: "#",
-        category: "AI",
       },
     ],
   },
 ];
 
-/* ==================== Komponen Asli (tidak diubah) ==================== */
+/* ==================== Komponen Utama ==================== */
 
-const categories = [
-  { id: "All", name: "Semua Kategori", icon: "🌐" },
-  { id: "Web", name: "Web", icon: "💻" },
-  { id: "Mobile", name: "Mobile", icon: "📱" },
-  { id: "IoT", name: "IoT", icon: "🔗" },
-  { id: "AI", name: "AI", icon: "🤖" },
-] as const;
-
-type CategoryType = typeof categories[number]["id"];
+type CategoryType = "All" | "AI" | "Mobile" | "IoT" | "Web";
 
 export default function ResearchSection() {
+  const { locale } = useLocale();
+  const [t, setT] = useState<any>({});
   const data = researchData;
+
   const [activeYear, setActiveYear] = useState<number>(data[0]?.year || 2025);
   const [activeCategory, setActiveCategory] = useState<CategoryType>("All");
 
@@ -199,15 +118,23 @@ export default function ResearchSection() {
     AOS.init({ duration: 1000, once: true, easing: "ease-in-out" });
   }, []);
 
+  // 🔁 Load data terjemahan
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        const module = await import(`../../locales/${locale}/research/researchsection.json`);
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan ResearchSection:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
   const activeData = data.find((y) => y.year === activeYear);
   const filteredProjects = activeData?.projects.filter(
     (p) => activeCategory === "All" || p.category === activeCategory
   );
-
-  const getCategoryIcon = (cat: string) => {
-    const found = categories.find((c) => c.id === cat);
-    return found ? found.icon : "🔹";
-  };
 
   return (
     <section className="relative py-20 scroll-mt-20">
@@ -225,11 +152,11 @@ export default function ResearchSection() {
         {/* Header */}
         <div className="text-center mb-16" data-aos="fade-up">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Research Projects {activeYear}
+            {t.title || `Research Projects ${activeYear}`}
           </h1>
           <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
           <p className="text-xl text-white max-w-3xl mx-auto">
-            Explore our latest research projects across different domains
+            {t.subtitle || "Explore our latest research projects across different domains"}
           </p>
         </div>
 
@@ -258,7 +185,7 @@ export default function ResearchSection() {
           className="flex flex-wrap justify-center gap-5 mb-12"
           data-aos="zoom-in"
         >
-          {categories.map((cat) => (
+          {t.categories?.map((cat: any) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
@@ -284,7 +211,6 @@ export default function ResearchSection() {
               data-aos="fade-up"
               data-aos-delay={idx * 100}
             >
-              {/* Image */}
               <div className="relative h-52 overflow-hidden">
                 <Image
                   src={project.image}
@@ -294,12 +220,10 @@ export default function ResearchSection() {
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow">
-                  {getCategoryIcon(project.category || "All")}{" "}
-                  {project.category || "All"}
+                  {project.category}
                 </div>
               </div>
 
-              {/* Content */}
               <div className="p-6">
                 <h3 className="text-xl font-bold text-white mb-3">
                   {project.title}
@@ -312,7 +236,7 @@ export default function ResearchSection() {
                   href={project.link}
                   className="inline-block w-full text-center font-bold py-3 rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition"
                 >
-                  Lihat Detail
+                  {t.button || "Lihat Detail"}
                 </a>
               </div>
             </div>

@@ -1,5 +1,6 @@
 "use client";
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { Card } from "flowbite-react";
 import Image from "next/image";
 import {
@@ -11,7 +12,9 @@ import {
 } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useLocale } from "../context/LocaleContext"; // ✅ Import context
 
+<<<<<<< HEAD
 const dosen = {
   name: "Ari Wibowo, S.T., M.T.",
   role: "Dosen Pembimbing",
@@ -74,8 +77,35 @@ const mahasiswa = [
     instagram: "https://www.instagram.com/frhanr20",
   },
 ];
+=======
+interface Translation {
+  title?: string;
+  advisorTitle?: string;
+  personalWebsite?: string;
+  program?: string;
+  education?: string;
+  specialization?: string;
+}
+>>>>>>> 1cea569 (pembaruan bagian research bisa suport translate id dan en untuk research dan ada penambahan researchdetail)
 
 export default function TeamSection() {
+  const { locale } = useLocale(); // ✅ Ambil locale dari context
+  const [t, setT] = useState<Translation>({});
+
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        // ✅ Load file JSON sesuai bahasa aktif
+        const module = await import(`../locales/${locale}/teamsection.json`);
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan TeamSection:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
+  // ✅ Inisialisasi animasi
   useEffect(() => {
     AOS.init({
       duration: 900,
@@ -84,6 +114,69 @@ export default function TeamSection() {
     });
   }, []);
 
+  // === Data tetap, tidak diterjemahkan ===
+  const dosen = {
+    name: "Ari Wibowo, S.T., M.T.",
+    role: t.advisorTitle || "Dosen Pembimbing",
+    image: "/team/ari_wibowo.png",
+    email: "ari.wibowo@polibatam.ac.id",
+    website: "https://ariwibowo.my.id",
+    program: "Teknologi Rekayasa Multimedia",
+    education: "Doktor (S3)",
+    specialization: "AI, Computer Vision, Autonomous System",
+    github: "#",
+    linkedin: "#",
+    facebook: "#",
+    instagram: "#",
+  };
+
+  const mahasiswa = [
+    {
+      name: "Ardhitya Danur Siswondo",
+      role: "Full Stack Developer",
+      image: "/team/mahasiswa1.png",
+      email: "ardhityasiswondo@gmail.com",
+      website: "https://github.com/ardhitya13",
+      github: "https://github.com/ardhitya13",
+      linkedin: "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
+      facebook: "https://www.facebook.com/ardhitya.siswondo.3/",
+      instagram: "https://www.instagram.com/ardhitya__/",
+    },
+    {
+      name: "Arifah Husaini",
+      role: "UI/UX Designer",
+      image: "/team/mahasiswa2.png",
+      email: "arifah@example.com",
+      website: "#",
+      github: "#",
+      linkedin: "#",
+      facebook: "#",
+      instagram: "#",
+    },
+    {
+      name: "Anggun Salsa Faradita",
+      role: "UI/UX Designer",
+      image: "/team/mahasiswa3.png",
+      email: "anggun@example.com",
+      website: "#",
+      github: "https://github.com/anggun07",
+      linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
+      facebook: "https://www.facebook.com/share/169XkGzGJo/",
+      instagram: "https://www.instagram.com/anggunslsa_",
+    },
+    {
+      name: "Farhan",
+      role: "Backend Developer",
+      image: "/team/mahasiswa4.png",
+      email: "farhan@example.com",
+      website: "#",
+      github: "https://github.com/farhanrasyid20",
+      linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
+      facebook: "#",
+      instagram: "https://www.instagram.com/frhanr20",
+    },
+  ];
+
   return (
     <section id="team" className="py-20 bg-white text-gray-800">
       <div className="max-w-7xl mx-auto text-center px-6">
@@ -91,7 +184,7 @@ export default function TeamSection() {
           data-aos="fade-up"
           className="text-4xl font-bold mb-10 text-blue-900 drop-shadow-sm"
         >
-          Tim Pengembang PSTEAM
+          {t.title || "Tim Pengembang PSTEAM"}
         </h2>
 
         {/* === Dosen Pembimbing === */}
@@ -116,43 +209,35 @@ export default function TeamSection() {
                 target="_blank"
                 className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 font-medium transition-colors"
               >
-                <FaGlobe /> Personal Website
+                <FaGlobe /> {t.personalWebsite || "Personal Website"}
               </a>
 
               <div className="mt-4 text-gray-200 text-sm leading-relaxed text-left">
                 <p>
                   <span className="font-semibold text-blue-300">
-                    Program Studi:
+                    {t.program || "Program Studi"}:
                   </span>{" "}
                   {dosen.program}
                 </p>
                 <p>
                   <span className="font-semibold text-blue-300">
-                    Pendidikan:
+                    {t.education || "Pendidikan"}:
                   </span>{" "}
                   {dosen.education}
                 </p>
                 <p>
                   <span className="font-semibold text-blue-300">
-                    Spesialis:
+                    {t.specialization || "Spesialis"}:
                   </span>{" "}
                   {dosen.specialization}
                 </p>
               </div>
 
               <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">
-                <a href={dosen.github} target="_blank">
-                  <FaGithub />
-                </a>
-                <a href={dosen.linkedin} target="_blank">
-                  <FaLinkedin />
-                </a>
-                <a href={dosen.facebook} target="_blank">
-                  <FaFacebook />
-                </a>
-                <a href={dosen.instagram} target="_blank">
-                  <FaInstagram />
-                </a>
+                <a href={dosen.github} target="_blank"><FaGithub /></a>
+                <a href={dosen.linkedin} target="_blank"><FaLinkedin /></a>
+                <a href={dosen.facebook} target="_blank"><FaFacebook /></a>
+                <a href={dosen.instagram} target="_blank"><FaInstagram /></a>
               </div>
             </div>
           </Card>
@@ -175,9 +260,7 @@ export default function TeamSection() {
                   height={140}
                   className="rounded-full mb-3 object-cover aspect-square border-4 border-blue-400 shadow-md"
                 />
-                <h3 className="text-lg font-semibold text-white">
-                  {member.name}
-                </h3>
+                <h3 className="text-lg font-semibold text-white">{member.name}</h3>
                 <p className="text-blue-200">{member.role}</p>
                 <p className="text-sm text-gray-200 mt-2">{member.email}</p>
 
@@ -186,22 +269,14 @@ export default function TeamSection() {
                   target="_blank"
                   className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 transition-colors"
                 >
-                  <FaGlobe /> Personal Website
+                  <FaGlobe /> {t.personalWebsite || "Personal Website"}
                 </a>
 
                 <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">
-                  <a href={member.github} target="_blank">
-                    <FaGithub />
-                  </a>
-                  <a href={member.linkedin} target="_blank">
-                    <FaLinkedin />
-                  </a>
-                  <a href={member.facebook} target="_blank">
-                    <FaFacebook />
-                  </a>
-                  <a href={member.instagram} target="_blank">
-                    <FaInstagram />
-                  </a>
+                  <a href={member.github} target="_blank"><FaGithub /></a>
+                  <a href={member.linkedin} target="_blank"><FaLinkedin /></a>
+                  <a href={member.facebook} target="_blank"><FaFacebook /></a>
+                  <a href={member.instagram} target="_blank"><FaInstagram /></a>
                 </div>
               </div>
             </Card>

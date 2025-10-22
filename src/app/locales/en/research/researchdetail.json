@@ -1,0 +1,11 @@
+{
+  "research": "Research",
+  "back": "Back",
+  "backToResearch": "Back to Research",
+  "pdfTitle": "📄 Research Report (PDF)",
+  "pdfError": "❌ Failed to load or find PDF file.",
+  "noPdf": "No PDF file available for this project.",
+  "noData": "⚠️ Research data not found.",
+  "noDescription": "This research description is not yet available.",
+  "defaultDate": "October 22, 2025"
+}

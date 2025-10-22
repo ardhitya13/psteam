@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useLocale } from "../context/LocaleContext"; // pakai context
+import { useLocale } from "../context/LocaleContext";
 
 export default function NavBar() {
   const [hidden, setHidden] = useState(false);
@@ -13,17 +13,17 @@ export default function NavBar() {
   const [langOpen, setLangOpen] = useState(false);
   const pathname = usePathname();
 
-  const { locale, setLocale } = useLocale(); // pakai context
+  const { locale, setLocale } = useLocale();
   const [t, setT] = useState<{ [key: string]: string }>({});
 
-  // Load file JSON sesuai bahasa
+  // Load JSON bahasa
   useEffect(() => {
     import(`../locales/${locale}/navbar.json`)
       .then((res) => setT(res.default || res))
       .catch((err) => console.error("Gagal memuat terjemahan navbar:", err));
   }, [locale]);
 
-  // Navbar sembunyi saat scroll
+  // Navbar hide saat scroll
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY;
@@ -35,7 +35,7 @@ export default function NavBar() {
   }, [lastScrollY]);
 
   const handleChangeLocale = (lang: string) => {
-    setLocale(lang); // update context
+    setLocale(lang);
     setLangOpen(false);
   };
 
@@ -56,8 +56,8 @@ export default function NavBar() {
       }`}
     >
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+        {/* LOGO */}
+        <Link href="/" className="flex items-center space-x-3">
           <Image
             src="/logopsteam4.png"
             alt="PSTeam Logo"
@@ -67,10 +67,13 @@ export default function NavBar() {
           />
         </Link>
 
-        {/* Tombol kanan */}
+        {/* KANAN: tombol masuk, bahasa, hamburger */}
         <div className="flex items-center space-x-4 md:order-2 relative">
           {/* Tombol Masuk */}
-          <Link href="/login" className="text-white bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold">
+          <Link
+            href="/login"
+            className="text-white bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg font-semibold hidden sm:block"
+          >
             {t.masuk || "Masuk"}
           </Link>
 
@@ -94,42 +97,108 @@ export default function NavBar() {
                 <button
                   onClick={() => handleChangeLocale("id")}
                   className={`flex items-center w-full px-3 py-2 text-sm ${
-                    locale === "id" ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-800 hover:bg-blue-50"
+                    locale === "id"
+                      ? "bg-blue-100 text-blue-700 font-semibold"
+                      : "text-gray-800 hover:bg-blue-50"
                   }`}
                 >
-                  <Image src="/flags/id.png" alt="Bendera Indonesia" width={20} height={20} className="mr-2" />
+                  <Image
+                    src="/flags/id.png"
+                    alt="Bendera Indonesia"
+                    width={20}
+                    height={20}
+                    className="mr-2"
+                  />
                   Indonesia
                 </button>
                 <button
                   onClick={() => handleChangeLocale("en")}
                   className={`flex items-center w-full px-3 py-2 text-sm ${
-                    locale === "en" ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-800 hover:bg-blue-50"
+                    locale === "en"
+                      ? "bg-blue-100 text-blue-700 font-semibold"
+                      : "text-gray-800 hover:bg-blue-50"
                   }`}
                 >
-                  <Image src="/flags/en.png" alt="Bendera Inggris" width={20} height={20} className="mr-2" />
+                  <Image
+                    src="/flags/en.png"
+                    alt="Bendera Inggris"
+                    width={20}
+                    height={20}
+                    className="mr-2"
+                  />
                   English
                 </button>
               </div>
             )}
           </div>
+
+          {/* Tombol Hamburger (Mobile) */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="inline-flex items-center p-2 w-10 h-10 justify-center text-gray-800 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none"
+          >
+            <svg
+              className="w-6 h-6"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 17 14"
+            >
+              {menuOpen ? (
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M1 1l15 12M16 1L1 13"
+                />
+              ) : (
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M1 1h15M1 7h15M1 13h15"
+                />
+              )}
+            </svg>
+          </button>
         </div>
 
-        {/* Menu Navigasi */}
-        <div className={`items-center justify-between w-full md:flex md:w-auto md:order-1 ${menuOpen ? "block" : "hidden"}`}>
-          <ul className="flex flex-col p-4 md:p-0 mt-4 font-semibold text-lg md:flex-row md:space-x-10">
+        {/* MENU NAVIGASI */}
+        <div
+          className={`w-full md:flex md:w-auto md:order-1 transition-all duration-300 ease-in-out ${
+            menuOpen
+              ? "block animate-fadeIn"
+              : "hidden md:block"
+          }`}
+        >
+          <ul className="flex flex-col p-4 mt-4 font-semibold text-lg md:flex-row md:space-x-10 md:mt-0 md:p-0 bg-white md:bg-transparent rounded-lg">
             {menuItems.map((item) => (
               <li key={item.name}>
                 <Link
                   href={item.path}
                   onClick={() => setMenuOpen(false)}
                   className={`block py-2 px-3 md:p-0 ${
-                    pathname === item.path ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-800 hover:text-blue-600"
+                    pathname === item.path
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-800 hover:text-blue-600"
                   }`}
                 >
                   {item.name}
                 </Link>
               </li>
             ))}
+            {/* Tombol Masuk (muncul di mobile) */}
+            <li className="md:hidden mt-2">
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="block text-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold"
+              >
+                {t.masuk || "Masuk"}
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

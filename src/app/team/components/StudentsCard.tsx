@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   BsGithub,
@@ -11,8 +11,31 @@ import {
 import { FaGlobe } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useLocale } from "../../context/LocaleContext"; // ✅ Tambahkan Locale Context
 
-export default function MahasiswaSection() {
+interface Translation {
+  title?: string;
+  role?: string;
+}
+
+export default function StudentsCard() {
+  const { locale } = useLocale(); // ✅ Ambil locale aktif
+  const [t, setT] = useState<Translation>({});
+
+  // ✅ Load JSON sesuai locale (pakai dua titik seperti kamu minta)
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        const module = await import(`../../locales/${locale}/team/studentscard.json`);
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan StudentsCard:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
+  // ✅ Inisialisasi animasi AOS
   useEffect(() => {
     AOS.init({
       duration: 800,
@@ -24,29 +47,29 @@ export default function MahasiswaSection() {
   const mahasiswaList = [
     {
       name: "Ardhitya Danur Siswondo",
-      role: "Production Team of PSTeam",
+      role: t.role || "Production Team of PSTeam",
       email: "ardhityasiswondo@gmail.com",
       image: "/team/mahasiswa1.png",
       github: "https://github.com/ardhitya13",
-      linkedin:
-        "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
+      linkedin: "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
       facebook: "https://www.facebook.com/ardhitya.siswondo.3/",
       instagram: "https://www.instagram.com/ardhitya__/",
-      website: "https://ardhitya13.github.io/",
+      website: "https://ardhitya13.github.io/"
     },
     {
       name: "Arifah Husaini",
-      role: "Production Team of PSTeam",
+      role: t.role || "Production Team of PSTeam",
       email: "arifah@example.com",
       image: "/team/mahasiswa2.png",
       github: "#",
       linkedin: "#",
       facebook: "#",
       instagram: "#",
-      website: "#",
+      website: "#"
     },
     {
       name: "Anggun Salsa Faradita",
+<<<<<<< HEAD
       role: "Production Team of PSTeam",
       email: "anggunsalsa2807@gmail.com",
       image: "/team/mahasiswa3.png",
@@ -55,18 +78,34 @@ export default function MahasiswaSection() {
       facebook: "https://www.facebook.com/share/169XkGzGJo/",
       instagram: "https://www.instagram.com/anggunslsa_",
       website: "#",
+=======
+      role: t.role || "Production Team of PSTeam",
+      email: "anggun@example.com",
+      image: "/team/mahasiswa3.png",
+      github: "#",
+      linkedin: "#",
+      facebook: "#",
+      instagram: "#",
+      website: "#"
+>>>>>>> 1cea569 (pembaruan bagian research bisa suport translate id dan en untuk research dan ada penambahan researchdetail)
     },
     {
       name: "Farhan",
-      role: "Production Team of PSTeam",
+      role: t.role || "Production Team of PSTeam",
       email: "farhan@example.com",
       image: "/team/mahasiswa4.png",
       github: "https://github.com/farhanrasyid20",
       linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
       facebook: "#",
+<<<<<<< HEAD
       instagram: "https://www.instagram.com/frhanr20",
       website: "#",
     },
+=======
+      instagram: "#",
+      website: "#"
+    }
+>>>>>>> 1cea569 (pembaruan bagian research bisa suport translate id dan en untuk research dan ada penambahan researchdetail)
   ];
 
   return (
@@ -80,7 +119,7 @@ export default function MahasiswaSection() {
           data-aos="fade-up"
           className="text-4xl font-bold text-white mb-10 drop-shadow-lg"
         >
-          Mahasiswa PSTeam
+          {t.title || "Mahasiswa PSTeam"}
         </h2>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -115,39 +154,19 @@ export default function MahasiswaSection() {
 
                 {/* Ikon Sosial Media */}
                 <div className="flex gap-4 text-gray-700 mt-2">
-                  <a
-                    href={mhs.github}
-                    target="_blank"
-                    className="hover:text-black transition-colors"
-                  >
+                  <a href={mhs.github} target="_blank" className="hover:text-black transition-colors">
                     <BsGithub size={20} />
                   </a>
-                  <a
-                    href={mhs.linkedin}
-                    target="_blank"
-                    className="hover:text-blue-700 transition-colors"
-                  >
+                  <a href={mhs.linkedin} target="_blank" className="hover:text-blue-700 transition-colors">
                     <BsLinkedin size={20} />
                   </a>
-                  <a
-                    href={mhs.facebook}
-                    target="_blank"
-                    className="hover:text-blue-600 transition-colors"
-                  >
+                  <a href={mhs.facebook} target="_blank" className="hover:text-blue-600 transition-colors">
                     <BsFacebook size={20} />
                   </a>
-                  <a
-                    href={mhs.instagram}
-                    target="_blank"
-                    className="hover:text-pink-600 transition-colors"
-                  >
+                  <a href={mhs.instagram} target="_blank" className="hover:text-pink-600 transition-colors">
                     <BsInstagram size={20} />
                   </a>
-                  <a
-                    href={mhs.website}
-                    target="_blank"
-                    className="hover:text-green-700 transition-colors"
-                  >
+                  <a href={mhs.website} target="_blank" className="hover:text-green-700 transition-colors">
                     <FaGlobe size={20} />
                   </a>
                 </div>

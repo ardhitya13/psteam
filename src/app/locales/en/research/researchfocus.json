@@ -1,0 +1,21 @@
+{
+  "title": "Research Focus",
+  "focuses": [
+    {
+      "title": "Web Development",
+      "desc": "Building scalable and maintainable web applications using modern frameworks such as Next.js and Laravel."
+    },
+    {
+      "title": "Mobile Applications",
+      "desc": "Creating interactive and responsive user experiences using cross-platform technologies like React Native and Flutter."
+    },
+    {
+      "title": "Artificial Intelligence (AI)",
+      "desc": "Integrating artificial intelligence into software systems to deliver smarter and more adaptive functionality."
+    },
+    {
+      "title": "Internet of Things (IoT)",
+      "desc": "Developing interconnected systems for automation, monitoring, and real-time data processing."
+    }
+  ]
+}

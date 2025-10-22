@@ -1,0 +1,12 @@
+{
+  "title": "Research Projects",
+  "subtitle": "Explore our latest research projects across various technology domains.",
+  "button": "View Details",
+  "categories": [
+    { "id": "All", "name": "All Categories", "icon": "🌐" },
+    { "id": "Web", "name": "Web", "icon": "💻" },
+    { "id": "Mobile", "name": "Mobile", "icon": "📱" },
+    { "id": "IoT", "name": "IoT", "icon": "🔗" },
+    { "id": "AI", "name": "AI", "icon": "🤖" }
+  ]
+}
