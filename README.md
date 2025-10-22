@@ -1,3 +1,21 @@
+# PSTEAM Project - Next.js Website
+
+This project is developed by **Team PSTEAM** as part of the coursework for **IF MALAM 3A - Web Programming**  
+**Program Studi: D3 Teknik Informatika - Politeknik Negeri Batam**
+
+---
+
+## 👥 Team Members
+
+| No | Name                     | NIM         | Study Program         |
+|----|--------------------------|--------------|------------------------|
+| 1  | Arifah Husaini           | 3312411097  | Teknik Informatika     |
+| 2  | Anggun Salsa Faradita    | 3312411102  | Teknik Informatika     |
+| 3  | Ardhitya Danur Siswondo  | 3312411099  | Teknik Informatika     |
+| 4  | Farhan Rasyid            | 3312411075  | Teknik Informatika     |
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
