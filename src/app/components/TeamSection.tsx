@@ -1,285 +1,160 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card } from "flowbite-react";
 import Image from "next/image";
 import {
-  FaGithub,
-  FaLinkedin,
-  FaFacebook,
-  FaInstagram,
-  FaGlobe,
-} from "react-icons/fa";
+  BsGithub,
+  BsLinkedin,
+  BsFacebook,
+  BsInstagram,
+} from "react-icons/bs";
+import { FaGlobe } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useLocale } from "../context/LocaleContext"; // ✅ Import context
+import { useLocale } from "../context/LocaleContext"; // ✅ Tambahkan Locale Context
 
-<<<<<<< HEAD
-const dosen = {
-  name: "Ari Wibowo, S.T., M.T.",
-  role: "Dosen Pembimbing",
-  image: "/team/ari_wibowo.png",
-  email: "ari.wibowo@polibatam.ac.id",
-  website: "https://ariwibowo.my.id",
-  program: "Teknologi Rekayasa Multimedia",
-  education: "Doktor (S3)",
-  specialization: "AI, Computer Vision, Autonomous System",
-  github: "#",
-  linkedin: "#",
-  facebook: "#",
-  instagram: "#",
-};
-
-const mahasiswa = [
-  {
-    name: "Ardhitya Danur Siswondo",
-    role: "Full Stack Developer",
-    image: "/team/mahasiswa1.png",
-    email: "ardhityasiswondo@gmail.com",
-    website: "https://github.com/ardhitya13",
-    github: "https://github.com/ardhitya13",
-    linkedin:
-      "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
-    facebook: "https://www.facebook.com/ardhitya.siswondo.3/",
-    instagram: "https://www.instagram.com/ardhitya__/",
-  },
-  {
-    name: "Arifah Husaini",
-    role: "UI/UX Designer",
-    image: "/team/mahasiswa2.png",
-    email: "arifah@example.com",
-    website: "#",
-    github: "#",
-    linkedin: "#",
-    facebook: "#",
-    instagram: "#",
-  },
-  {
-    name: "Anggun Salsa Faradita",
-    role: "UI/UX Designer",
-    image: "/team/mahasiswa3.png",
-    email: "anggunsalsa2807@gmail.com",
-    website: "#",
-    github: "https://github.com/anggun07",
-    linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
-    facebook: "https://www.facebook.com/share/169XkGzGJo/",
-    instagram: "https://www.instagram.com/anggunslsa_",
-  },
-  {
-    name: "Farhan",
-    role: "Backend Developer",
-    image: "/team/mahasiswa4.png",
-    email: "farhan@example.com",
-    website: "#",
-    github: "https://github.com/farhanrasyid20",
-    linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
-    facebook: "#",
-    instagram: "https://www.instagram.com/frhanr20",
-  },
-];
-=======
 interface Translation {
   title?: string;
-  advisorTitle?: string;
-  personalWebsite?: string;
-  program?: string;
-  education?: string;
-  specialization?: string;
+  role?: string;
 }
->>>>>>> 1cea569 (pembaruan bagian research bisa suport translate id dan en untuk research dan ada penambahan researchdetail)
 
-export default function TeamSection() {
-  const { locale } = useLocale(); // ✅ Ambil locale dari context
+export default function StudentsCard() {
+  const { locale } = useLocale(); // ✅ Ambil locale aktif
   const [t, setT] = useState<Translation>({});
 
+  // ✅ Load JSON sesuai locale
   useEffect(() => {
     const loadLocale = async () => {
       try {
-        // ✅ Load file JSON sesuai bahasa aktif
-        const module = await import(`../locales/${locale}/teamsection.json`);
+        const module = await import(`../../locales/${locale}/team/studentscard.json`);
         setT(module.default || module);
       } catch (err) {
-        console.error("Gagal memuat terjemahan TeamSection:", err);
+        console.error("Gagal memuat terjemahan StudentsCard:", err);
       }
     };
     loadLocale();
   }, [locale]);
 
-  // ✅ Inisialisasi animasi
+  // ✅ Inisialisasi animasi AOS
   useEffect(() => {
     AOS.init({
-      duration: 900,
+      duration: 800,
       once: false,
-      offset: 120,
+      offset: 100,
     });
   }, []);
 
-  // === Data tetap, tidak diterjemahkan ===
-  const dosen = {
-    name: "Ari Wibowo, S.T., M.T.",
-    role: t.advisorTitle || "Dosen Pembimbing",
-    image: "/team/ari_wibowo.png",
-    email: "ari.wibowo@polibatam.ac.id",
-    website: "https://ariwibowo.my.id",
-    program: "Teknologi Rekayasa Multimedia",
-    education: "Doktor (S3)",
-    specialization: "AI, Computer Vision, Autonomous System",
-    github: "#",
-    linkedin: "#",
-    facebook: "#",
-    instagram: "#",
-  };
-
-  const mahasiswa = [
+  const mahasiswaList = [
     {
       name: "Ardhitya Danur Siswondo",
-      role: "Full Stack Developer",
-      image: "/team/mahasiswa1.png",
+      role: t.role || "Production Team of PSTeam",
       email: "ardhityasiswondo@gmail.com",
-      website: "https://github.com/ardhitya13",
+      image: "/team/mahasiswa1.png",
       github: "https://github.com/ardhitya13",
       linkedin: "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
       facebook: "https://www.facebook.com/ardhitya.siswondo.3/",
       instagram: "https://www.instagram.com/ardhitya__/",
+      website: "https://ardhitya13.github.io/"
     },
     {
       name: "Arifah Husaini",
-      role: "UI/UX Designer",
-      image: "/team/mahasiswa2.png",
+      role: t.role || "Production Team of PSTeam",
       email: "arifah@example.com",
-      website: "#",
+      image: "/team/mahasiswa2.png",
       github: "#",
       linkedin: "#",
       facebook: "#",
       instagram: "#",
+      website: "#"
     },
     {
       name: "Anggun Salsa Faradita",
-      role: "UI/UX Designer",
+      role: t.role || "Production Team of PSTeam",
+      email: "anggunsalsa2807@gmail.com",
       image: "/team/mahasiswa3.png",
-      email: "anggun@example.com",
-      website: "#",
       github: "https://github.com/anggun07",
       linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
       facebook: "https://www.facebook.com/share/169XkGzGJo/",
       instagram: "https://www.instagram.com/anggunslsa_",
+      website: "#"
     },
     {
       name: "Farhan",
-      role: "Backend Developer",
-      image: "/team/mahasiswa4.png",
+      role: t.role || "Production Team of PSTeam",
       email: "farhan@example.com",
-      website: "#",
+      image: "/team/mahasiswa4.png",
       github: "https://github.com/farhanrasyid20",
       linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
       facebook: "#",
       instagram: "https://www.instagram.com/frhanr20",
+      website: "#"
     },
   ];
 
   return (
-    <section id="team" className="py-20 bg-white text-gray-800">
-      <div className="max-w-7xl mx-auto text-center px-6">
+    <section
+      className="py-16 px-6 text-center"
+      id="mahasiswa"
+      style={{ backgroundColor: "#57c9e8" }}
+    >
+      <div className="max-w-7xl mx-auto">
         <h2
           data-aos="fade-up"
-          className="text-4xl font-bold mb-10 text-blue-900 drop-shadow-sm"
+          className="text-4xl font-bold text-white mb-10 drop-shadow-lg"
         >
-          {t.title || "Tim Pengembang PSTEAM"}
+          {t.title || "Mahasiswa PSTeam"}
         </h2>
 
-        {/* === Dosen Pembimbing === */}
-        <div data-aos="zoom-in" className="flex justify-center mb-16">
-          <Card className="p-6 bg-blue-900/80 text-white shadow-xl hover:shadow-2xl w-80 transition-transform duration-300 hover:scale-105 rounded-2xl border border-blue-400/40 backdrop-blur-sm">
-            <div className="flex flex-col items-center text-center">
-              <Image
-                src={dosen.image}
-                alt={dosen.name}
-                width={160}
-                height={160}
-                className="rounded-full mb-4 object-cover aspect-square border-4 border-blue-400 shadow-md"
-              />
-              <h3 className="text-xl font-semibold text-white">
-                {dosen.name}
-              </h3>
-              <p className="text-blue-200 font-medium">{dosen.role}</p>
-              <p className="text-sm text-gray-200 mt-3">{dosen.email}</p>
-
-              <a
-                href={dosen.website}
-                target="_blank"
-                className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 font-medium transition-colors"
-              >
-                <FaGlobe /> {t.personalWebsite || "Personal Website"}
-              </a>
-
-              <div className="mt-4 text-gray-200 text-sm leading-relaxed text-left">
-                <p>
-                  <span className="font-semibold text-blue-300">
-                    {t.program || "Program Studi"}:
-                  </span>{" "}
-                  {dosen.program}
-                </p>
-                <p>
-                  <span className="font-semibold text-blue-300">
-                    {t.education || "Pendidikan"}:
-                  </span>{" "}
-                  {dosen.education}
-                </p>
-                <p>
-                  <span className="font-semibold text-blue-300">
-                    {t.specialization || "Spesialis"}:
-                  </span>{" "}
-                  {dosen.specialization}
-                </p>
-              </div>
-
-              <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">
-                <a href={dosen.github} target="_blank"><FaGithub /></a>
-                <a href={dosen.linkedin} target="_blank"><FaLinkedin /></a>
-                <a href={dosen.facebook} target="_blank"><FaFacebook /></a>
-                <a href={dosen.instagram} target="_blank"><FaInstagram /></a>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* === Mahasiswa === */}
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {mahasiswa.map((member, index) => (
-            <Card
+          {mahasiswaList.map((mhs, index) => (
+            <div
               key={index}
               data-aos="fade-up"
               data-aos-delay={index * 150}
-              className="p-5 bg-blue-900/80 text-white shadow-lg hover:shadow-2xl transition-transform duration-300 hover:scale-105 rounded-2xl border border-blue-400/40 backdrop-blur-sm"
+              className="bg-white/90 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="flex flex-col items-center text-center">
-                <Image
-                  src={member.image}
-                  alt={member.name}
-                  width={140}
-                  height={140}
-                  className="rounded-full mb-3 object-cover aspect-square border-4 border-blue-400 shadow-md"
-                />
-                <h3 className="text-lg font-semibold text-white">{member.name}</h3>
-                <p className="text-blue-200">{member.role}</p>
-                <p className="text-sm text-gray-200 mt-2">{member.email}</p>
+              <div className="flex flex-col items-center">
+                <div className="w-36 h-36 mb-4 overflow-hidden rounded-full border-4 border-white shadow-md">
+                  <Image
+                    src={mhs.image}
+                    alt={mhs.name}
+                    width={150}
+                    height={150}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
 
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {mhs.name}
+                </h3>
+                <p className="text-sm text-gray-700">{mhs.role}</p>
                 <a
-                  href={member.website}
-                  target="_blank"
-                  className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 transition-colors"
+                  href={`mailto:${mhs.email}`}
+                  className="text-sm text-gray-500 mb-3 hover:text-blue-700 transition"
                 >
-                  <FaGlobe /> {t.personalWebsite || "Personal Website"}
+                  {mhs.email}
                 </a>
 
-                <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">
-                  <a href={member.github} target="_blank"><FaGithub /></a>
-                  <a href={member.linkedin} target="_blank"><FaLinkedin /></a>
-                  <a href={member.facebook} target="_blank"><FaFacebook /></a>
-                  <a href={member.instagram} target="_blank"><FaInstagram /></a>
+                {/* Ikon Sosial Media */}
+                <div className="flex gap-4 text-gray-700 mt-2">
+                  <a href={mhs.github} target="_blank" className="hover:text-black transition-colors">
+                    <BsGithub size={20} />
+                  </a>
+                  <a href={mhs.linkedin} target="_blank" className="hover:text-blue-700 transition-colors">
+                    <BsLinkedin size={20} />
+                  </a>
+                  <a href={mhs.facebook} target="_blank" className="hover:text-blue-600 transition-colors">
+                    <BsFacebook size={20} />
+                  </a>
+                  <a href={mhs.instagram} target="_blank" className="hover:text-pink-600 transition-colors">
+                    <BsInstagram size={20} />
+                  </a>
+                  <a href={mhs.website} target="_blank" className="hover:text-green-700 transition-colors">
+                    <FaGlobe size={20} />
+                  </a>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>

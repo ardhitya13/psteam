@@ -2,16 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import {
-  BsGithub,
-  BsLinkedin,
-  BsFacebook,
-  BsInstagram,
-} from "react-icons/bs";
+import { BsGithub, BsLinkedin, BsFacebook, BsInstagram } from "react-icons/bs";
 import { FaGlobe } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useLocale } from "../../context/LocaleContext"; // ✅ Tambahkan Locale Context
+import { useLocale } from "../../context/LocaleContext";
 
 interface Translation {
   title?: string;
@@ -19,23 +14,21 @@ interface Translation {
 }
 
 export default function StudentsCard() {
-  const { locale } = useLocale(); // ✅ Ambil locale aktif
+  const { locale } = useLocale();
   const [t, setT] = useState<Translation>({});
 
-  // ✅ Load JSON sesuai locale (pakai dua titik seperti kamu minta)
   useEffect(() => {
     const loadLocale = async () => {
       try {
         const module = await import(`../../locales/${locale}/team/studentscard.json`);
         setT(module.default || module);
       } catch (err) {
-        console.error("Gagal memuat terjemahan StudentsCard:", err);
+        console.error("❌ Gagal memuat terjemahan StudentsCard:", err);
       }
     };
     loadLocale();
   }, [locale]);
 
-  // ✅ Inisialisasi animasi AOS
   useEffect(() => {
     AOS.init({
       duration: 800,
@@ -69,25 +62,14 @@ export default function StudentsCard() {
     },
     {
       name: "Anggun Salsa Faradita",
-<<<<<<< HEAD
-      role: "Production Team of PSTeam",
+      role: t.role || "Production Team of PSTeam",
       email: "anggunsalsa2807@gmail.com",
       image: "/team/mahasiswa3.png",
       github: "https://github.com/anggun07",
       linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
       facebook: "https://www.facebook.com/share/169XkGzGJo/",
       instagram: "https://www.instagram.com/anggunslsa_",
-      website: "#",
-=======
-      role: t.role || "Production Team of PSTeam",
-      email: "anggun@example.com",
-      image: "/team/mahasiswa3.png",
-      github: "#",
-      linkedin: "#",
-      facebook: "#",
-      instagram: "#",
       website: "#"
->>>>>>> 1cea569 (pembaruan bagian research bisa suport translate id dan en untuk research dan ada penambahan researchdetail)
     },
     {
       name: "Farhan",
@@ -97,15 +79,9 @@ export default function StudentsCard() {
       github: "https://github.com/farhanrasyid20",
       linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
       facebook: "#",
-<<<<<<< HEAD
       instagram: "https://www.instagram.com/frhanr20",
-      website: "#",
-    },
-=======
-      instagram: "#",
       website: "#"
-    }
->>>>>>> 1cea569 (pembaruan bagian research bisa suport translate id dan en untuk research dan ada penambahan researchdetail)
+    },
   ];
 
   return (
@@ -141,9 +117,7 @@ export default function StudentsCard() {
                   />
                 </div>
 
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {mhs.name}
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900">{mhs.name}</h3>
                 <p className="text-sm text-gray-700">{mhs.role}</p>
                 <a
                   href={`mailto:${mhs.email}`}
@@ -152,7 +126,6 @@ export default function StudentsCard() {
                   {mhs.email}
                 </a>
 
-                {/* Ikon Sosial Media */}
                 <div className="flex gap-4 text-gray-700 mt-2">
                   <a href={mhs.github} target="_blank" className="hover:text-black transition-colors">
                     <BsGithub size={20} />
