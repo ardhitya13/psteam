@@ -26,7 +26,7 @@ export default function StudentsCard() {
   useEffect(() => {
     const loadLocale = async () => {
       try {
-        const module = await import(`../../locales/${locale}/team/studentscard.json`);
+        const module = await import(`../locales/${locale}/team/studentscard.json`);
         setT(module.default || module);
       } catch (err) {
         console.error("Gagal memuat terjemahan StudentsCard:", err);
