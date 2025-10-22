@@ -7,6 +7,7 @@ import SidebarAdmin from "../../components/SidebarAdmin";
 
 export default function DaftarPelatihanPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const data = [
     { no: 1, nama: "Anggun Salsa F", email: "anggunsalsa@gmail.com", telp: "08123456789", tipe: "Website" },
@@ -29,6 +30,41 @@ export default function DaftarPelatihanPage() {
           DAFTAR PELATIHAN DI AJUKAN
         </h1>
 
+        {/* Kontrol Atas Tabel */}
+                <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
+                    {/* Tombol Tambah */}
+                    <button className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 border rounded-lg shadow-sm text-sm">
+                        <Plus size={16} /> Tambah
+                    </button>
+
+                    {/* Filter Dropdown */}
+                    <div className="relative inline-block">
+                        <select className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-700 cursor-pointer">
+                            <option>Filter Status</option>
+                            <option>Diterima</option>
+                            <option>Ditolak</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                            <ChevronDown size={18} className="text-gray-500" />
+                        </div>
+                    </div>
+
+                    {/* Search Button */}
+                    <div className={`flex items-center border rounded-lg bg-white shadow-sm transition-all duration-300 overflow-hidden ${searchOpen ? "w-64" : "w-10"}`}>
+                        {searchOpen && (
+                            <input type="text" 
+                            placeholder="Cari Judul Penelitian?"
+                            className="flex-grow px-3 py-2 focus:outline-none text-sm"/>
+                        )}
+                        <button
+                            onClick={() => setSearchOpen(!searchOpen)}
+                            className="bg-blue-600 text-white px-3 py-3 flex items-center justify-center border rounded-lg hover:bg-blue-700 transition-all"
+                        >
+                            <Search size={16} />
+                        </button>
+                    </div>
+                </div>
+
         {/* Search */}
         <div className="flex justify-center mb-4">
           <div className="flex w-full max-w-md items-center border rounded-lg overflow-hidden bg-white shadow-sm">
@@ -46,7 +82,7 @@ export default function DaftarPelatihanPage() {
         {/* Dropdown */}
         <div className="flex justify-start mb-4">
           <div className="relative inline-block">
-            <select className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white">
+            <select className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-700 cursor-pointer">
               <option>Pilih tipe proyek</option>
               <option>Website</option>
               <option>AI</option>

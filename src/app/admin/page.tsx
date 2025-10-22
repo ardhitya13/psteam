@@ -24,12 +24,9 @@ export default function AdminPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const cards = [
-    { title: "Proyek yang di Publikasi", value: 20, path: "/admin/keloka/proyek" },
-    { title: "Penelitian yang di Publikasi", value: 30, path: "/admin/penelitian-publikasi" },
-    { title: "Kelola Pelatihan", value: 15, path: "/admin/kelola/pelatihan" },
-    { title: "Kelola Profil Umum Dosen", value: 14, path: "/admin/kelola-dosen" },
-    { title: "Proyek yang belum di Publikasi", value: 12, path: "/admin/proyek-belum-publikasi" },
-    { title: "Penelitian yang belum di Publikasi", value: 8, path: "/admin/penelitian-belum-publikasi" },
+    { title: "Kelola daftar proyek", value: 20, path: "/admin/kelola/proyek" },
+    { title: "Kelola daftar penelitian", value: 30, path: "/admin/kelola/penelitian" },
+    { title: "Kelola daftar pelatihan", value: 15, path: "/admin/kelola/pelatihan" },
   ];
 
   // Data untuk grafik batang

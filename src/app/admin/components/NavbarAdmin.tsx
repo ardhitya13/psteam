@@ -15,8 +15,7 @@ export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md :bg-white"
-    >
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md :bg-white">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         {/* LOGO */}
         <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
