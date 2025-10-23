@@ -5,14 +5,30 @@ import Image from "next/image";
 import Link from "next/link";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import {
-  BsGithub,
-  BsLinkedin,
-  BsInstagram,
-  BsFacebook,
-} from "react-icons/bs";
+import { BsGithub, BsLinkedin, BsInstagram, BsFacebook } from "react-icons/bs";
+import { useLocale } from "../../context/LocaleContext"; // ✅ ambil bahasa aktif
+
+interface Translation {
+  title?: string;
+  description?: string;
+  allCategories?: string;
+  readMore?: string;
+  showMore?: string;
+  showLess?: string;
+}
 
 export default function PublicationSection() {
+  const { locale } = useLocale();
+  const [t, setT] = useState<Translation>({
+    title: "Publikasi",
+    description:
+      "Kumpulan publikasi ilmiah tim kami dalam bidang AI, Web, Mobile, dan IoT.",
+    allCategories: "Semua Kategori",
+    readMore: "Baca Selengkapnya →",
+    showMore: "Lihat Selengkapnya",
+    showLess: "Tampilkan Lebih Sedikit",
+  });
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showAll, setShowAll] = useState(false);
 
@@ -20,6 +36,22 @@ export default function PublicationSection() {
     AOS.init({ duration: 800, once: true });
   }, []);
 
+  // 🔁 Load JSON translate
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        const module = await import(
+          `../../locales/${locale}/publications/publicationsection.json`
+        );
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan PublicationSection:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
+  // 🧩 Data publikasi (bisa tetap bilingual jika mau nanti)
   const publications = [
     {
       id: 1,
@@ -61,8 +93,7 @@ export default function PublicationSection() {
         "Pengembangan sistem kampus pintar berbasis IoT dan machine learning untuk efisiensi energi dan keamanan lingkungan.",
       date: "10 November 2024",
       category: "AI",
-      image:
-        "/publications/publicationssection1.png",
+      image: "/publications/publicationssection1.png",
       link: "#",
       authors: [
         {
@@ -146,7 +177,6 @@ export default function PublicationSection() {
   ];
 
   const categories = ["All", "Web", "Mobile", "IoT", "AI"];
-
   const filteredPublications =
     selectedCategory === "All"
       ? publications
@@ -163,22 +193,22 @@ export default function PublicationSection() {
       style={{ backgroundColor: "#1e376c" }}
     >
       <div className="w-[90%] sm:w-[95%] md:w-[90%] lg:w-[85%] xl:w-[80%] mx-auto px-4">
-        {/* Header */}
+        {/* === Header === */}
         <h2
           className="text-4xl font-bold text-center mb-4 text-white"
           data-aos="fade-up"
         >
-          Publikasi
+          {t.title}
         </h2>
         <p
           className="text-center text-gray-200 mb-10 mx-auto"
           data-aos="fade-up"
           data-aos-delay="100"
         >
-          Kumpulan publikasi ilmiah tim kami dalam bidang AI, Web, Mobile, dan IoT.
+          {t.description}
         </p>
 
-        {/* Filter Buttons */}
+        {/* === Filter Buttons === */}
         <div
           className="flex justify-center flex-wrap gap-4 mb-10"
           data-aos="fade-up"
@@ -196,13 +226,17 @@ export default function PublicationSection() {
                   : "bg-transparent text-white border-white hover:bg-white hover:text-[#1e376c]"
               }`}
             >
-              {cat === "All" ? "Semua Kategori" : cat}
+              {cat === "All" ? t.allCategories : cat}
             </button>
           ))}
         </div>
 
-        {/* Publications List */}
-        <div className="flex flex-col gap-10" data-aos="fade-up" data-aos-delay="200">
+        {/* === Publications === */}
+        <div
+          className="flex flex-col gap-10"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
           {displayedPublications.map((pub) => (
             <div
               key={pub.id}
@@ -244,7 +278,7 @@ export default function PublicationSection() {
                     href={pub.link}
                     className="inline-block text-white bg-[#1e376c] px-5 py-2.5 rounded-lg hover:bg-[#2a4a8c] transition-all duration-300 font-medium shadow-md"
                   >
-                    Baca Selengkapnya →
+                    {t.readMore}
                   </Link>
                 </div>
 
@@ -252,7 +286,6 @@ export default function PublicationSection() {
                 <div className="flex items-center mt-6 flex-wrap gap-4">
                   {pub.authors.map((author) => (
                     <div key={author.name} className="flex items-center space-x-3">
-                      {/* Avatar */}
                       <div className="relative w-11 h-11 overflow-hidden bg-gray-100 rounded-full">
                         <svg
                           className={`absolute w-12 h-12 ${
@@ -271,7 +304,6 @@ export default function PublicationSection() {
                         </svg>
                       </div>
 
-                      {/* Name & Socials */}
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-800">
                           {author.name}
@@ -299,14 +331,14 @@ export default function PublicationSection() {
           ))}
         </div>
 
-        {/* Lihat Selengkapnya */}
+        {/* === Show More Button === */}
         {filteredPublications.length > 3 && (
           <div className="text-center mt-12">
             <button
               onClick={() => setShowAll(!showAll)}
               className="bg-white text-[#1e376c] px-7 py-2.5 rounded-full font-semibold hover:bg-[#2a4a8c] hover:text-white transition-all duration-300 shadow-lg"
             >
-              {showAll ? "Tampilkan Lebih Sedikit" : "Lihat Selengkapnya"}
+              {showAll ? t.showLess : t.showMore}
             </button>
           </div>
         )}

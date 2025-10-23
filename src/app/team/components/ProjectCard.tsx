@@ -121,56 +121,91 @@ export default function TeamSection() {
   // === Komponen Social Icons ===
   const SocialIcons = ({ person }: { person: any }) => (
     <div className="flex justify-center gap-4 text-xl mt-5">
-      <a href={person.github} target="_blank" className="text-gray-500 hover:text-black transition-all duration-300">
+      <a
+        href={person.github}
+        target="_blank"
+        className="text-gray-500 hover:text-black transition-all duration-300"
+      >
         <FaGithub />
       </a>
-      <a href={person.linkedin} target="_blank" className="text-gray-500 hover:text-[#0a66c2] transition-all duration-300">
+      <a
+        href={person.linkedin}
+        target="_blank"
+        className="text-gray-500 hover:text-[#0a66c2] transition-all duration-300"
+      >
         <FaLinkedin />
       </a>
-      <a href={person.facebook} target="_blank" className="text-gray-500 hover:text-[#1877f2] transition-all duration-300">
+      <a
+        href={person.facebook}
+        target="_blank"
+        className="text-gray-500 hover:text-[#1877f2] transition-all duration-300"
+      >
         <FaFacebook />
       </a>
-      <a href={person.instagram} target="_blank" className="text-gray-500 hover:text-[#e4405f] transition-all duration-300">
+      <a
+        href={person.instagram}
+        target="_blank"
+        className="text-gray-500 hover:text-[#e4405f] transition-all duration-300"
+      >
         <FaInstagram />
       </a>
-      <a href={person.website} target="_blank" className="text-gray-500 hover:text-green-600 transition-all duration-300">
+      <a
+        href={person.website}
+        target="_blank"
+        className="text-gray-500 hover:text-green-600 transition-all duration-300"
+      >
         <FaGlobe />
       </a>
     </div>
   );
 
-  // === Template Card Putih (Override Flowbite) ===
+  // === Template Card (Fix Bulat + Hover) ===
   const renderCard = (person: any, index: number) => (
     <Card
       key={index}
       data-aos="fade-up"
       data-aos-delay={index * 150}
-      className="p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl transition-transform duration-300 hover:scale-105 rounded-2xl border border-gray-200 flex flex-col justify-between h-[460px] w-full max-w-sm"
+      className="p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl 
+                 transition-transform duration-300 hover:scale-105 
+                 rounded-2xl border border-gray-200 flex flex-col 
+                 justify-between h-[460px] w-full max-w-sm"
     >
       <div className="flex flex-col items-center text-center">
-        <Image
-          src={person.image}
-          alt={person.name}
-          width={160}
-          height={160}
-          className="rounded-full mb-4 object-cover border-4 border-gray-100 shadow-md"
-        />
-        <h3 className="text-lg font-semibold text-blue-900">{person.name}</h3>
+        {/* ✅ FIX GAMBAR BULAT SEMPURNA */}
+        <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
+          <Image
+            src={person.image}
+            alt={person.name}
+            width={160}
+            height={160}
+            className="object-cover w-full h-full"
+          />
+        </div>
+
+        <h3 className="text-lg font-semibold text-blue-900">
+          {person.name}
+        </h3>
         <p className="text-blue-600 font-medium">{person.role}</p>
         <p className="text-sm text-gray-700 mt-2">{person.email}</p>
 
         {person.program && (
           <div className="mt-4 text-gray-700 text-sm leading-relaxed text-left">
             <p>
-              <span className="font-semibold text-blue-800">{t.program || "Program Studi"}:</span>{" "}
+              <span className="font-semibold text-blue-800">
+                {t.program || "Program Studi"}:
+              </span>{" "}
               {person.program}
             </p>
             <p>
-              <span className="font-semibold text-blue-800">{t.education || "Pendidikan"}:</span>{" "}
+              <span className="font-semibold text-blue-800">
+                {t.education || "Pendidikan"}:
+              </span>{" "}
               {person.education}
             </p>
             <p>
-              <span className="font-semibold text-blue-800">{t.specialization || "Spesialis"}:</span>{" "}
+              <span className="font-semibold text-blue-800">
+                {t.specialization || "Spesialis"}:
+              </span>{" "}
               {person.specialization}
             </p>
           </div>
@@ -186,7 +221,7 @@ export default function TeamSection() {
       <div className="max-w-7xl mx-auto text-center px-6">
         <h2
           data-aos="fade-up"
-          className="text-4xl font-bold mb-12 text-blue-900"
+          className="text-4xl font-bold mb-12 text-blue-800"
         >
           {t.title || "PSTEAM Development Team"}
         </h2>

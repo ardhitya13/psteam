@@ -152,7 +152,7 @@ export default function TeamSection() {
     </div>
   );
 
-  // === Template Card (Force White) ===
+  // === Template Card (Force White + Bulat Sempurna) ===
   const renderCard = (person: any, index: number) => (
     <Card
       key={index}
@@ -161,13 +161,17 @@ export default function TeamSection() {
       className="p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl transition-transform duration-300 hover:scale-105 rounded-2xl border border-gray-200 flex flex-col justify-between h-[460px] w-full max-w-sm"
     >
       <div className="flex flex-col items-center text-center">
-        <Image
-          src={person.image}
-          alt={person.name}
-          width={160}
-          height={160}
-          className="rounded-full mb-4 object-cover border-4 border-gray-100 shadow-md"
-        />
+        {/* Foto Bulat Sempurna + Efek Hover */}
+        <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
+          <Image
+            src={person.image}
+            alt={person.name}
+            width={160}
+            height={160}
+            className="object-cover w-full h-full"
+          />
+        </div>
+
         <h3 className="text-lg font-semibold text-blue-900">{person.name}</h3>
         <p className="text-blue-600 font-medium">{person.role}</p>
         <p className="text-sm text-gray-700 mt-2">{person.email}</p>
@@ -206,7 +210,7 @@ export default function TeamSection() {
       <div className="max-w-7xl mx-auto text-center px-6">
         <h2
           data-aos="fade-up"
-          className="text-4xl font-bold mb-12 text-blue-900"
+          className="text-4xl font-bold mb-12 text-blue-800"
         >
           {t.title || "PSTEAM Development Team"}
         </h2>

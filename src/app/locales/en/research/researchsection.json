@@ -1,7 +1,9 @@
 {
   "title": "Research Projects",
-  "subtitle": "Explore our latest research projects across various technology domains.",
+  "subtitle": "Explore our latest research projects across various technology fields.",
   "button": "View Details",
+  "button_more": "Show More",
+  "button_less": "Show Less",
   "categories": [
     { "id": "All", "name": "All Categories", "icon": "🌐" },
     { "id": "Web", "name": "Web", "icon": "💻" },

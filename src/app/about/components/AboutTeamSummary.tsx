@@ -37,7 +37,7 @@ export default function AboutTeamSummary() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           viewport={{ once: true }}
-          className="text-4xl sm:text-5xl font-bold text-blue-700 mb-6"
+          className="text-4xl sm:text-5xl font-bold text-blue-800 mb-6"
         >
           {t.title || "Tim Kami"}
         </motion.h2>

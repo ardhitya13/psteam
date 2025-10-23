@@ -44,7 +44,7 @@ export default function ResearchFocus() {
   return (
     <section className="py-20 bg-gray-50 text-center">
       <h2
-        className="text-3xl md:text-4xl font-bold text-blue-700 mb-10"
+        className="text-3xl md:text-4xl font-bold text-blue-800 mb-10"
         data-aos="fade-up"
       >
         {t.title || "Fokus Penelitian"}
