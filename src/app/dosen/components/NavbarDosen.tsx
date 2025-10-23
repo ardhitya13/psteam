@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { initFlowbite } from "flowbite";
 
@@ -9,7 +9,10 @@ interface NavbardosenProps {
 }
 
 export default function Navbardosen({ toggle }: NavbardosenProps) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     initFlowbite();
   }, []);
 
@@ -50,8 +53,11 @@ export default function Navbardosen({ toggle }: NavbardosenProps) {
 
           {/* Dropdown menu */}
           <div
-            className="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600"
+            // suppress hydration warnings because Flowbite/Popper mutates attributes/styles on mount
+            suppressHydrationWarning
             id="user-dropdown"
+            className="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600"
+            {...(mounted ? {} : { 'data-server-render': 'true' })}
           >
             <div className="px-4 py-3">
               <span className="block text-sm text-gray-900 dark:text-white">

@@ -1,5 +1,5 @@
 "use client";
-import { Menu, Home, ClipboardList, GraduationCap, FileText } from "lucide-react";
+import { Menu, Home,  FilePlus, BookOpenText } from "lucide-react";
 import Link from "next/link";
 
 export default function SidebarDosen({
@@ -10,16 +10,15 @@ export default function SidebarDosen({
   toggle: () => void;
 }) {
   const menuItems = [
-    { name: "Beranda", icon: Home, href: "/dosen" },
-    { name: "Ajukan Penelitian", icon: ClipboardList, href: "/dosen/kelola/AjukanPenelitian" },
-    { name: "Daftar Publikasi", icon: FileText, href: "/dosen/kelola/publikasi" },
-  ];
+  { name: "Beranda", icon: Home, href: "/dosen" },
+  { name: "Ajukan Penelitian", icon: FilePlus, href: "/dosen/kelola/AjukanPenelitian" },
+  { name: "Daftar Publikasi", icon: BookOpenText, href: "/dosen/kelola/Publikasi" },
+];
 
   return (
     <div
-      className={`fixed left-0 top-[64px] h-[calc(100vh-64px)] bg-[#0a3b91] text-white transition-all duration-300 z-30 ${
-        isOpen ? "w-[232px]" : "w-[80px]"
-      }`}
+      className={`fixed left-0 top-[64px] h-[calc(100vh-64px)] bg-[#0a3b91] text-white transition-all duration-300 z-30 ${isOpen ? "w-[232px]" : "w-[80px]"
+        }`}
     >
       {/* Header Menu */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-blue-800">
