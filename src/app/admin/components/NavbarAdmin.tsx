@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import { initFlowbite } from "flowbite";
 
+
 interface NavbarAdminProps {
   toggle: () => void;
 }
@@ -60,7 +61,7 @@ export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
             <ul className="py-2" aria-labelledby="user-menu-button">
               <li>
                 <a
-                  href="#"
+                  href="/admin/ubahsandi"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                 >
                   Ganti Sandi
