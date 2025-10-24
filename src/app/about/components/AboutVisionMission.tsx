@@ -43,7 +43,7 @@ export default function AboutVisionMission() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="text-3xl sm:text-4xl font-bold text-blue-700 mb-12"
+          className="text-3xl sm:text-4xl font-bold text-blue-800 mb-12"
         >
           {t.title || "Loading..."}
         </motion.h2>

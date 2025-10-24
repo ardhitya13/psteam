@@ -2,6 +2,8 @@
   "title": "Proyek Penelitian",
   "subtitle": "Jelajahi proyek penelitian terbaru kami di berbagai bidang teknologi.",
   "button": "Lihat Detail",
+  "button_more": "Lihat Lebih Banyak",
+  "button_less": "Sembunyikan",
   "categories": [
     { "id": "All", "name": "Semua Kategori", "icon": "🌐" },
     { "id": "Web", "name": "Web", "icon": "💻" },

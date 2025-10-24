@@ -49,7 +49,7 @@ export default function HeroSection() {
 
       {/* Text Content */}
       <div className="relative z-10 text-center px-6 max-w-5xl mx-auto text-white">
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-8 leading-tight drop-shadow-2xl text-blue-400">
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-8 leading-tight drop-shadow-2xl text-blue-800">
           POLIBATAM SOFTWARE TEAM
         </h1>
 

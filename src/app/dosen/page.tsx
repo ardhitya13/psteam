@@ -1,94 +1,142 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
 import NavbarDosen from "./components/NavbarDosen";
 import SidebarDosen from "./components/SidebarDosen";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Users } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+} from "recharts";
 
-export default function DaftarPenelitianPage() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+export default function DosenPage() {
+  const router = useRouter();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-    const data = [
-        { no: 1, nama: "Anggun Salsa F", judul: "Website pemesanan online coffee shop", tanggal: "08 Oktober 2025", dokumen: "Penelitian Anggun Salsa F", },
-        { no: 2, nama: "Ardithya Danur S", judul: "Aplikasi mobile penjualan tshirt", tanggal: "16 Oktober 2025", dokumen: "Penelitian Ardithya Danur S", },
-        { no: 3, nama: "Arifah Husaini", judul: "Website antrian parkir mobil", tanggal: "20 Oktober 2025", dokumen: "Hasil Penelitian Arifah", },
-        { no: 4, nama: "Farhan Rasyid", judul: "Game adventure online", tanggal: "25 September 2025", dokumen: "Hasil Penelitian Farhan Rasyid", },
-    ];
+  const cards = [
+    { title: "Ajukan Penelitian", value: 20, path: "/Dosen/kelola/ajukan penelitian" },
+    { title: "Publikasi", value: 30, path: "/Dosen/kelola/publikasi" },
+  ];
 
-    return (
-        <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-            <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-            <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+  // Data untuk grafik batang
+  const dataBar = [
+    { bulan: "Jan", nilai: 5 },
+    { bulan: "Feb", nilai: 8 },
+    { bulan: "Mar", nilai: 6 },
+    { bulan: "Apr", nilai: 9 },
+    { bulan: "Mei", nilai: 7 },
+    { bulan: "Jun", nilai: 10 },
+    { bulan: "Jul", nilai: 9 },
+  ];
 
-            <main
-                className={`transition-all duration-300 pt-0 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-                    } mt-[85px]`}
-            >
-                <h1 className="text-3xl font-semibold text-center mb-4 text-gray-800">
-                    DAFTAR PUBLIKASI DOSEN
-                </h1>
+  // Data untuk grafik pie
+  const dataPie = [
+    { name: "Selesai", value: 80 },
+    { name: "Proses", value: 20 },
+  ];
 
-                {/* Search */}
-                <div className="flex justify-center mb-4">
-                    <div className="flex w-full max-w-md items-center border rounded-lg overflow-hidden bg-white shadow-sm">
-                        <input
-                            type="text"
-                            placeholder="Cari nama dosen?"
-                            className="flex-grow px-4 py-2 focus:outline-none"
-                        />
-                        <button className="bg-blue-600 text-white px-4 py-3 hover:bg-blue-700">
-                            <Search size={18} />
-                        </button>
-                    </div>
-                </div>
+  const COLORS = ["#1E3A8A", "#E5E7EB"];
 
-                {/* Dropdown */}
-                <div className="flex justify-start mb-4">
-                    <div className="relative inline-block">
-                        <select className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white">
-                            <option>Pilih tahun</option>
-                            <option>2025</option>
-                            <option>2024</option>
-                            <option>2023</option>
-                        </select>
-                    </div>
-                </div>
+  return (
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Navbar */}
+      <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-                {/* Tabel */}
-                <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
-                    <table className="w-full border-collapse text-sm text-gray-700">
-                        <thead className="bg-gray-300 text-gray-800">
-                            <tr>
-                                <th className="border border-gray-200 px-4 py-2">NO</th>
-                                <th className="border border-gray-200 px-4 py-2">NAMA</th>
-                                <th className="border border-gray-200 px-4 py-2">JUDUL PUBLIKASI</th>
-                                <th className="border border-gray-200 px-4 py-2">TANGGAL UNGGAH</th>
-                                <th className="border border-gray-200 px-4 py-2">DOKUMEN</th>
-                                <th className="border border-gray-200 px-4 py-2">AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map((item, index) => (
-                                <tr>
-                                    <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                                    <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
-                                    <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
-                                    <td className="border border-gray-200 px-4 py-2 text-center">{item.tanggal}</td>
-                                    <td className="border border-gray-200 px-4 py-2">{item.dokumen}</td>
-                                    <td className="border border-gray-200 px-4 py-2 text-center flex justify-center gap-2">
-                                        <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded">
-                                            Terbitkan
-                                        </button>
-                                        <button className="bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-1 rounded">
-                                            Tolak
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </main>
+      {/* Sidebar */}
+      <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+
+      {/* Konten utama */}
+      <main
+        className={`transition-all duration-300 pt-0 px-8 pb-6 space-y-8 ${
+          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+        } mt-[85px]`}
+      >
+        {/* Card utama */}
+        <div className="bg-blue-700 text-white rounded-2xl shadow-lg p-6 md:p-10">
+          <h1 className="text-2xl font-bold mb-2">Selamat Datang Dosen</h1>
+          <p className="text-base">
+            Anda memiliki akses mengelola data-data yang ada di Polibatam Software Team
+          </p>
         </div>
-    );
+
+        {/* Grid card kecil */}
+            <div className="grid grid-cols-2 gap-6 w-full">
+              {cards.map((card, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                  className="cursor-pointer bg-white border border-gray-200 rounded-2xl shadow-md p-6 flex flex-col justify-between hover:shadow-md transition-transform duration-300 will-change-transform"
+                  onClick={() => router.push(card.path)}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-gray-800 font-semibold">{card.title}</h2>
+                    <Users className="text-gray-900" />
+                  </div>
+                  <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+                </motion.div>
+              ))}
+            </div>
+
+
+
+        {/* Grafik */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Grafik Batang */}
+          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+            <h3 className="text-gray-900 text-base font-semibold mb-4">
+              Update Data Bulanan Penelitian & Proyek
+            </h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={dataBar}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="bulan" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="nilai" fill="#1E3A8A" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Grafik Pie */}
+          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+            <h3 className="text-gray-800 text-base font-semibold mb-4">Total Data Tahunan</h3>
+            <div className="relative flex justify-center items-center">
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={dataPie}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {dataPie.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute text-center">
+                <p className="text-2xl font-semibold text-gray-900">80%</p>
+                <p className="text-sm text-gray-900">Selesai</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }

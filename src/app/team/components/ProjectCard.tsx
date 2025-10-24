@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { Card } from "flowbite-react";
 import Image from "next/image";
@@ -11,7 +12,7 @@ import {
 } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useLocale } from "../../context/LocaleContext"; // ✅ Tambah LocaleContext
+import { useLocale } from "../../context/LocaleContext"; // ✅ Locale Context
 
 interface Translation {
   title?: string;
@@ -22,21 +23,24 @@ interface Translation {
   website?: string;
 }
 
+// === Dosen ===
 const dosen = {
   name: "Swono Sibagariang, S.Kom., M.Kom",
-  role: "Dosen Pembimbing",
-  image: "/team/swono_sibagariang.png",
+  role: "Advisor Lecturer",
+  image: "/dosen/swono_sibagariang.png",
   email: "swono@polibatam.ac.id",
   website: "https://swonosibagariang.my.id",
   program: "Teknik Informatika",
-  education: "Magister (S2)",
+  education:
+    "Magister (S2) Universitas Sumatera Utara - Ilmu dan Teknologi",
   specialization: "Software Development",
-  github: "#",
-  linkedin: "#",
-  facebook: "#",
-  instagram: "#",
+  github: "https://github.com/",
+  linkedin: "https://linkedin.com/",
+  facebook: "https://facebook.com/",
+  instagram: "https://instagram.com/",
 };
 
+// === Mahasiswa ===
 const mahasiswa = [
   {
     name: "Ardhitya Danur Siswondo",
@@ -54,23 +58,24 @@ const mahasiswa = [
     name: "Arifah Husaini",
     role: "UI/UX Designer",
     image: "/team/mahasiswa2.png",
-    email: "arifah@example.com",
+    email: "arifahhusaini@gmail.com",
     website: "#",
-    github: "#",
+    github: "https://github.com/arifah336",
     linkedin: "#",
-    facebook: "#",
-    instagram: "#",
+    facebook: "https://www.facebook.com/arifa.husain.921",
+    instagram: "https://www.instagram.com/ripahusain_/",
   },
   {
     name: "Anggun Salsa Faradita",
     role: "UI/UX Designer",
     image: "/team/mahasiswa3.png",
-    email: "anggun@example.com",
+    email: "anggunsalsa2807@gmail.com",
     website: "#",
-    github: "#",
-    linkedin: "#",
-    facebook: "#",
-    instagram: "#",
+    github: "https://github.com/anggun07",
+    linkedin:
+      "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
+    facebook: "https://www.facebook.com/share/169XkGzGJo/",
+    instagram: "https://www.instagram.com/anggunslsa_",
   },
   {
     name: "Farhan",
@@ -78,30 +83,33 @@ const mahasiswa = [
     image: "/team/mahasiswa4.png",
     email: "farhan@example.com",
     website: "#",
-    github: "#",
-    linkedin: "#",
+    github: "https://github.com/farhanrasyid20",
+    linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
     facebook: "#",
-    instagram: "#",
+    instagram: "https://www.instagram.com/frhanr20",
   },
 ];
 
 export default function TeamSection() {
-  const { locale } = useLocale(); // ✅ Ambil bahasa aktif
+  const { locale } = useLocale();
   const [t, setT] = useState<Translation>({});
 
-  // ✅ Load file JSON sesuai bahasa
+  // === Load JSON sesuai bahasa aktif ===
   useEffect(() => {
     const loadLocale = async () => {
       try {
-        const module = await import(`../../locales/${locale}/team/projectcard.json`);
+        const module = await import(
+          `../../locales/${locale}/team/projectcard.json`
+        );
         setT(module.default || module);
       } catch (err) {
-        console.error("Gagal memuat terjemahan ProjectCard:", err);
+        console.error("Gagal memuat terjemahan TeamSection:", err);
       }
     };
     loadLocale();
   }, [locale]);
 
+  // === Inisialisasi AOS ===
   useEffect(() => {
     AOS.init({
       duration: 900,
@@ -110,131 +118,122 @@ export default function TeamSection() {
     });
   }, []);
 
+  // === Komponen Social Icons ===
+  const SocialIcons = ({ person }: { person: any }) => (
+    <div className="flex justify-center gap-4 text-xl mt-5">
+      <a
+        href={person.github}
+        target="_blank"
+        className="text-gray-500 hover:text-black transition-all duration-300"
+      >
+        <FaGithub />
+      </a>
+      <a
+        href={person.linkedin}
+        target="_blank"
+        className="text-gray-500 hover:text-[#0a66c2] transition-all duration-300"
+      >
+        <FaLinkedin />
+      </a>
+      <a
+        href={person.facebook}
+        target="_blank"
+        className="text-gray-500 hover:text-[#1877f2] transition-all duration-300"
+      >
+        <FaFacebook />
+      </a>
+      <a
+        href={person.instagram}
+        target="_blank"
+        className="text-gray-500 hover:text-[#e4405f] transition-all duration-300"
+      >
+        <FaInstagram />
+      </a>
+      <a
+        href={person.website}
+        target="_blank"
+        className="text-gray-500 hover:text-green-600 transition-all duration-300"
+      >
+        <FaGlobe />
+      </a>
+    </div>
+  );
+
+  // === Template Card (Fix Bulat + Hover) ===
+  const renderCard = (person: any, index: number) => (
+    <Card
+      key={index}
+      data-aos="fade-up"
+      data-aos-delay={index * 150}
+      className="p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl 
+                 transition-transform duration-300 hover:scale-105 
+                 rounded-2xl border border-gray-200 flex flex-col 
+                 justify-between h-[460px] w-full max-w-sm"
+    >
+      <div className="flex flex-col items-center text-center">
+        {/* ✅ FIX GAMBAR BULAT SEMPURNA */}
+        <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
+          <Image
+            src={person.image}
+            alt={person.name}
+            width={160}
+            height={160}
+            className="object-cover w-full h-full"
+          />
+        </div>
+
+        <h3 className="text-lg font-semibold text-blue-900">
+          {person.name}
+        </h3>
+        <p className="text-blue-600 font-medium">{person.role}</p>
+        <p className="text-sm text-gray-700 mt-2">{person.email}</p>
+
+        {person.program && (
+          <div className="mt-4 text-gray-700 text-sm leading-relaxed text-left">
+            <p>
+              <span className="font-semibold text-blue-800">
+                {t.program || "Program Studi"}:
+              </span>{" "}
+              {person.program}
+            </p>
+            <p>
+              <span className="font-semibold text-blue-800">
+                {t.education || "Pendidikan"}:
+              </span>{" "}
+              {person.education}
+            </p>
+            <p>
+              <span className="font-semibold text-blue-800">
+                {t.specialization || "Spesialis"}:
+              </span>{" "}
+              {person.specialization}
+            </p>
+          </div>
+        )}
+
+        <SocialIcons person={person} />
+      </div>
+    </Card>
+  );
+
   return (
     <section id="team" className="py-20 bg-white text-gray-800">
       <div className="max-w-7xl mx-auto text-center px-6">
         <h2
           data-aos="fade-up"
-          className="text-4xl font-bold mb-10 text-blue-900 drop-shadow-sm"
+          className="text-4xl font-bold mb-12 text-blue-800"
         >
-          {t.title || "Tim Pengembang PSTEAM"}
+          {t.title || "PSTEAM Development Team"}
         </h2>
 
-        {/* === Dosen Pembimbing === */}
-        <div data-aos="zoom-in" className="flex justify-center mb-16">
-          <Card className="p-6 bg-blue-900/80 text-white shadow-xl hover:shadow-2xl w-80 transition-transform duration-300 hover:scale-105 rounded-2xl border border-blue-400/40 backdrop-blur-sm">
-            <div className="flex flex-col items-center text-center">
-              <Image
-                src={dosen.image}
-                alt={dosen.name}
-                width={160}
-                height={160}
-                className="rounded-full mb-4 object-cover aspect-square border-4 border-blue-400 shadow-md"
-              />
-              <h3 className="text-xl font-semibold text-white">
-                {dosen.name}
-              </h3>
-              <p className="text-blue-200 font-medium">
-                {t.advisor || dosen.role}
-              </p>
-
-              <p className="text-sm text-gray-200 mt-3">{dosen.email}</p>
-
-              <a
-                href={dosen.website}
-                target="_blank"
-                className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 font-medium transition-colors"
-              >
-                <FaGlobe /> {t.website || "Personal Website"}
-              </a>
-
-              <div className="mt-4 text-gray-200 text-sm leading-relaxed text-left">
-                <p>
-                  <span className="font-semibold text-blue-300">
-                    {t.program || "Program Studi"}:
-                  </span>{" "}
-                  {dosen.program}
-                </p>
-                <p>
-                  <span className="font-semibold text-blue-300">
-                    {t.education || "Pendidikan"}:
-                  </span>{" "}
-                  {dosen.education}
-                </p>
-                <p>
-                  <span className="font-semibold text-blue-300">
-                    {t.specialization || "Spesialis"}:
-                  </span>{" "}
-                  {dosen.specialization}
-                </p>
-              </div>
-
-              <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">
-                <a href={dosen.github} target="_blank">
-                  <FaGithub />
-                </a>
-                <a href={dosen.linkedin} target="_blank">
-                  <FaLinkedin />
-                </a>
-                <a href={dosen.facebook} target="_blank">
-                  <FaFacebook />
-                </a>
-                <a href={dosen.instagram} target="_blank">
-                  <FaInstagram />
-                </a>
-              </div>
-            </div>
-          </Card>
+        {/* === Dosen (Cuma Swono) === */}
+        <div className="flex justify-center flex-wrap gap-8 mb-20">
+          {renderCard(dosen, 0)}
         </div>
 
         {/* === Mahasiswa === */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {mahasiswa.map((member, index) => (
-            <Card
-              key={index}
-              data-aos="fade-up"
-              data-aos-delay={index * 150}
-              className="p-5 bg-blue-900/80 text-white shadow-lg hover:shadow-2xl transition-transform duration-300 hover:scale-105 rounded-2xl border border-blue-400/40 backdrop-blur-sm"
-            >
-              <div className="flex flex-col items-center text-center">
-                <Image
-                  src={member.image}
-                  alt={member.name}
-                  width={140}
-                  height={140}
-                  className="rounded-full mb-3 object-cover aspect-square border-4 border-blue-400 shadow-md"
-                />
-                <h3 className="text-lg font-semibold text-white">
-                  {member.name}
-                </h3>
-                <p className="text-blue-200">{member.role}</p>
-                <p className="text-sm text-gray-200 mt-2">{member.email}</p>
-
-                <a
-                  href={member.website}
-                  target="_blank"
-                  className="text-blue-300 flex items-center justify-center gap-2 mt-2 hover:text-blue-400 transition-colors"
-                >
-                  <FaGlobe /> {t.website || "Personal Website"}
-                </a>
-
-                <div className="flex justify-center gap-4 text-xl text-blue-300 mt-4">
-                  <a href={member.github}>
-                    <FaGithub />
-                  </a>
-                  <a href={member.linkedin}>
-                    <FaLinkedin />
-                  </a>
-                  <a href={member.facebook}>
-                    <FaFacebook />
-                  </a>
-                  <a href={member.instagram}>
-                    <FaInstagram />
-                  </a>
-                </div>
-              </div>
-            </Card>
-          ))}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 justify-items-center">
+          {mahasiswa.map((member, index) => renderCard(member, index))}
         </div>
       </div>
     </section>

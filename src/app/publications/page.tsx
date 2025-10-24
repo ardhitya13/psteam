@@ -7,7 +7,6 @@ import "aos/dist/aos.css";
 import HeroSection from "../publications/components/HeroSection";
 import ResearchSection from "../publications/components/ResearchSection";
 import CollaborationSection from "../publications/components/CollaborationSection";
-import NewsSection from "../publications/components/NewsSection";
 import DosenSection from "../publications/components/DosenSection";
 import PublicationSection from "../publications/components/PublicationSection";
 
@@ -25,7 +24,6 @@ export default function PublicationPage() {
       <HeroSection />
       <ResearchSection />
       <CollaborationSection />
-      <NewsSection />
       <DosenSection />
       <PublicationSection />
     </div>

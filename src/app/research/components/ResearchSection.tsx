@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useLocale } from "../../context/LocaleContext"; // ✅ hanya 2 titik
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { useLocale } from "../../context/LocaleContext";
 
-/* ==================== Data Tetap (tidak diterjemahkan) ==================== */
 export type Project = {
   title: string;
   description: string;
@@ -102,8 +102,6 @@ const researchData: YearProjects[] = [
   },
 ];
 
-/* ==================== Komponen Utama ==================== */
-
 type CategoryType = "All" | "AI" | "Mobile" | "IoT" | "Web";
 
 export default function ResearchSection() {
@@ -113,17 +111,21 @@ export default function ResearchSection() {
 
   const [activeYear, setActiveYear] = useState<number>(data[0]?.year || 2025);
   const [activeCategory, setActiveCategory] = useState<CategoryType>("All");
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     AOS.init({ duration: 1000, once: true, easing: "ease-in-out" });
   }, []);
 
-  // 🔁 Load data terjemahan
+  // 🔁 Load locale translation
   useEffect(() => {
     const loadLocale = async () => {
       try {
-        const module = await import(`../../locales/${locale}/research/researchsection.json`);
+        const module = await import(
+          `../../locales/${locale}/research/researchsection.json`
+        );
         setT(module.default || module);
+        setShowAll(false);
       } catch (err) {
         console.error("Gagal memuat terjemahan ResearchSection:", err);
       }
@@ -136,17 +138,13 @@ export default function ResearchSection() {
     (p) => activeCategory === "All" || p.category === activeCategory
   );
 
+  const displayedProjects = showAll
+    ? filteredProjects
+    : filteredProjects?.slice(0, 3);
+
   return (
     <section className="relative py-20 scroll-mt-20">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-600 to-blue-500 -z-20"></div>
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-30 -z-10"
-        style={{
-          backgroundImage: "url('/research/research1.png')",
-          filter: "blur(4px)",
-        }}
-      ></div>
 
       <div className="max-w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -156,7 +154,8 @@ export default function ResearchSection() {
           </h1>
           <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
           <p className="text-xl text-white max-w-3xl mx-auto">
-            {t.subtitle || "Explore our latest research projects across different domains"}
+            {t.subtitle ||
+              "Explore our latest research projects across different domains"}
           </p>
         </div>
 
@@ -168,7 +167,10 @@ export default function ResearchSection() {
           {data.map((y) => (
             <button
               key={y.year}
-              onClick={() => setActiveYear(y.year)}
+              onClick={() => {
+                setActiveYear(y.year);
+                setShowAll(false);
+              }}
               className={`px-6 py-3 rounded-xl border-2 font-semibold transition-all duration-300 min-w-[100px] ${
                 activeYear === y.year
                   ? "bg-white text-blue-700 border-white scale-105 shadow-md"
@@ -188,13 +190,15 @@ export default function ResearchSection() {
           {t.categories?.map((cat: any) => (
             <button
               key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`px-6 py-4 rounded-xl border-2 font-semibold transition-all duration-300 min-w-[130px]
-                ${
-                  activeCategory === cat.id
-                    ? "bg-white text-blue-700 border-white scale-105 shadow-md"
-                    : "bg-white/30 text-white border-white/40 hover:bg-white/50 hover:text-blue-700 hover:scale-105"
-                }`}
+              onClick={() => {
+                setActiveCategory(cat.id);
+                setShowAll(false);
+              }}
+              className={`px-6 py-3 rounded-xl border-2 font-semibold transition-all duration-300 min-w-[130px] ${
+                activeCategory === cat.id
+                  ? "bg-white text-blue-700 border-white scale-105 shadow-md"
+                  : "bg-white/30 text-white border-white/40 hover:bg-white/50 hover:text-blue-700 hover:scale-105"
+              }`}
             >
               <div className="text-2xl mb-1">{cat.icon}</div>
               {cat.name}
@@ -202,9 +206,9 @@ export default function ResearchSection() {
           ))}
         </div>
 
-        {/* Projects Grid */}
+        {/* Project Grid */}
         <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects?.map((project, idx) => (
+          {displayedProjects?.map((project, idx) => (
             <div
               key={idx}
               className="bg-white/20 backdrop-blur-xl rounded-xl border border-white/30 shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden group"
@@ -231,7 +235,6 @@ export default function ResearchSection() {
                 <p className="text-white mb-4 leading-relaxed">
                   {project.description}
                 </p>
-
                 <a
                   href={project.link}
                   className="inline-block w-full text-center font-bold py-3 rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition"
@@ -242,6 +245,28 @@ export default function ResearchSection() {
             </div>
           ))}
         </div>
+
+        {/* Show More / Show Less Button */}
+        {filteredProjects && filteredProjects.length > 3 && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="flex items-center gap-2 bg-white text-blue-700 px-6 py-3 rounded-lg font-semibold shadow hover:bg-blue-100 transition"
+            >
+              {showAll ? (
+                <>
+                  <span>{t.button_less || "Sembunyikan"}</span>
+                  <ChevronUp className="w-5 h-5 transition-transform duration-300" />
+                </>
+              ) : (
+                <>
+                  <span>{t.button_more || "Lihat Lebih Banyak"}</span>
+                  <ChevronDown className="w-5 h-5 transition-transform duration-300" />
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

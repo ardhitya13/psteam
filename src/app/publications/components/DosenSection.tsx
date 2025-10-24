@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   FaGithub,
   FaLinkedin,
@@ -8,11 +9,20 @@ import {
   FaInstagram,
   FaFilePdf,
 } from "react-icons/fa";
+import { useLocale } from "../../context/LocaleContext";
+
+interface Translation {
+  title?: string;
+  email?: string;
+  education?: string;
+  specialization?: string;
+  publications?: string;
+}
 
 type Publication = {
   title: string;
   link: string;
-  date?: string; // ISO or yyyy-mm-dd
+  date?: string;
 };
 
 type Dosen = {
@@ -20,9 +30,9 @@ type Dosen = {
   position: string;
   program: string;
   email: string;
-  education?: string[]; // riwayat pendidikan
+  education?: string[];
   specialization?: string;
-  image: string; // path under /public
+  image: string;
   socials?: {
     github?: string;
     linkedin?: string;
@@ -33,6 +43,29 @@ type Dosen = {
 };
 
 export default function DosenSection() {
+  const { locale } = useLocale();
+  const [t, setT] = useState<Translation>({
+    title: "Publikasi Dosen PSTEAM",
+    email: "Email",
+    education: "Riwayat Pendidikan",
+    specialization: "Bidang Spesialis",
+    publications: "Publikasi & Dokumen",
+  });
+
+  useEffect(() => {
+    const loadLocale = async () => {
+      try {
+        const module = await import(
+          `../../locales/${locale}/publications/dosensection.json`
+        );
+        setT(module.default || module);
+      } catch (err) {
+        console.error("Gagal memuat terjemahan DosenSection:", err);
+      }
+    };
+    loadLocale();
+  }, [locale]);
+
   const dosenList: Dosen[] = [
     {
       name: "Dr. Ari Wibowo, S.T., M.T.",
@@ -45,7 +78,7 @@ export default function DosenSection() {
         "S3: Institut Teknologi Bandung - Teknik Elektro Informatika",
       ],
       specialization: "AI, Computer Vision, Autonomous System",
-      image: "/dosen/ari_wibowo.png", // taruh file di public/dosen/
+      image: "/dosen/ari_wibowo.png",
       socials: {
         github: "#",
         linkedin: "#",
@@ -79,7 +112,7 @@ export default function DosenSection() {
         "S2: Universitas Sumatera Utara - Ilmu dan Teknologi",
       ],
       specialization: "Software Development",
-      image: "/dosen/swono_sibagariang.png", // taruh file di public/dosen/
+      image: "/dosen/swono_sibagariang.png",
       socials: {
         github: "https://github.com/swonosib",
         linkedin: "https://linkedin.com/in/swonosib",
@@ -88,15 +121,16 @@ export default function DosenSection() {
       },
       publications: [
         {
-          title: "Prediksi Prospek Kerja Alumni Dengan Algoritma Neural Network",
+          title:
+            "Prediksi Prospek Kerja Alumni Dengan Algoritma Neural Network",
           link:
-            "https://d1wqtxts1xzle7.cloudfront.net/100597363/pdf-libre.pdf?1680482115=&response-content-disposition=inline%3B+filename%3DPrediksi_Prospek_Kerja_Alumni_Dengan_Alg.pdf",
+            "https://d1wqtxts1xzle7.cloudfront.net/100597363/pdf-libre.pdf",
           date: "2023-04-02",
         },
         {
           title: "KeTIK 2014 (Galeri Online Kesenian Minang)",
           link:
-            "https://d1wqtxts1xzle7.cloudfront.net/46576783/Galeri_Online_Kesenian_Minang-libre.pdf?1466193841=",
+            "https://d1wqtxts1xzle7.cloudfront.net/46576783/Galeri_Online_Kesenian_Minang-libre.pdf",
           date: "2014-10-01",
         },
       ],
@@ -106,8 +140,24 @@ export default function DosenSection() {
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">
-          Publikasi Dosen PSTEAM
+        {/* ✅ FIX: Tampilkan teks sesuai urutan JSON tapi beri warna khusus untuk PSTEAM */}
+        <h2 className="text-4xl font-bold text-center mb-12 text-blue-800">
+          {t.title ? (
+            <>
+              {t.title.split("PSTEAM").map((part, index, arr) => (
+                <span key={index}>
+                  {part}
+                  {index < arr.length - 1 && (
+                    <span className="text-blue-600 whitespace-nowrap">
+                      PSTEAM
+                    </span>
+                  )}
+                </span>
+              ))}
+            </>
+          ) : (
+            "Publikasi Dosen PSTEAM"
+          )}
         </h2>
 
         <div className="space-y-8">
@@ -117,7 +167,7 @@ export default function DosenSection() {
               className="bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition overflow-hidden"
               data-aos="fade-up"
             >
-              {/* Top: avatar + basic info */}
+              {/* Avatar + Info */}
               <div className="flex flex-col items-center p-6 text-center">
                 <div className="relative w-28 h-28 mb-4">
                   <Image
@@ -135,7 +185,7 @@ export default function DosenSection() {
                 <p className="text-gray-600 text-sm">{dosen.position}</p>
                 <p className="text-gray-500 text-sm mt-1">{dosen.program}</p>
 
-                {/* Socials under avatar */}
+                {/* Sosial media */}
                 <div className="flex items-center space-x-4 mt-4">
                   {dosen.socials?.github && (
                     <a
@@ -143,7 +193,6 @@ export default function DosenSection() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-black"
-                      aria-label={`${dosen.name} Github`}
                     >
                       <FaGithub className="text-2xl" />
                     </a>
@@ -154,7 +203,6 @@ export default function DosenSection() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-blue-700"
-                      aria-label={`${dosen.name} LinkedIn`}
                     >
                       <FaLinkedin className="text-2xl" />
                     </a>
@@ -165,7 +213,6 @@ export default function DosenSection() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-blue-600"
-                      aria-label={`${dosen.name} Facebook`}
                     >
                       <FaFacebook className="text-2xl" />
                     </a>
@@ -176,7 +223,6 @@ export default function DosenSection() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-pink-500"
-                      aria-label={`${dosen.name} Instagram`}
                     >
                       <FaInstagram className="text-2xl" />
                     </a>
@@ -184,11 +230,11 @@ export default function DosenSection() {
                 </div>
               </div>
 
-              {/* Middle: contact + education + specialization */}
+              {/* Email + Pendidikan + Spesialisasi */}
               <div className="px-6 pb-4 border-t border-gray-100">
                 <div className="max-w-3xl mx-auto text-sm text-gray-700 space-y-2">
                   <p>
-                    <strong>Email:</strong>{" "}
+                    <strong>{t.email}:</strong>{" "}
                     <a
                       href={`mailto:${dosen.email}`}
                       className="text-blue-600 hover:underline"
@@ -199,7 +245,7 @@ export default function DosenSection() {
 
                   {dosen.education && (
                     <div>
-                      <strong>Riwayat Pendidikan:</strong>
+                      <strong>{t.education}:</strong>
                       <ul className="list-disc list-inside text-gray-600 mt-1">
                         {dosen.education.map((edu, idx) => (
                           <li key={idx}>{edu}</li>
@@ -210,16 +256,17 @@ export default function DosenSection() {
 
                   {dosen.specialization && (
                     <p>
-                      <strong>Bidang Spesialis:</strong> {dosen.specialization}
+                      <strong>{t.specialization}:</strong>{" "}
+                      {dosen.specialization}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Bottom: publications (scrollable) */}
+              {/* Publikasi */}
               <div className="px-6 pb-6 pt-4 border-t border-gray-100">
                 <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                  Publikasi & Dokumen
+                  {t.publications}
                 </h4>
 
                 <div className="space-y-2">
@@ -235,7 +282,6 @@ export default function DosenSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm font-medium text-gray-800 hover:underline block truncate"
-                            title={pub.title}
                           >
                             {pub.title}
                           </a>
@@ -250,18 +296,15 @@ export default function DosenSection() {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-3">
-                          <a
-                            href={pub.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white border text-xs text-blue-600 hover:bg-blue-50"
-                            title="Buka PDF / Link"
-                          >
-                            <FaFilePdf className="text-sm" />
-                            <span className="hidden sm:inline">PDF</span>
-                          </a>
-                        </div>
+                        <a
+                          href={pub.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white border text-xs text-blue-600 hover:bg-blue-50"
+                        >
+                          <FaFilePdf className="text-sm" />
+                          <span className="hidden sm:inline">PDF</span>
+                        </a>
                       </div>
                     ))}
                   </div>

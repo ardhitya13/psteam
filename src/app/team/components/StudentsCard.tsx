@@ -93,7 +93,7 @@ export default function StudentsCard() {
       <div className="max-w-7xl mx-auto">
         <h2
           data-aos="fade-up"
-          className="text-4xl font-bold text-white mb-10 drop-shadow-lg"
+          className="text-4xl font-bold text-blue-800 mb-10 drop-shadow-lg"
         >
           {t.title || "Mahasiswa PSTeam"}
         </h2>
