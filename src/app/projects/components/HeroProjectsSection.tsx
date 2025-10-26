@@ -22,7 +22,7 @@ export default function HeroProjectsSection() {
             className="object-cover"
           />
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-white/40"></div>
 
           {/* Text Content */}
           <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white px-4">
