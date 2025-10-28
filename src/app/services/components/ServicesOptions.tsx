@@ -153,19 +153,19 @@ export default function ServicesOptions() {
               <input
                 type="text"
                 placeholder="Nama"
-                className="border p-2 rounded-md focus:ring-2 focus:ring-purple-500"
+                className="border p-2 rounded-md focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="email"
                 placeholder="Email"
-                className="border p-2 rounded-md focus:ring-2 focus:ring-purple-500"
+                className="border p-2 rounded-md focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="No Telepon"
-                className="border p-2 rounded-md focus:ring-2 focus:ring-purple-500"
+                className="border p-2 rounded-md focus:ring-2 focus:ring-blue-500"
               />
-              <select className="border p-2 rounded-md focus:ring-2 focus:ring-purple-500">
+              <select className="border p-2 rounded-md focus:ring-2 focus:ring-blue-500">
                 <option>Pilih Tipe Pelatihan</option>
                 <option>Web</option>
                 <option>IoT</option>
@@ -175,7 +175,7 @@ export default function ServicesOptions() {
 
               <button
                 type="submit"
-                className="bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition"
+                className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
               >
                 Simpan
               </button>
