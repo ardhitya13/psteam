@@ -1,34 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { BsGithub, BsLinkedin, BsFacebook, BsInstagram } from "react-icons/bs";
 import { FaGlobe } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useLocale } from "../../context/LocaleContext";
-
-interface Translation {
-  title?: string;
-  role?: string;
-}
 
 export default function StudentsCard() {
-  const { locale } = useLocale();
-  const [t, setT] = useState<Translation>({});
-
-  useEffect(() => {
-    const loadLocale = async () => {
-      try {
-        const module = await import(`../../locales/${locale}/team/studentscard.json`);
-        setT(module.default || module);
-      } catch (err) {
-        console.error("❌ Gagal memuat terjemahan StudentsCard:", err);
-      }
-    };
-    loadLocale();
-  }, [locale]);
-
+  // ✅ Inisialisasi animasi AOS
   useEffect(() => {
     AOS.init({
       duration: 800,
@@ -40,47 +20,47 @@ export default function StudentsCard() {
   const mahasiswaList = [
     {
       name: "Ardhitya Danur Siswondo",
-      role: t.role || "Production Team of PSTeam",
+      role: "Anggota Tim Produksi PSTeam",
       email: "ardhityasiswondo@gmail.com",
       image: "/team/mahasiswa1.png",
       github: "https://github.com/ardhitya13",
       linkedin: "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
       facebook: "https://www.facebook.com/ardhitya.siswondo.3/",
       instagram: "https://www.instagram.com/ardhitya__/",
-      website: "https://ardhitya13.github.io/"
+      website: "https://ardhitya13.github.io/",
     },
     {
       name: "Arifah Husaini",
-      role: t.role || "Production Team of PSTeam",
+      role: "Anggota Tim Produksi PSTeam",
       email: "arifah@example.com",
       image: "/team/mahasiswa2.png",
       github: "#",
       linkedin: "#",
       facebook: "#",
       instagram: "#",
-      website: "#"
+      website: "#",
     },
     {
       name: "Anggun Salsa Faradita",
-      role: t.role || "Production Team of PSTeam",
+      role: "Anggota Tim Produksi PSTeam",
       email: "anggunsalsa2807@gmail.com",
       image: "/team/mahasiswa3.png",
       github: "https://github.com/anggun07",
       linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
       facebook: "https://www.facebook.com/share/169XkGzGJo/",
       instagram: "https://www.instagram.com/anggunslsa_",
-      website: "#"
+      website: "#",
     },
     {
       name: "Farhan",
-      role: t.role || "Production Team of PSTeam",
+      role: "Anggota Tim Produksi PSTeam",
       email: "farhan@example.com",
       image: "/team/mahasiswa4.png",
       github: "https://github.com/farhanrasyid20",
       linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
       facebook: "#",
       instagram: "https://www.instagram.com/frhanr20",
-      website: "#"
+      website: "#",
     },
   ];
 
@@ -95,7 +75,7 @@ export default function StudentsCard() {
           data-aos="fade-up"
           className="text-4xl font-bold text-blue-800 mb-10 drop-shadow-lg"
         >
-          {t.title || "Mahasiswa PSTeam"}
+          Mahasiswa PSTeam
         </h2>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">

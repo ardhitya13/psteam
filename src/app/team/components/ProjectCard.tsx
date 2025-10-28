@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Card } from "flowbite-react";
 import Image from "next/image";
 import {
@@ -12,21 +12,11 @@ import {
 } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useLocale } from "../../context/LocaleContext"; // ✅ Locale Context
-
-interface Translation {
-  title?: string;
-  advisor?: string;
-  program?: string;
-  education?: string;
-  specialization?: string;
-  website?: string;
-}
 
 // === Dosen ===
 const dosen = {
   name: "Swono Sibagariang, S.Kom., M.Kom",
-  role: "Advisor Lecturer",
+  role: "Dosen Pembimbing",
   image: "/dosen/swono_sibagariang.png",
   email: "swono@polibatam.ac.id",
   website: "https://swonosibagariang.my.id",
@@ -44,7 +34,7 @@ const dosen = {
 const mahasiswa = [
   {
     name: "Ardhitya Danur Siswondo",
-    role: "Full Stack Developer",
+    role: "Anggota Tim Produksi PSTeam",
     image: "/team/mahasiswa1.png",
     email: "ardhityasiswondo@gmail.com",
     website: "https://github.com/ardhitya13",
@@ -56,7 +46,7 @@ const mahasiswa = [
   },
   {
     name: "Arifah Husaini",
-    role: "UI/UX Designer",
+    role: "Anggota Tim Produksi PSTeam",
     image: "/team/mahasiswa2.png",
     email: "arifahhusaini@gmail.com",
     website: "#",
@@ -67,7 +57,7 @@ const mahasiswa = [
   },
   {
     name: "Anggun Salsa Faradita",
-    role: "UI/UX Designer",
+    role: "Anggota Tim Produksi PSTeam",
     image: "/team/mahasiswa3.png",
     email: "anggunsalsa2807@gmail.com",
     website: "#",
@@ -79,7 +69,7 @@ const mahasiswa = [
   },
   {
     name: "Farhan",
-    role: "Backend Developer",
+    role: "Anggota Tim Produksi PSTeam",
     image: "/team/mahasiswa4.png",
     email: "farhan@example.com",
     website: "#",
@@ -90,25 +80,7 @@ const mahasiswa = [
   },
 ];
 
-export default function TeamSection() {
-  const { locale } = useLocale();
-  const [t, setT] = useState<Translation>({});
-
-  // === Load JSON sesuai bahasa aktif ===
-  useEffect(() => {
-    const loadLocale = async () => {
-      try {
-        const module = await import(
-          `../../locales/${locale}/team/projectcard.json`
-        );
-        setT(module.default || module);
-      } catch (err) {
-        console.error("Gagal memuat terjemahan TeamSection:", err);
-      }
-    };
-    loadLocale();
-  }, [locale]);
-
+export default function ProjectCard() {
   // === Inisialisasi AOS ===
   useEffect(() => {
     AOS.init({
@@ -192,19 +164,19 @@ export default function TeamSection() {
           <div className="mt-4 text-gray-700 text-sm leading-relaxed text-left">
             <p>
               <span className="font-semibold text-blue-800">
-                {t.program || "Program Studi"}:
+                Program Studi:
               </span>{" "}
               {person.program}
             </p>
             <p>
               <span className="font-semibold text-blue-800">
-                {t.education || "Pendidikan"}:
+                Pendidikan:
               </span>{" "}
               {person.education}
             </p>
             <p>
               <span className="font-semibold text-blue-800">
-                {t.specialization || "Spesialis"}:
+                Spesialis:
               </span>{" "}
               {person.specialization}
             </p>
@@ -223,7 +195,7 @@ export default function TeamSection() {
           data-aos="fade-up"
           className="text-4xl font-bold mb-12 text-blue-800"
         >
-          {t.title || "PSTEAM Development Team"}
+          Tim Pengembang PSTeam
         </h2>
 
         {/* === Dosen (Cuma Swono) === */}

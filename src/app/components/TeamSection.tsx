@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Card } from "flowbite-react";
 import Image from "next/image";
 import {
@@ -12,33 +12,8 @@ import {
 } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useLocale } from "../context/LocaleContext";
-
-interface Translation {
-  title?: string;
-  advisor?: string;
-  program?: string;
-  education?: string;
-  specialization?: string;
-  website?: string;
-}
 
 export default function TeamSection() {
-  const { locale } = useLocale();
-  const [t, setT] = useState<Translation>({});
-
-  useEffect(() => {
-    const loadLocale = async () => {
-      try {
-        const module = await import(`../locales/${locale}/team/projectcard.json`);
-        setT(module.default || module);
-      } catch (err) {
-        console.error("Gagal memuat terjemahan TeamSection:", err);
-      }
-    };
-    loadLocale();
-  }, [locale]);
-
   useEffect(() => {
     AOS.init({
       duration: 900,
@@ -51,7 +26,7 @@ export default function TeamSection() {
   const dosenList = [
     {
       name: "Dr. Ari Wibowo, S.T., M.T.",
-      role: t.advisor || "Advisor Lecturer",
+      role: "Dosen Pembimbing",
       image: "/dosen/ari_wibowo.png",
       email: "ariwibowo@polibatam.ac.id",
       website: "https://ariwibowo.my.id",
@@ -66,7 +41,7 @@ export default function TeamSection() {
     },
     {
       name: "Swono Sibagariang, S.Kom., M.Kom",
-      role: t.advisor || "Advisor Lecturer",
+      role: "Dosen Pembimbing",
       image: "/dosen/swono_sibagariang.png",
       email: "swono@polibatam.ac.id",
       website: "https://swonosibagariang.my.id",
@@ -85,7 +60,7 @@ export default function TeamSection() {
   const mahasiswa = [
     {
       name: "Ardhitya Danur Siswondo",
-      role: "Full Stack Developer",
+      role: "Anggota Tim Produksi PSTeam",
       image: "/team/mahasiswa1.png",
       email: "ardhityasiswondo@gmail.com",
       website: "https://github.com/ardhitya13",
@@ -97,7 +72,7 @@ export default function TeamSection() {
     },
     {
       name: "Arifah Husaini",
-      role: "UI/UX Designer",
+      role: "Anggota Tim Produksi PSTeam",
       image: "/team/mahasiswa2.png",
       email: "arifah@example.com",
       website: "#",
@@ -108,7 +83,7 @@ export default function TeamSection() {
     },
     {
       name: "Anggun Salsa Faradita",
-      role: "UI/UX Designer",
+      role: "Anggota Tim Produksi PSTeam",
       image: "/team/mahasiswa3.png",
       email: "anggunsalsa2807@gmail.com",
       website: "#",
@@ -120,7 +95,7 @@ export default function TeamSection() {
     },
     {
       name: "Farhan",
-      role: "Backend Developer",
+      role: "BAnggota Tim Produksi PSTeam",
       image: "/team/mahasiswa4.png",
       email: "farhan@example.com",
       website: "#",
@@ -134,25 +109,45 @@ export default function TeamSection() {
   // === Social Icons ===
   const SocialIcons = ({ person }: { person: any }) => (
     <div className="flex justify-center gap-4 text-xl mt-5">
-      <a href={person.github} target="_blank" className="text-gray-500 hover:text-black transition-all duration-300">
+      <a
+        href={person.github}
+        target="_blank"
+        className="text-gray-500 hover:text-black transition-all duration-300"
+      >
         <FaGithub />
       </a>
-      <a href={person.linkedin} target="_blank" className="text-gray-500 hover:text-[#0a66c2] transition-all duration-300">
+      <a
+        href={person.linkedin}
+        target="_blank"
+        className="text-gray-500 hover:text-[#0a66c2] transition-all duration-300"
+      >
         <FaLinkedin />
       </a>
-      <a href={person.facebook} target="_blank" className="text-gray-500 hover:text-[#1877f2] transition-all duration-300">
+      <a
+        href={person.facebook}
+        target="_blank"
+        className="text-gray-500 hover:text-[#1877f2] transition-all duration-300"
+      >
         <FaFacebook />
       </a>
-      <a href={person.instagram} target="_blank" className="text-gray-500 hover:text-[#e4405f] transition-all duration-300">
+      <a
+        href={person.instagram}
+        target="_blank"
+        className="text-gray-500 hover:text-[#e4405f] transition-all duration-300"
+      >
         <FaInstagram />
       </a>
-      <a href={person.website} target="_blank" className="text-gray-500 hover:text-green-600 transition-all duration-300">
+      <a
+        href={person.website}
+        target="_blank"
+        className="text-gray-500 hover:text-green-600 transition-all duration-300"
+      >
         <FaGlobe />
       </a>
     </div>
   );
 
-  // === Template Card (Force White + Bulat Sempurna) ===
+  // === Template Card ===
   const renderCard = (person: any, index: number) => (
     <Card
       key={index}
@@ -161,7 +156,6 @@ export default function TeamSection() {
       className="p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl transition-transform duration-300 hover:scale-105 rounded-2xl border border-gray-200 flex flex-col justify-between h-[460px] w-full max-w-sm"
     >
       <div className="flex flex-col items-center text-center">
-        {/* Foto Bulat Sempurna + Efek Hover */}
         <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
           <Image
             src={person.image}
@@ -179,21 +173,15 @@ export default function TeamSection() {
         {person.program && (
           <div className="mt-4 text-gray-700 text-sm leading-relaxed text-left">
             <p>
-              <span className="font-semibold text-blue-800">
-                {t.program || "Program Studi"}:
-              </span>{" "}
+              <span className="font-semibold text-blue-800">Program Studi:</span>{" "}
               {person.program}
             </p>
             <p>
-              <span className="font-semibold text-blue-800">
-                {t.education || "Pendidikan"}:
-              </span>{" "}
+              <span className="font-semibold text-blue-800">Pendidikan:</span>{" "}
               {person.education}
             </p>
             <p>
-              <span className="font-semibold text-blue-800">
-                {t.specialization || "Spesialis"}:
-              </span>{" "}
+              <span className="font-semibold text-blue-800">Spesialis:</span>{" "}
               {person.specialization}
             </p>
           </div>
@@ -212,15 +200,21 @@ export default function TeamSection() {
           data-aos="fade-up"
           className="text-4xl font-bold mb-12 text-blue-800"
         >
-          {t.title || "PSTEAM Development Team"}
+          Tim Pengembang PSTEAM
         </h2>
 
         {/* === Dosen === */}
+        <h3 className="text-2xl font-semibold text-gray-700 mb-8">
+          Dosen Pembimbing
+        </h3>
         <div className="flex justify-center flex-wrap gap-8 mb-20">
           {dosenList.map((dosen, index) => renderCard(dosen, index))}
         </div>
 
         {/* === Mahasiswa === */}
+        <h3 className="text-2xl font-semibold text-gray-700 mb-8">
+          Anggota Mahasiswa
+        </h3>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 justify-items-center">
           {mahasiswa.map((member, index) => renderCard(member, index))}
         </div>

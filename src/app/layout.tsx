@@ -5,7 +5,7 @@ import "flowbite-react";
 import { LocaleProvider } from "./context/LocaleContext";
 
 export const metadata = {
-  title: "PSTEAM",
+  title: "PSTeam",
   description: "Website resmi PSTeam - Web, IoT, Mobile, dan AI Solution",
   icons: { icon: "/logopsteam4.png" },
 };

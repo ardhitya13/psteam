@@ -71,8 +71,8 @@ body {
 /* === Hero Section Fullscreen Video === */
 .hero-section {
   position: relative;
-  width: 99vw;
-  height: 90vh;
+  width: 100vw;
+  height: 89vh;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -83,7 +83,7 @@ body {
   top: 50%;
   left: 50%;
   width: 100vw;
-  height: 100vh;
+  height: 90vh;
   object-fit: cover;
   object-position: center;
   transform: translate(-50%, -50%);
@@ -128,3 +128,25 @@ html, body {
 * {
   box-sizing: border-box;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-in-out;
+}
+

@@ -7,38 +7,11 @@ import {
   BsFacebook,
   BsInstagram,
 } from "react-icons/bs";
-import { useEffect, useState } from "react";
-import { useLocale } from "../../context/LocaleContext";
+import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
-interface Translation {
-  title?: string;
-  program?: string;
-  email?: string;
-  educationHistory?: string;
-  specialization?: string;
-}
-
 export default function DosenSection() {
-  const { locale } = useLocale();
-  const [t, setT] = useState<Translation>({});
-
-  // ✅ Load JSON terjemahan
-  useEffect(() => {
-    const loadLocale = async () => {
-      try {
-        const module = await import(
-          `../../locales/${locale}/team/dosencard.json`
-        );
-        setT(module.default || module);
-      } catch (err) {
-        console.error("Gagal memuat terjemahan DosenCard:", err);
-      }
-    };
-    loadLocale();
-  }, [locale]);
-
   // ✅ Efek Scroll sama seperti TeamSection
   useEffect(() => {
     AOS.init({
@@ -51,7 +24,7 @@ export default function DosenSection() {
   const dosenList = [
     {
       name: "Dr. Ari Wibowo, S.T., M.T.",
-      title: t.title || "Dosen",
+      title: "Dosen",
       prodi: "Teknologi Rekayasa Multimedia",
       pendidikan:
         "Doktor (S3) - Teknik Elektro Informatika, Institut Teknologi Bandung",
@@ -72,7 +45,7 @@ export default function DosenSection() {
     },
     {
       name: "Swono Sibagariang, S.Kom., M.Kom",
-      title: t.title || "Dosen",
+      title: "Dosen",
       prodi: "Teknik Informatika",
       pendidikan:
         "Magister (S2) - Ilmu dan Teknologi, Universitas Sumatera Utara",
@@ -99,7 +72,7 @@ export default function DosenSection() {
           data-aos="fade-up"
           className="text-3xl font-bold text-blue-800 mb-10"
         >
-          {t.title || "Dosen Pembimbing"}
+          Dosen Pembimbing
         </h2>
 
         <div className="grid gap-8 md:grid-cols-2 justify-items-center">
@@ -110,7 +83,7 @@ export default function DosenSection() {
               data-aos-delay={index * 150}
               className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200 flex flex-col items-center text-center"
             >
-              {/* Foto Dosen (bulat sempurna + efek hover halus) */}
+              {/* Foto Dosen */}
               <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
                 <Image
                   src={dosen.image}
@@ -127,16 +100,16 @@ export default function DosenSection() {
               <p className="text-blue-600 font-medium">{dosen.title}</p>
 
               <p className="text-sm text-gray-700 mt-2">
-                <strong>{t.program || "Program Studi"}:</strong> {dosen.prodi}
+                <strong>Program Studi:</strong> {dosen.prodi}
               </p>
               <p className="text-sm text-gray-700 mb-2">
-                <strong>{t.email || "Email"}:</strong> {dosen.email}
+                <strong>Email:</strong> {dosen.email}
               </p>
 
               <div className="mt-4 text-gray-700 text-sm leading-relaxed text-left">
                 <p>
                   <span className="font-semibold text-blue-800">
-                    {t.educationHistory || "Riwayat Pendidikan"}:
+                    Riwayat Pendidikan:
                   </span>
                 </p>
                 <ul className="list-disc list-inside mt-1">
@@ -146,13 +119,13 @@ export default function DosenSection() {
                 </ul>
                 <p className="mt-2">
                   <span className="font-semibold text-blue-800">
-                    {t.specialization || "Bidang Spesialis"}:
+                    Bidang Spesialis:
                   </span>{" "}
                   {dosen.spesialis}
                 </p>
               </div>
 
-              {/* === Ikon Sosial Media === */}
+              {/* Ikon Sosial Media */}
               <div className="flex justify-center gap-4 text-xl mt-5">
                 <a
                   href={dosen.socials.github}
