@@ -2,7 +2,6 @@ import "./globals.css";
 import LayoutWrapper from "./LayoutWrapper";
 import "flowbite";
 import "flowbite-react";
-import { LocaleProvider } from "./context/LocaleContext";
 
 export const metadata = {
   title: "PSTeam",
@@ -28,9 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                    flex flex-col min-h-screen antialiased transition-colors duration-300"
       >
         {/* ✅ Gunakan context dan layout global */}
-        <LocaleProvider>
           <LayoutWrapper>{children}</LayoutWrapper>
-        </LocaleProvider>
       </body>
     </html>
   );
