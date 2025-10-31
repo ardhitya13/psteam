@@ -1,6 +1,16 @@
 "use client";
-import { Menu, Home,  FilePlus, BookOpenText } from "lucide-react";
+import {
+  Menu,
+  Home,
+  FileText,
+  BookOpen,
+  PenTool,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation"; // ✅ untuk deteksi halaman aktif
 
 export default function SidebarDosen({
   isOpen,
@@ -9,66 +19,119 @@ export default function SidebarDosen({
   isOpen: boolean;
   toggle: () => void;
 }) {
-  const menuItems = [
-  { name: "Beranda", icon: Home, href: "/dosen" },
-  { name: "Ajukan Penelitian", icon: FilePlus, href: "/dosen/kelola/AjukanPenelitian" },
-  { name: "Daftar Publikasi", icon: BookOpenText, href: "/dosen/kelola/Publikasi" },
-];
+  const [mounted, setMounted] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const pathname = usePathname(); // ✅ ambil path halaman aktif
+
+  useEffect(() => setMounted(true), []);
+
+  // Tooltip refs
+  const refs = useRef<Record<string, HTMLDivElement | null>>({});
+  const setRef = useCallback((key: string) => (el: HTMLDivElement | null) => {
+    refs.current[key] = el;
+  }, []);
+
+  // Tooltip floating
+  const Tooltip = ({
+    text,
+    targetRef,
+  }: {
+    text: string;
+    targetRef: HTMLDivElement | null;
+  }) => {
+    if (!mounted || !targetRef) return null;
+    const rect = targetRef.getBoundingClientRect();
+    return createPortal(
+      <div
+        className="fixed z-[99999] px-2 py-1 bg-white text-[#0a3b91] text-sm font-semibold rounded-md shadow-md transition-all duration-150 whitespace-nowrap pointer-events-none"
+        style={{
+          top: `${rect.top + rect.height / 2}px`,
+          left: `${rect.right + 10}px`,
+          transform: "translateY(-50%)",
+        }}
+      >
+        {text}
+      </div>,
+      document.body
+    );
+  };
+
+  // Menu utama
+  const menus = [
+    { name: "Beranda", href: "/dosen", icon: Home },
+    { name: "Penelitian", href: "/dosen/penelitian", icon: FileText },
+    { name: "Pengabdian", href: "/dosen/pengabdian", icon: BookOpen },
+    { name: "Karya Ilmiah", href: "/dosen/karyailmiah", icon: PenTool },
+    { name: "HKI / Paten", href: "/dosen/hki", icon: ShieldCheck },
+  ];
 
   return (
-    <div
-      className={`fixed left-0 top-[64px] h-[calc(100vh-64px)] bg-[#0a3b91] text-white transition-all duration-300 z-30 ${isOpen ? "w-[232px]" : "w-[80px]"
-        }`}
+    <aside
+      className={`fixed left-0 top-[64px] h-[calc(100vh-64px)] bg-[#0a3b91] text-white transition-all duration-300 ${
+        isOpen ? "w-[232px]" : "w-[80px]"
+      } z-40 overflow-y-auto`}
     >
-      {/* Header Menu */}
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-blue-800">
         <button
           onClick={toggle}
           className="flex items-center text-white hover:text-gray-200 transition"
-          aria-label="Toggle sidebar"
         >
           <Menu size={24} strokeWidth={2} />
-          {isOpen && <span className="ml-3 text-sm font-semibold">MENU</span>}
+          {isOpen && (
+            <span className="ml-3 text-sm font-semibold tracking-wide">MENU</span>
+          )}
         </button>
       </div>
 
-      {/* Menu Items */}
+      {/* NAV */}
       <nav className="mt-4">
         <ul className="space-y-2">
-          {menuItems.map(({ name, icon: Icon, href }, idx) => (
-            <li key={idx}>
-              <Link href={href} className="block mx-3 relative group">
-                <div
-                  className={
-                    "flex items-center gap-3 py-3 px-3 rounded-md transition-all duration-200 transform group-hover:bg-white hover:scale-[1.01]"
-                  }
-                >
-                  <Icon
-                    size={22}
-                    strokeWidth={2.4}
-                    className="text-white group-hover:text-[#0a3b91] transition-transform duration-200 transform group-hover:scale-105"
-                  />
-                  {isOpen && (
-                    <span
-                      className={
-                        "text-white text-[15px] font-semibold transition-all duration-200 transform group-hover:scale-105 group-hover:text-[#0a3b91]"
-                      }
-                    >
-                      {name}
-                    </span>
-                  )}
-                </div>
+          {menus.map(({ name, href, icon: Icon }) => {
+            const isActive = pathname === href; // ✅ cek halaman aktif
 
-                {!isOpen && (
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2 py-1 bg-white text-[#0a3b91] text-sm font-semibold rounded-md shadow-md opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-50">
-                    {name}
+            return (
+              <li key={name}>
+                <Link href={href} className="block mx-3 relative">
+                  <div
+                    ref={setRef(name)}
+                    onMouseEnter={() => setHoveredItem(name)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    className={`group flex items-center gap-3 py-3 px-3 rounded-md transition-all duration-200 cursor-pointer
+                      ${
+                        isActive
+                          ? "bg-white text-[#0a3b91]" // aktif
+                          : "hover:bg-white hover:text-[#0a3b91]" // tidak aktif
+                      }`}
+                  >
+                    <Icon
+                      size={22}
+                      strokeWidth={2.3}
+                      className={`transition-colors duration-200 ${
+                        isActive ? "text-[#0a3b91]" : "text-white group-hover:text-[#0a3b91]"
+                      }`}
+                    />
+                    {isOpen && (
+                      <span
+                        className={`text-[15px] font-semibold transition-colors duration-200 ${
+                          isActive ? "text-[#0a3b91]" : "text-white group-hover:text-[#0a3b91]"
+                        }`}
+                      >
+                        {name}
+                      </span>
+                    )}
                   </div>
-                )}
-              </Link>
-            </li>
-          ))}
+
+                  {/* Tooltip muncul saat sidebar ditutup */}
+                  {!isOpen && hoveredItem === name && (
+                    <Tooltip text={name} targetRef={refs.current[name]} />
+                  )}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
-    </div>
+    </aside>
   );
 }

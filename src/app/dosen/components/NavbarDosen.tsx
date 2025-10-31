@@ -1,89 +1,101 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Menu, LogOut, User, Settings } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { initFlowbite } from "flowbite";
 
-interface NavbardosenProps {
-  toggle: () => void;
-}
-
-export default function Navbardosen({ toggle }: NavbardosenProps) {
-  const [mounted, setMounted] = useState(false);
+export default function NavbarDosen({ toggle }: { toggle: () => void }) {
+  const router = useRouter();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-    initFlowbite();
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md :bg-white"
-    >
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        {/* LOGO */}
-        <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
-          <div className="relative w-[120px] h-[30px] overflow-hidden">
-            <Image
-              src="/logopsteam1.png"
-              alt="PSTEAM Logo"
-              fill
-              className="object-cover object-center"
-            />
-          </div>
-        </a>
+    <nav className="fixed top-0 left-0 w-full h-[64px] bg-white shadow-md flex justify-between items-center px-6 z-50">
+      {/* Logo PSTEAM */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggle}
+          className="text-[#0a3b91] hover:text-[#1e40af] transition"
+        >
+          <Menu size={24} />
+        </button>
 
-        {/* AVATAR USER + DROPDOWN */}
-        <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-          <button
-            type="button"
-            className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-            id="user-menu-button"
-            aria-expanded="false"
-            data-dropdown-toggle="user-dropdown"
-            data-dropdown-placement="bottom"
-          >
-            <span className="sr-only">Open user menu</span>
-            <img
-              className="w-8 h-8 rounded-full"
-              src="https://ui-avatars.com/api/?name=Bonnie+Green&background=0D8ABC&color=fff"
-              alt="user photo"
-            />
-          </button>
-
-          {/* Dropdown menu */}
-          <div
-            // suppress hydration warnings because Flowbite/Popper mutates attributes/styles on mount
-            suppressHydrationWarning
-            id="user-dropdown"
-            className="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600"
-            {...(mounted ? {} : { 'data-server-render': 'true' })}
-          >
-            <div className="px-4 py-3">
-              <span className="block text-sm text-gray-900 dark:text-white">
-                dosen
-              </span>
-            </div>
-            <ul className="py-2" aria-labelledby="user-menu-button">
-              <li>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                >
-                  Ganti Sandi
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/login"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                >
-                  Keluar
-                </a>
-              </li>
-            </ul>
-          </div>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/images/logopsteam4.png"
+            alt="Logo PSTEAM"
+            width={38}
+            height={38}
+            className="object-contain"
+            priority
+          />
+          <h1 className="font-bold text-[#0a3b91] text-lg select-none">
+            PSTEAM
+            <span className="font-medium text-gray-600 ml-1 hidden sm:inline">
+              Dashboard Dosen
+            </span>
+          </h1>
         </div>
+      </div>
+
+      {/* Profil Dosen */}
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-100 transition"
+        >
+          <div className="w-10 h-10 rounded-full bg-[#0a3b91] text-white flex items-center justify-center font-semibold">
+            AD
+          </div>
+        </button>
+
+        {isDropdownOpen && (
+          <div className="absolute right-0 mt-3 w-52 bg-white shadow-lg rounded-xl border border-gray-100 py-2 text-sm animate-fade-in">
+            <div className="px-4 py-2 border-b border-gray-100">
+              <p className="font-semibold text-gray-800">
+                Ardhitya Danur Siswondo
+              </p>
+              <p className="text-gray-500 text-xs">Dosen Teknik Informatika</p>
+            </div>
+
+            <button
+              onClick={() => {
+                setIsDropdownOpen(false);
+                router.push("/dosen/profil");
+              }}
+              className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-gray-700"
+            >
+              <User size={16} className="mr-2 text-[#0a3b91]" />
+              Lihat Profil
+            </button>
+
+            <button className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-gray-700">
+              <Settings size={16} className="mr-2 text-[#0a3b91]" />
+              Edit Profil
+            </button>
+
+            <hr className="my-1" />
+
+            <button className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-gray-50">
+              <LogOut size={16} className="mr-2" />
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );

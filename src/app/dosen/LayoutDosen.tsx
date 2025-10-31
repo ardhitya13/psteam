@@ -9,16 +9,14 @@ export default function DosenLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-gray-50">
       <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <div className="flex">
-        <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main
-          className={`transition-all duration-300 flex-1 p-6 pt-[80px] ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
-        >
-          {children}
-        </main>
-      </div>
+      <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <main
+        className={`transition-all duration-300 pt-[90px] px-8 pb-6 ${
+          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+        }`}
+      >
+        {children}
+      </main>
     </div>
   );
 }
