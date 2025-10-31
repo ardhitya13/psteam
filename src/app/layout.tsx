@@ -9,7 +9,11 @@ export const metadata = {
   icons: { icon: "/logopsteam4.png" },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="id" className="scroll-smooth">
       <head>
@@ -21,13 +25,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="shortcut icon" href="/logopsteam4.png" type="image/png" />
       </head>
 
-      {/* ✅ Background lebih profesional dan lembut */}
+      {/* 🌈 Background gradasi global (paksa tampil di semua halaman) */}
       <body
-        className="bg-gradient-to-b from-blue-50 via-white to-blue-100 text-gray-900 
-                   flex flex-col min-h-screen antialiased transition-colors duration-300"
+        style={{
+          background: "linear-gradient(90deg, #132C8E 0%, #050C28 100%)",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
+          color: "white",
+          minHeight: "100vh",
+          margin: 0,
+        }}
+        className="antialiased transition-colors duration-300"
       >
-        {/* ✅ Gunakan context dan layout global */}
-          <LayoutWrapper>{children}</LayoutWrapper>
+        {/* ✅ Layout global dengan konten utama */}
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

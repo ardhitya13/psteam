@@ -14,21 +14,23 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 
 // === Dosen ===
-const dosen = {
-  name: "Swono Sibagariang, S.Kom., M.Kom",
-  role: "Dosen Pembimbing",
-  image: "/dosen/swono_sibagariang.png",
-  email: "swono@polibatam.ac.id",
-  website: "https://swonosibagariang.my.id",
-  program: "Teknik Informatika",
-  education:
-    "Magister (S2) Universitas Sumatera Utara - Ilmu dan Teknologi",
-  specialization: "Software Development",
-  github: "https://github.com/",
-  linkedin: "https://linkedin.com/",
-  facebook: "https://facebook.com/",
-  instagram: "https://instagram.com/",
-};
+const dosen = [
+  {
+    name: "Swono Sibagariang, S.Kom., M.Kom",
+    role: "Dosen Pembimbing",
+    image: "/dosen/swono_sibagariang.png",
+    email: "swono@polibatam.ac.id",
+    website: "https://swonosibagariang.my.id",
+    program: "Teknik Informatika",
+    education:
+      "Magister (S2) Universitas Sumatera Utara - Ilmu dan Teknologi",
+    specialization: "Software Development",
+    github: "https://github.com/",
+    linkedin: "https://linkedin.com/",
+    facebook: "https://facebook.com/",
+    instagram: "https://instagram.com/",
+  },
+];
 
 // === Mahasiswa ===
 const mahasiswa = [
@@ -81,7 +83,6 @@ const mahasiswa = [
 ];
 
 export default function ProjectCard() {
-  // === Inisialisasi AOS ===
   useEffect(() => {
     AOS.init({
       duration: 900,
@@ -90,7 +91,7 @@ export default function ProjectCard() {
     });
   }, []);
 
-  // === Komponen Social Icons ===
+  // === Komponen Ikon Sosial ===
   const SocialIcons = ({ person }: { person: any }) => (
     <div className="flex justify-center gap-4 text-xl mt-5">
       <a
@@ -131,20 +132,23 @@ export default function ProjectCard() {
     </div>
   );
 
-  // === Template Card (Fix Bulat + Hover) ===
+  // === Template Card (dosen & mahasiswa) ===
   const renderCard = (person: any, index: number) => (
     <Card
       key={index}
       data-aos="fade-up"
       data-aos-delay={index * 150}
-      className="p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl 
+      className="relative p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl 
                  transition-transform duration-300 hover:scale-105 
                  rounded-2xl border border-gray-200 flex flex-col 
                  justify-between h-[460px] w-full max-w-sm"
     >
+      {/* 🌌 Background lembut di belakang card */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#132C8E]/10 to-[#050C28]/10 rounded-2xl" />
+
       <div className="flex flex-col items-center text-center">
-        {/* ✅ FIX GAMBAR BULAT SEMPURNA */}
-        <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
+        {/* ✅ Gambar bulat dengan tulisan saat hover */}
+        <div className="relative w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
           <Image
             src={person.image}
             alt={person.name}
@@ -152,32 +156,29 @@ export default function ProjectCard() {
             height={160}
             className="object-cover w-full h-full"
           />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+            <p className="text-white text-sm font-semibold text-center px-2">
+              {person.role}
+            </p>
+          </div>
         </div>
 
-        <h3 className="text-lg font-semibold text-blue-900">
-          {person.name}
-        </h3>
+        <h3 className="text-lg font-semibold text-blue-900">{person.name}</h3>
         <p className="text-blue-600 font-medium">{person.role}</p>
         <p className="text-sm text-gray-700 mt-2">{person.email}</p>
 
         {person.program && (
           <div className="mt-4 text-gray-700 text-sm leading-relaxed text-left">
             <p>
-              <span className="font-semibold text-blue-800">
-                Program Studi:
-              </span>{" "}
+              <span className="font-semibold text-blue-800">Program Studi:</span>{" "}
               {person.program}
             </p>
             <p>
-              <span className="font-semibold text-blue-800">
-                Pendidikan:
-              </span>{" "}
+              <span className="font-semibold text-blue-800">Pendidikan:</span>{" "}
               {person.education}
             </p>
             <p>
-              <span className="font-semibold text-blue-800">
-                Spesialis:
-              </span>{" "}
+              <span className="font-semibold text-blue-800">Spesialis:</span>{" "}
               {person.specialization}
             </p>
           </div>
@@ -189,21 +190,40 @@ export default function ProjectCard() {
   );
 
   return (
-    <section id="team" className="py-20 bg-white text-gray-800">
+    <section
+      id="team"
+      className="py-20 text-gray-800"
+      style={{
+        background: "linear-gradient(90deg, #132C8E 0%, #050C28 100%)",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+      }}
+    >
       <div className="max-w-7xl mx-auto text-center px-6">
+        {/* === Judul Utama === */}
         <h2
           data-aos="fade-up"
-          className="text-4xl font-bold mb-12 text-blue-800"
+          className="text-4xl font-bold mb-12 text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.6)]"
         >
-          Tim Pengembang PSTeam
+          Tim Pengembang {" "}
+          <span className="text-[#60A5FA] font-extrabold drop-shadow-[0_2px_8px_rgba(96,165,250,0.6)]">
+            PSTeam
+          </span>
         </h2>
 
-        {/* === Dosen (Cuma Swono) === */}
+        {/* === Dosen Pembimbing === */}
+        <h3 className="text-2xl font-semibold text-[#60A5FA] mb-8 drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
+          Dosen Pembimbing
+        </h3>
         <div className="flex justify-center flex-wrap gap-8 mb-20">
-          {renderCard(dosen, 0)}
+          {dosen.map((item, index) => renderCard(item, index))}
         </div>
 
-        {/* === Mahasiswa === */}
+        {/* === Anggota Mahasiswa === */}
+        <h3 className="text-2xl font-semibold text-[#60A5FA] mb-8 drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
+          Anggota Mahasiswa
+        </h3>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 justify-items-center">
           {mahasiswa.map((member, index) => renderCard(member, index))}
         </div>

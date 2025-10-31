@@ -59,7 +59,7 @@ export default function ProjectCard({ project }: { project: any }) {
                        transition-all duration-300 shadow-sm"
           >
             <FaExternalLinkAlt className="mr-2" />
-            Lihat Detail
+            Lihat Website
           </motion.a>
         </div>
       </div>

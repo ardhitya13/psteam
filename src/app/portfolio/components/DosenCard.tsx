@@ -210,7 +210,7 @@ function DosenSingleCard({ dosen, semuaJenis }: any) {
   return (
     <article className="bg-white rounded-3xl shadow-lg border border-blue-200 overflow-hidden transition-all duration-300 hover:shadow-2xl">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row items-center gap-8 p-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-white border-b border-blue-100">
+      <div className="flex flex-col md:flex-row items-center gap-8 p-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-white border-b border-white">
         <div className="relative w-40 h-40 flex-shrink-0">
           <Image
             src={dosen.image}
@@ -220,7 +220,7 @@ function DosenSingleCard({ dosen, semuaJenis }: any) {
             sizes="160px"
           />
         </div>
-        <div className="flex-1 text-gray-700 space-y-2">
+        <div className="flex-1 text-black space-y-2">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-purple-600 bg-clip-text ">
             {dosen.name}
           </h2>
@@ -238,7 +238,7 @@ function DosenSingleCard({ dosen, semuaJenis }: any) {
       </div>
 
       {/* RIWAYAT PENDIDIKAN */}
-      <div className="px-8 pb-4 text-gray-700">
+      <div className="px-8 pb-4 text-black">
         <h3 className="font-semibold text-lg mb-2 border-b border-blue-200 pb-1">
           Riwayat Pendidikan
         </h3>
@@ -265,7 +265,7 @@ function DosenSingleCard({ dosen, semuaJenis }: any) {
       {/* TABEL */}
       <div className="overflow-x-auto px-6 pb-4 relative">
         <div className="overflow-hidden border border-blue-100 rounded-lg shadow-sm bg-white">
-          <table className="w-full text-sm text-gray-700">
+          <table className="w-full text-sm text-black">
             <thead className="bg-blue-100/70">
               <tr>
                 <th className="p-3 w-12 text-left font-semibold">No</th>

@@ -79,7 +79,7 @@ export default function TeamSection() {
       github: "#",
       linkedin: "https://github.com/arifah336",
       facebook: "https://www.facebook.com/arifa.husain.921",
-      instagram: "https://www.instagram.com/ripahusain_/",
+      instagram: "https://www.instagram.com/ripahusain_/ ",
     },
     {
       name: "Anggun Salsa Faradita",
@@ -153,8 +153,13 @@ export default function TeamSection() {
       key={index}
       data-aos="fade-up"
       data-aos-delay={index * 150}
-      className="p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl transition-transform duration-300 hover:scale-105 rounded-2xl border border-gray-200 flex flex-col justify-between h-[460px] w-full max-w-sm"
+      className="relative p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl 
+                 transition-transform duration-300 hover:scale-105 rounded-2xl 
+                 border border-gray-200 flex flex-col justify-between h-[460px] w-full max-w-sm"
     >
+      {/* 🌌 Background lembut di belakang card */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#132C8E]/10 to-[#050C28]/10 rounded-2xl" />
+
       <div className="flex flex-col items-center text-center">
         <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
           <Image
@@ -194,25 +199,38 @@ export default function TeamSection() {
 
   // === Return Section ===
   return (
-    <section id="team" className="py-20 bg-white text-gray-800">
+    <section
+      id="team"
+      className="py-20 text-gray-800"
+      style={{
+        background: "linear-gradient(90deg, #132C8E 0%, #050C28 100%)",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+      }}
+    >
       <div className="max-w-7xl mx-auto text-center px-6">
+        {/* 🔹 Judul utama */}
         <h2
           data-aos="fade-up"
-          className="text-4xl font-bold mb-12 text-blue-800"
+          className="text-4xl font-bold mb-12 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
         >
-          Tim Pengembang PSTEAM
+          Tim Pengembang {" "}
+          <span className="text-[#60A5FA] font-extrabold drop-shadow-[0_2px_8px_rgba(96,165,250,0.6)]">
+            PSTeam
+          </span>
         </h2>
 
-        {/* === Dosen === */}
-        <h3 className="text-2xl font-semibold text-gray-700 mb-8">
+        {/* 🔹 Subjudul Dosen */}
+        <h3 className="text-2xl font-semibold text-[#60A5FA] mb-8 drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
           Dosen Pembimbing
         </h3>
         <div className="flex justify-center flex-wrap gap-8 mb-20">
           {dosenList.map((dosen, index) => renderCard(dosen, index))}
         </div>
 
-        {/* === Mahasiswa === */}
-        <h3 className="text-2xl font-semibold text-gray-700 mb-8">
+        {/* 🔹 Subjudul Mahasiswa */}
+        <h3 className="text-2xl font-semibold text-[#60A5FA] mb-8 drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
           Anggota Mahasiswa
         </h3>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 justify-items-center">

@@ -42,7 +42,7 @@ export default function ProjectList({ searchQuery = "" }: ProjectListProps) {
       link: "https://digita.vercel.app",
     },
     {
-      image: "/iot-sensor.png",
+      image: "/produtcs/smartiot.png",
       category: "IoT",
       title: "Smart Soil Monitor IoT",
       academicYear: "2024/2025 - Genap",
@@ -52,7 +52,7 @@ export default function ProjectList({ searchQuery = "" }: ProjectListProps) {
       link: "https://iot-kelembapan.vercel.app",
     },
     {
-      image: "/ai-face.png",
+      image: "/produtcs/aiface.png",
       category: "AI",
       title: "FaceTrack: AI Face Attendance System",
       academicYear: "2024/2025 - Genap",
@@ -62,7 +62,7 @@ export default function ProjectList({ searchQuery = "" }: ProjectListProps) {
       link: "https://ai-faceapp.vercel.app",
     },
     {
-      image: "/mobile-learn.png",
+      image: "/produtcs/mobilelearn.png",
       category: "Mobile",
       title: "Learnify: Aplikasi Edukasi Mobile",
       academicYear: "2024/2025 - Genap",

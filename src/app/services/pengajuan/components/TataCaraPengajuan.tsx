@@ -1,6 +1,6 @@
 "use client";
 
-import { FaCheckCircle } from "react-icons/fa";
+import { FaCheckCircle, FaWhatsapp } from "react-icons/fa";
 
 export default function TataCaraPengajuan() {
   return (
@@ -12,12 +12,11 @@ export default function TataCaraPengajuan() {
         Ikuti langkah-langkah berikut sebelum mengajukan proyek kepada tim PSTEAM.
       </p>
 
-      <ul className="space-y-3 text-gray-700 max-w-3xl mx-auto">
+      <ul className="space-y-3 text-gray-700 max-w-3xl mx-auto mb-8">
         <li className="flex items-start gap-3">
           <FaCheckCircle className="text-blue-600 mt-1" />
           <span>
-            Pastikan ide proyek yang ingin diajukan relevan dengan bidang{" "}
-            <b>Web, Mobile, IoT</b>, atau <b>Artificial Intelligence</b>.
+            Pastikan ide proyek relevan dengan bidang <b>Web, Mobile, IoT</b>, atau <b>AI</b>.
           </span>
         </li>
         <li className="flex items-start gap-3">
@@ -36,10 +35,22 @@ export default function TataCaraPengajuan() {
           <FaCheckCircle className="text-blue-600 mt-1" />
           <span>
             Setelah dikirim, tim PSTEAM akan meninjau dan menghubungi kamu
-            melalui email untuk tahap berikutnya.
+            melalui email atau WhatsApp untuk tahap berikutnya.
           </span>
         </li>
       </ul>
+
+      <div className="text-center">
+        <a
+          href="https://api.whatsapp.com/send/?phone=6281364440803&text=Halo%20PSTEAM%2C%20saya%20ingin%20bertanya%20tentang%20pengajuan%20proyek.&type=phone_number&app_absent=0"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+        >
+          <FaWhatsapp className="text-xl" />
+          Hubungi Tim PSTEAM
+        </a>
+      </div>
     </section>
   );
 }
