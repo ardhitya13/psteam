@@ -1,81 +1,118 @@
 "use client";
 
-import { ChevronDown, Search, FileText, Plus, Edit, Upload, Trash2 } from "lucide-react";
-import React, { useState } from "react";
+import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
 import NavbarDosen from "../components/NavbarDosen";
 import SidebarDosen from "../components/SidebarDosen";
 import TambahPenelitianCard from "../components/TambahPenelitianCard";
+import EditPengabdianCard from "../components/EditPengabdianCard";
 
 type PenelitianItem = {
   no: number;
   nama: string;
   judul: string;
   tahun: number;
-  status: "Belum Diterbitkan" | "Sudah Diterbitkan";
 };
-
 
 export default function DaftarPenelitianPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [pageGroup, setPageGroup] = useState(0);
-  const itemsPerPage = 15;
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedPenelitian, setSelectedPenelitian] = useState<PenelitianItem | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedYear, setSelectedYear] = useState("Semua");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageStart, setPageStart] = useState(1);
+  const itemsPerPage = 10;
+  const maxVisiblePages = 2;
 
-  // Data dummy
-  const [data, setData] = useState<PenelitianItem[]>(() => [
-    { no: 1, nama: "Anggun Salsa F", judul: "Penelitian AI dalam Pendidikan", tahun: 2024, status: "Sudah Diterbitkan" },
-    { no: 2, nama: "Ardhitya Danur S", judul: "Optimasi Web Responsif", tahun: 2025, status: "Belum Diterbitkan" },
-    { no: 3, nama: "Arifah Husaini", judul: "Analisis Data Mahasiswa", tahun: 2023, status: "Sudah Diterbitkan" },
-    { no: 4, nama: "Farhan Rasyid", judul: "Kursus Online Public Speaking", tahun: 2025, status: "Belum Diterbitkan" },
-    ...Array.from({ length: 20 }, (_, i): PenelitianItem => ({
-      no: i + 5,
-      nama: `Nama Dosen ${i + 5}`,
-      judul: `Judul Penelitian ${i + 5}`,
-      tahun: 2020 + ((i + 5) % 6),
-      status: Math.random() > 0.5 ? "Sudah Diterbitkan" : "Belum Diterbitkan",
-    })),
+  // === Data Dummy ===
+  const [data, setData] = useState<PenelitianItem[]>(
+    Array.from({ length: 25 }, (_, i) => ({
+      no: i + 1,
+      nama: "Arifah Husaini",
+      judul: `Judul Penelitian ${i + 1}`,
+      tahun: 2020 + ((i + 1) % 6),
+    }))
+  );
 
-  ]);
-
-
-  // Pagination helpers
-  const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
-  const visibleData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  // Fungsi tambah data
+  // === Tambah Data ===
   const handleAddData = (newData: { nama: string; judul: string; tahun: number }) => {
-    if (!newData.nama || !newData.judul || !newData.tahun) return;
     const newItem: PenelitianItem = {
       no: data.length + 1,
-      nama: newData.nama,
+      nama: "Arifah Husaini",
       judul: newData.judul,
       tahun: newData.tahun,
-      status: "Belum Diterbitkan",
     };
     setData((prev) => [...prev, newItem]);
   };
 
-  // Fungsi ubah status jadi diterbitkan
-  const handleTerbitkan = (no: number) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.no === no ? { ...item, status: "Sudah Diterbitkan" } : item
-      )
-    );
+  // === Edit Data ===
+  const handleEdit = (no: number) => {
+    const penelitian = data.find((item) => item.no === no) ?? null;
+    setSelectedPenelitian(penelitian);
+    setIsEditModalOpen(!!penelitian);
   };
 
-  // Fungsi hapus data
+  const handleUpdateData = (updatedData: { no: number; nama: string; judul: string; tahun: number }) => {
+    setData((prev) =>
+      prev.map((item) =>
+        item.no === updatedData.no
+          ? { ...item, judul: updatedData.judul, tahun: updatedData.tahun }
+          : item
+      )
+    );
+    setIsEditModalOpen(false);
+    setSelectedPenelitian(null);
+  };
+
+  // === Hapus Data ===
   const handleHapus = (no: number) => {
     if (confirm("Yakin ingin menghapus data ini?")) {
       setData((prev) => prev.filter((item) => item.no !== no));
     }
   };
 
-  // Fungsi edit (dummy)
-  const handleEdit = (no: number) => {
-    alert(`Edit penelitian dengan nomor ${no}`);
+  // === Filter + Pencarian ===
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      const cocokTahun = selectedYear === "Semua" || item.tahun === Number(selectedYear);
+      const cocokJudul = item.judul.toLowerCase().includes(searchTerm.toLowerCase());
+      return cocokTahun && cocokJudul;
+    });
+  }, [data, searchTerm, selectedYear]);
+
+  // Reset pagination saat filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+    setPageStart(1);
+  }, [searchTerm, selectedYear]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  const visibleData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // === Pagination Sliding <1 2> ===
+  const visiblePages = Array.from(
+    { length: Math.min(maxVisiblePages, totalPages - pageStart + 1) },
+    (_, i) => pageStart + i
+  );
+
+  const handleNextGroup = () => {
+    if (pageStart + maxVisiblePages - 1 < totalPages) {
+      setPageStart(pageStart + 1);
+      setCurrentPage(pageStart + 1);
+    }
+  };
+
+  const handlePrevGroup = () => {
+    if (pageStart > 1) {
+      setPageStart(pageStart - 1);
+      setCurrentPage(pageStart - 1);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -84,15 +121,17 @@ export default function DaftarPenelitianPage() {
       <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
-        className={`transition-all duration-300 pt-0 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          } mt-[85px]`}
+        className={`transition-all duration-300 pt-0 px-8 pb-10 ${
+          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+        } mt-[85px]`}
       >
         <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
           DAFTAR PENELITIAN DOSEN
         </h1>
 
-        {/* Kontrol Atas Tabel */}
+        {/* === Kontrol Atas === */}
         <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
+          {/* Tambah */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
@@ -100,40 +139,42 @@ export default function DaftarPenelitianPage() {
             <Plus size={16} /> Tambah Penelitian
           </button>
 
+          {/* Filter Tahun */}
           <div className="relative inline-block">
-            <select className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-700 cursor-pointer">
-              <option>Filter Tahun</option>
-              <option>2025</option>
-              <option>2024</option>
-              <option>2023</option>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-900 cursor-pointer"
+            >
+              <option value="Semua">Semua Tahun</option>
+              {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
             </select>
             <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
               <ChevronDown size={18} className="text-gray-500" />
             </div>
           </div>
 
-          <div
-            className={`flex items-center border rounded-lg bg-white shadow-sm transition-all duration-300 overflow-hidden ${searchOpen ? "w-64" : "w-11"
-              }`}
-          >
-            {searchOpen && (
-              <input
-                type="text"
-                placeholder="Cari Judul Penelitian?"
-                className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg"
-              />
-            )}
-            <button
-              onClick={() => setSearchOpen((s) => !s)}
-              className="bg-blue-600 text-white px-3 py-3 flex items-center justify-center border rounded-lg hover:bg-blue-700 transition-all"
-            >
+          {/* Cari */}
+          <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200">
+            <input
+              type="text"
+              placeholder="Cari Judul Penelitian..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg text-gray-900 placeholder-gray-500"
+            />
+            <div className="bg-blue-600 text-white px-3 py-3 flex items-center justify-center border-l border-blue-700">
               <Search size={16} />
-            </button>
+            </div>
           </div>
         </div>
 
-        {/* Tabel */}
-        <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
+        {/* === Tabel === */}
+        <div className="overflow-x-auto bg-white shadow-lg rounded-lg border border-gray-200">
           <table className="w-full border-collapse text-sm text-gray-700">
             <thead className="bg-gray-300 text-gray-800">
               <tr>
@@ -141,130 +182,109 @@ export default function DaftarPenelitianPage() {
                 <th className="border border-gray-200 px-4 py-2">NAMA DOSEN</th>
                 <th className="border border-gray-200 px-4 py-2">JUDUL PENELITIAN</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">STATUS</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>
-
             <tbody>
-              {visibleData.map((item) => (
-                <tr key={item.no} className="hover:bg-gray-50 transition-colors">
-                  <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                  <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
-                  <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
-                  <td className="border border-gray-200 px-4 py-2 text-center">{item.tahun}</td>
-                  <td className="border border-gray-200 px-4 py-2 text-center">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${item.status === "Sudah Diterbitkan"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
-                        }`}
-                    >
-                      {item.status}
-                    </span>
+              {visibleData.length > 0 ? (
+                visibleData.map((item) => (
+                  <tr key={item.no} className="hover:bg-gray-50 transition-colors">
+                    <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
+                    <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
+                    <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
+                    <td className="border border-gray-200 px-4 py-2 text-center">{item.tahun}</td>
+                    <td className="border border-gray-200 px-4 py-2 text-center">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(item.no)}
+                          className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                        >
+                          <Edit size={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleHapus(item.no)}
+                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                        >
+                          <Trash2 size={14} /> Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="text-center py-4 text-gray-500 italic">
+                    Tidak ada data ditemukan
                   </td>
-
-                  <td className="border border-gray-200 px-4 py-2 text-center">
-                    <div className="flex justify-center gap-2">
-                      {item.status === "Belum Diterbitkan" ? (
-                        <>
-                          <button
-                            onClick={() => handleTerbitkan(item.no)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
-                          >
-                            <Upload size={14} /> Terbitkan
-                          </button>
-                          <button
-                            onClick={() => handleHapus(item.no)}
-                            className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
-                          >
-                            <Trash2 size={14} /> Hapus
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleEdit(item.no)}
-                            className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
-                          >
-                            <Edit size={14} /> Edit
-                          </button>
-                          <button
-                            onClick={() => handleHapus(item.no)}
-                            className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
-                          >
-                            <Trash2 size={14} /> Hapus
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
 
-          {/* Pagination */}
-          <div className="flex justify-end items-center py-3 px-4 gap-1 text-sm">
+          {/* === Pagination < 1 2 > === */}
+          <div className="flex justify-end items-center px-4 py-3 border-t bg-white rounded-b-lg">
             <button
-              onClick={() => {
-                if (currentPage > 1) {
-                  const newGroup = Math.floor((currentPage - 2) / 3);
-                  setCurrentPage((prev) => Math.max(prev - 1, 1));
-                  setPageGroup(newGroup);
-                }
-              }}
-              disabled={currentPage === 1}
-              className={`px-2 py-1 rounded border text-xs transition-all ${currentPage === 1
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+              onClick={handlePrevGroup}
+              disabled={pageStart === 1}
+              className={`px-2 py-1 border rounded text-xs font-medium ${
+                pageStart === 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-200 text-gray-800"
+              }`}
             >
               &lt;
             </button>
 
-            {Array.from({ length: 3 }, (_, i) => {
-              const pageNumber = pageGroup * 3 + (i + 1);
-              if (pageNumber > totalPages) return null;
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => setCurrentPage(pageNumber)}
-                  className={`px-2 py-1 rounded text-xs border ${currentPage === pageNumber
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                    }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
+            {visiblePages.map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-2 py-1 border rounded text-xs font-medium mx-0.5 ${
+                  currentPage === page
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-800 hover:bg-gray-200"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
 
             <button
-              onClick={() => {
-                if (currentPage < totalPages) {
-                  const newGroup = Math.floor(currentPage / 3);
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-                  setPageGroup(newGroup);
-                }
-              }}
-              disabled={currentPage === totalPages}
-              className={`px-2 py-1 rounded border text-xs transition-all ${currentPage === totalPages
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+              onClick={handleNextGroup}
+              disabled={pageStart + maxVisiblePages - 1 >= totalPages}
+              className={`px-2 py-1 border rounded text-xs font-medium ${
+                pageStart + maxVisiblePages - 1 >= totalPages
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-200 text-gray-800"
+              }`}
             >
               &gt;
             </button>
           </div>
-
-          <TambahPenelitianCard
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSubmit={handleAddData}
-          />
         </div>
+
+        {/* === Modal Tambah & Edit === */}
+        <TambahPenelitianCard
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleAddData}
+        />
+
+        <EditPengabdianCard
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateData}
+          defaultData={
+            selectedPenelitian
+              ? {
+                  no: selectedPenelitian.no,
+                  nama: selectedPenelitian.nama,
+                  judul: selectedPenelitian.judul,
+                  tahun: selectedPenelitian.tahun,
+                }
+              : null
+          }
+        />
       </main>
     </div>
   );

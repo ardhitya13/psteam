@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ModalWrapper from "./ModalWrapper";
+import ModalWrapper from "../components/ModalWrapper";
 
 interface EditHkiCardProps {
   isOpen: boolean;

@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import NavbarAdmin from "../../components/NavbarAdmin";
 import SidebarAdmin from "../../components/SidebarAdmin";
 import TambahHkiCard from "../../components/TambahHkiCard";
-import EditHkiCard from "../../components/EditHkiCard";
+import EditHkiCard from "../../../dosen/components/EditHkiCard";
 
 type HkiItem = {
   no: number;
