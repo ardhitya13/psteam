@@ -2,10 +2,10 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import NavbarAdmin from "../../components/NavbarAdmin";
-import SidebarAdmin from "../../components/SidebarAdmin";
-import TambahHkiCard from "../../components/TambahHkiCard";
-import EditHkiCard from "../../../dosen/components/EditHkiCard";
+import AdminNavbar from "../../components/AdminNavbar";
+import AdminSidebar from "../../components/AdminSidebar";
+import AddIntellectualPropertyCard from "../../components/AddIntellectualPropertyCard";
+import EditIntellectualPropertyCard from "../../components/EditIntellectualPropertyCard";
 
 type HkiItem = {
   no: number;
@@ -71,8 +71,8 @@ export default function DaftarHkiPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <NavbarAdmin toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
         className={`transition-all duration-300 pt-0 px-8 pb-10 ${
@@ -173,14 +173,14 @@ export default function DaftarHkiPage() {
           </div>
 
           {/* Modal Tambah */}
-          <TambahHkiCard
+          <AddIntellectualPropertyCard
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onSubmit={handleAddData}
           />
 
           {/* Modal Edit */}
-          <EditHkiCard
+          <EditIntellectualPropertyCard
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
             onSubmit={handleUpdateData}

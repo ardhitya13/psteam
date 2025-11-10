@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ModalWrapper from "../components/ModalWrapper";
+import ModalWrapper from "./ModalWrapper";
 
 interface EditPengabdianCardProps {
   isOpen: boolean;

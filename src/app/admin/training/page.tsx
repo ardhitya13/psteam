@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
-import NavbarAdmin from "../../components/NavbarAdmin";
-import SidebarAdmin from "../../components/SidebarAdmin";
+import AdminNavbar from "../components/AdminNavbar";
+import AdminSidebar from "../components/AdminSidebar";
 
 
 export default function DaftarPelatihanPage() {
@@ -38,8 +38,8 @@ export default function DaftarPelatihanPage() {
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Navbar & Sidebar */}
-      <NavbarAdmin toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       {/* Main */}
       <main

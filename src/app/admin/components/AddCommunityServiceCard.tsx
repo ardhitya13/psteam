@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import ModalWrapper from "../components/ModalWrapper";
+import ModalWrapper from "./ModalWrapper";
 
 interface TambahPengabdianCardProps {
     isOpen: boolean;

@@ -2,9 +2,9 @@
 
 import { ChevronDown, Search, Edit, Upload, Trash2, Plus } from "lucide-react";
 import React, { useState, useMemo } from "react";
-import NavbarAdmin from "../../components/NavbarAdmin";
-import SidebarAdmin from "../../components/SidebarAdmin";
-import ProyekModal from "../../components/ProyekModal";
+import AdminNavbar from "../components/AdminNavbar";
+import AdminSidebar from "../components/AdminSidebar";
+import ProjectModal from "../components/ProjectModal";
 
 export default function DaftarProyekPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -65,8 +65,8 @@ export default function DaftarProyekPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-            <NavbarAdmin toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-            <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
             <main
                 className={`transition-all duration-300 pt-0 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
@@ -251,7 +251,7 @@ export default function DaftarProyekPage() {
                 </div>
 
                 {/* Modal Edit */}
-                <ProyekModal
+                <ProjectModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     data={selectedData}

@@ -2,108 +2,97 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import NavbarAdmin from "../../components/NavbarAdmin";
-import SidebarAdmin from "../../components/SidebarAdmin";
-import TambahKaryaIlmiahCard from "../../components/TambahKaryaIlmiahCard";
-import EditKaryaIlmiahCard from "../../components/EditKaryaIlmiahCard";
+import NavbarAdmin from "../../components/AdminNavbar";
+import SidebarAdmin from "../../components/AdminSidebar";
+import TambahPengabdianCard from "../../components/AddCommunityServiceCard";
+import EditPengabdianCard from "../../components/EditCommunityServiceCard";
 
-type KaryaIlmiahItem = {
+type PengabdianItem = {
   no: number;
+  nama: string;
   judul: string;
-  jenis: string;
   tahun: number;
 };
 
-export default function DaftarKaryaIlmiahPage() {
+export default function DaftarPengabdianPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedKarya, setSelectedKarya] = useState<KaryaIlmiahItem | null>(null);
+  const [selectedPengabdian, setSelectedPengabdian] = useState<PengabdianItem | null>(null);
   const itemsPerPage = 15;
 
-  // ✅ Data Dummy
-  const [data, setData] = useState<KaryaIlmiahItem[]>([
+  // ✅ Data Dummy tanpa status
+  const [data, setData] = useState<PengabdianItem[]>([
     {
       no: 1,
-      judul: "Interpretable Machine Learning for Job Placement Prediction",
-      jenis: "Jurnal Nasional Terakreditasi",
-      tahun: 2025,
-    },
-    {
-      no: 2,
-      judul: "Penerapan Teknologi Raspberry Pi dalam Monitoring Kehadiran",
-      jenis: "Jurnal Nasional",
+      nama: "Dr. Anggun Salsa F",
+      judul: "Pelatihan Literasi Digital untuk UMKM",
       tahun: 2024,
     },
     {
+      no: 2,
+      nama: "Ardhitya Danur S",
+      judul: "Edukasi Keamanan Siber di Sekolah",
+      tahun: 2025,
+    },
+    {
       no: 3,
-      judul: "Classification of Alzheimer Disease from MRI Image",
-      jenis: "Prosiding Seminar Internasional",
+      nama: "Arifah Husaini",
+      judul: "Pelatihan Data Management untuk Mahasiswa",
       tahun: 2023,
     },
-    ...Array.from({ length: 10 }, (_, i): KaryaIlmiahItem => ({
+    ...Array.from({ length: 10 }, (_, i): PengabdianItem => ({
       no: i + 4,
-      judul: `Judul Karya Ilmiah ${i + 4}`,
-      jenis:
-        i % 2 === 0
-          ? "Jurnal Nasional Terakreditasi"
-          : "Prosiding Seminar Nasional",
+      nama: `Nama Dosen ${i + 4}`,
+      judul: `Judul Pengabdian ${i + 4}`,
       tahun: 2020 + ((i + 4) % 6),
     })),
   ]);
 
-  // Pagination helpers
+  // Pagination
   const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
-  const visibleData = data.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const visibleData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Tambah Data
-  const handleAddData = (newData: { judul: string; jenis: string; tahun: number }) => {
-    if (!newData.judul || !newData.jenis || !newData.tahun) return;
-    const newItem: KaryaIlmiahItem = {
+  const handleAddData = (newData: { nama: string; judul: string; tahun: number }) => {
+    const newItem: PengabdianItem = {
       no: data.length + 1,
+      nama: newData.nama,
       judul: newData.judul,
-      jenis: newData.jenis,
       tahun: newData.tahun,
     };
     setData((prev) => [...prev, newItem]);
   };
 
-  // Hapus
+  // Hapus Data
   const handleHapus = (no: number) => {
-    if (confirm("Yakin ingin menghapus karya ilmiah ini?")) {
+    if (confirm("Yakin ingin menghapus data ini?")) {
       setData((prev) => prev.filter((item) => item.no !== no));
     }
   };
 
-  // Edit
+  // Edit Data
   const handleEdit = (no: number) => {
-    const karya = data.find((item) => item.no === no);
-    if (karya) {
-      setSelectedKarya(karya);
-      setIsEditModalOpen(true);
-    }
+    const pengabdian = data.find((item) => item.no === no) ?? null;
+    setSelectedPengabdian(pengabdian);
+    setIsEditModalOpen(!!pengabdian);
   };
 
-  // Simpan hasil edit
-  const handleUpdateData = (updatedData: KaryaIlmiahItem) => {
+  // Simpan Edit
+  const handleUpdateData = (updatedData: PengabdianItem) => {
     setData((prev) =>
-      prev.map((item) => (item.no === updatedData.no ? { ...updatedData } : item))
+      prev.map((item) => (item.no === updatedData.no ? updatedData : item))
     );
     setIsEditModalOpen(false);
+    setSelectedPengabdian(null);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <NavbarAdmin toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <SidebarAdmin
-        isOpen={isSidebarOpen}
-        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
+      <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
         className={`transition-all duration-300 pt-0 px-8 pb-10 ${
@@ -111,7 +100,7 @@ export default function DaftarKaryaIlmiahPage() {
         } mt-[85px]`}
       >
         <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-          DAFTAR KARYA ILMIAH
+          DAFTAR PENGABDIAN MASYARAKAT
         </h1>
 
         {/* 🔹 Kontrol Atas */}
@@ -120,7 +109,7 @@ export default function DaftarKaryaIlmiahPage() {
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
           >
-            <Plus size={16} /> Tambah Karya Ilmiah
+            <Plus size={16} /> Tambah Pengabdian
           </button>
 
           <div className="relative inline-block">
@@ -144,7 +133,7 @@ export default function DaftarKaryaIlmiahPage() {
             {searchOpen && (
               <input
                 type="text"
-                placeholder="Cari Judul Karya Ilmiah..."
+                placeholder="Cari Judul Pengabdian..."
                 className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg"
               />
             )}
@@ -157,40 +146,26 @@ export default function DaftarKaryaIlmiahPage() {
           </div>
         </div>
 
-        {/* 🔹 Tabel Data */}
+        {/* 🔹 Tabel Data tanpa status */}
         <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
           <table className="w-full border-collapse text-sm text-gray-700">
             <thead className="bg-gray-300 text-gray-800">
               <tr>
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">
-                  JENIS KARYA
-                </th>
-                <th className="border border-gray-200 px-4 py-2 text-center">
-                  TAHUN
-                </th>
-                <th className="border border-gray-200 px-4 py-2 text-center">
-                  AKSI
-                </th>
+                <th className="border border-gray-200 px-4 py-2">NAMA DOSEN</th>
+                <th className="border border-gray-200 px-4 py-2">JUDUL PENGABDIAN</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>
 
             <tbody>
               {visibleData.map((item) => (
                 <tr key={item.no} className="hover:bg-gray-50 transition-colors">
-                  <td className="border border-gray-200 px-4 py-2 text-center">
-                    {item.no}
-                  </td>
-                  <td className="border border-gray-200 px-4 py-2">
-                    {item.judul}
-                  </td>
-                  <td className="border border-gray-200 px-4 py-2 text-center">
-                    {item.jenis}
-                  </td>
-                  <td className="border border-gray-200 px-4 py-2 text-center">
-                    {item.tahun}
-                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
+                  <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
+                  <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">{item.tahun}</td>
                   <td className="border border-gray-200 px-4 py-2 text-center">
                     <div className="flex justify-center gap-2">
                       <button
@@ -214,58 +189,24 @@ export default function DaftarKaryaIlmiahPage() {
 
           {/* Pagination */}
           <div className="flex justify-end items-center py-3 px-4 gap-1 text-sm">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`px-2 py-1 rounded border text-xs transition-all ${
-                currentPage === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-              }`}
-            >
-              &lt;
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-2 py-1 rounded text-xs border ${
-                  currentPage === i + 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className={`px-2 py-1 rounded border text-xs transition-all ${
-                currentPage === totalPages
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-              }`}
-            >
-              &gt;
-            </button>
+            <span className="text-gray-600">
+              Halaman {currentPage} dari {totalPages}
+            </span>
           </div>
 
-          {/* Modals */}
-          <TambahKaryaIlmiahCard
+          {/* Modal Tambah */}
+          <TambahPengabdianCard
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onSubmit={handleAddData}
           />
-          <EditKaryaIlmiahCard
+
+          {/* Modal Edit */}
+          <EditPengabdianCard
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
             onSubmit={handleUpdateData}
-            defaultData={selectedKarya}
+            defaultData={selectedPengabdian}
           />
         </div>
       </main>

@@ -1,90 +1,106 @@
 "use client";
 
-import { ChevronDown, Search, FileText, Plus, Edit, Trash2 } from "lucide-react";
+import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import NavbarAdmin from "../../components/NavbarAdmin";
-import SidebarAdmin from "../../components/SidebarAdmin";
-import TambahPenelitianCard from "../../components/TambahPenelitianCard";
-import EditPenelitianCard from "../../components/EditPenelitianCard";
+import AdminNavbar from "../../components/AdminNavbar";
+import AdminSidebar from "../../components/AdminSidebar";
+import AddScientificWorkCard from "../../components/AddScientificWorkCard";
+import EditScientificWorkCard from "../../components/EditScientificWorkCard";
 
-type PenelitianItem = {
+type KaryaIlmiahItem = {
   no: number;
-  nama: string;
   judul: string;
+  jenis: string;
   tahun: number;
 };
 
-export default function DaftarPenelitianPage() {
+export default function DaftarKaryaIlmiahPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [pageGroup, setPageGroup] = useState(0);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedPenelitian, setSelectedPenelitian] = useState<PenelitianItem | null>(null);
-
+  const [selectedKarya, setSelectedKarya] = useState<KaryaIlmiahItem | null>(null);
   const itemsPerPage = 15;
 
-  // Data dummy awal
-  const [data, setData] = useState<PenelitianItem[]>([
-    { no: 1, nama: "Anggun Salsa F", judul: "Penelitian AI dalam Pendidikan", tahun: 2024 },
-    { no: 2, nama: "Ardhitya Danur S", judul: "Optimasi Web Responsif", tahun: 2025 },
-    { no: 3, nama: "Arifah Husaini", judul: "Analisis Data Mahasiswa", tahun: 2023 },
-    { no: 4, nama: "Farhan Rasyid", judul: "Kursus Online Public Speaking", tahun: 2025 },
-    ...Array.from({ length: 20 }, (_, i): PenelitianItem => ({
-      no: i + 5,
-      nama: `Nama Dosen ${i + 5}`,
-      judul: `Judul Penelitian ${i + 5}`,
-      tahun: 2020 + ((i + 5) % 6),
+  // ✅ Data Dummy
+  const [data, setData] = useState<KaryaIlmiahItem[]>([
+    {
+      no: 1,
+      judul: "Interpretable Machine Learning for Job Placement Prediction",
+      jenis: "Jurnal Nasional Terakreditasi",
+      tahun: 2025,
+    },
+    {
+      no: 2,
+      judul: "Penerapan Teknologi Raspberry Pi dalam Monitoring Kehadiran",
+      jenis: "Jurnal Nasional",
+      tahun: 2024,
+    },
+    {
+      no: 3,
+      judul: "Classification of Alzheimer Disease from MRI Image",
+      jenis: "Prosiding Seminar Internasional",
+      tahun: 2023,
+    },
+    ...Array.from({ length: 10 }, (_, i): KaryaIlmiahItem => ({
+      no: i + 4,
+      judul: `Judul Karya Ilmiah ${i + 4}`,
+      jenis:
+        i % 2 === 0
+          ? "Jurnal Nasional Terakreditasi"
+          : "Prosiding Seminar Nasional",
+      tahun: 2020 + ((i + 4) % 6),
     })),
   ]);
 
-  // Pagination
+  // Pagination helpers
   const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
-  const visibleData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const visibleData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-  // Tambah data
-  const handleAddData = (newData: { nama: string; judul: string; tahun: number }) => {
-    if (!newData.nama || !newData.judul || !newData.tahun) return;
-    const newItem: PenelitianItem = {
+  // Tambah Data
+  const handleAddData = (newData: { judul: string; jenis: string; tahun: number }) => {
+    if (!newData.judul || !newData.jenis || !newData.tahun) return;
+    const newItem: KaryaIlmiahItem = {
       no: data.length + 1,
-      nama: newData.nama,
       judul: newData.judul,
+      jenis: newData.jenis,
       tahun: newData.tahun,
     };
     setData((prev) => [...prev, newItem]);
-    console.log(`✅ Penelitian baru '${newData.judul}' ditambahkan ke portofolio ${newData.nama}`);
   };
 
-  // Hapus data
+  // Hapus
   const handleHapus = (no: number) => {
-    if (confirm("Yakin ingin menghapus data ini?")) {
+    if (confirm("Yakin ingin menghapus karya ilmiah ini?")) {
       setData((prev) => prev.filter((item) => item.no !== no));
     }
   };
 
-  // Buka modal edit
+  // Edit
   const handleEdit = (no: number) => {
-    const selected = data.find((item) => item.no === no);
-    if (selected) {
-      setSelectedPenelitian(selected);
+    const karya = data.find((item) => item.no === no);
+    if (karya) {
+      setSelectedKarya(karya);
       setIsEditModalOpen(true);
     }
   };
 
   // Simpan hasil edit
-  const handleUpdateData = (updatedData: PenelitianItem) => {
+  const handleUpdateData = (updatedData: KaryaIlmiahItem) => {
     setData((prev) =>
-      prev.map((item) => (item.no === updatedData.no ? updatedData : item))
+      prev.map((item) => (item.no === updatedData.no ? { ...updatedData } : item))
     );
     setIsEditModalOpen(false);
-    console.log(`📝 Data penelitian '${updatedData.judul}' berhasil diperbarui.`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <NavbarAdmin toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <SidebarAdmin isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
         className={`transition-all duration-300 pt-0 px-8 pb-10 ${
@@ -92,16 +108,16 @@ export default function DaftarPenelitianPage() {
         } mt-[85px]`}
       >
         <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-          DAFTAR PENELITIAN DOSEN
+          DAFTAR KARYA ILMIAH
         </h1>
 
-        {/* Tombol dan filter */}
+        {/* 🔹 Kontrol Atas */}
         <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
           >
-            <Plus size={16} /> Tambah Penelitian
+            <Plus size={16} /> Tambah Karya Ilmiah
           </button>
 
           <div className="relative inline-block">
@@ -116,6 +132,7 @@ export default function DaftarPenelitianPage() {
             </div>
           </div>
 
+          {/* 🔍 Search */}
           <div
             className={`flex items-center border rounded-lg bg-white shadow-sm transition-all duration-300 overflow-hidden ${
               searchOpen ? "w-64" : "w-11"
@@ -124,7 +141,7 @@ export default function DaftarPenelitianPage() {
             {searchOpen && (
               <input
                 type="text"
-                placeholder="Cari Judul Penelitian?"
+                placeholder="Cari Judul Karya Ilmiah..."
                 className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg"
               />
             )}
@@ -137,26 +154,40 @@ export default function DaftarPenelitianPage() {
           </div>
         </div>
 
-        {/* Tabel Data */}
+        {/* 🔹 Tabel Data */}
         <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
           <table className="w-full border-collapse text-sm text-gray-700">
             <thead className="bg-gray-300 text-gray-800">
               <tr>
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">NAMA DOSEN</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL PENELITIAN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
+                <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">
+                  JENIS KARYA
+                </th>
+                <th className="border border-gray-200 px-4 py-2 text-center">
+                  TAHUN
+                </th>
+                <th className="border border-gray-200 px-4 py-2 text-center">
+                  AKSI
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {visibleData.map((item) => (
                 <tr key={item.no} className="hover:bg-gray-50 transition-colors">
-                  <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                  <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
-                  <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
-                  <td className="border border-gray-200 px-4 py-2 text-center">{item.tahun}</td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">
+                    {item.no}
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    {item.judul}
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">
+                    {item.jenis}
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">
+                    {item.tahun}
+                  </td>
                   <td className="border border-gray-200 px-4 py-2 text-center">
                     <div className="flex justify-center gap-2">
                       <button
@@ -181,13 +212,7 @@ export default function DaftarPenelitianPage() {
           {/* Pagination */}
           <div className="flex justify-end items-center py-3 px-4 gap-1 text-sm">
             <button
-              onClick={() => {
-                if (currentPage > 1) {
-                  const newGroup = Math.floor((currentPage - 2) / 3);
-                  setCurrentPage((prev) => Math.max(prev - 1, 1));
-                  setPageGroup(newGroup);
-                }
-              }}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               className={`px-2 py-1 rounded border text-xs transition-all ${
                 currentPage === 1
@@ -198,32 +223,24 @@ export default function DaftarPenelitianPage() {
               &lt;
             </button>
 
-            {Array.from({ length: 3 }, (_, i) => {
-              const pageNumber = pageGroup * 3 + (i + 1);
-              if (pageNumber > totalPages) return null;
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => setCurrentPage(pageNumber)}
-                  className={`px-2 py-1 rounded text-xs border ${
-                    currentPage === pageNumber
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-2 py-1 rounded text-xs border ${
+                  currentPage === i + 1
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
 
             <button
-              onClick={() => {
-                if (currentPage < totalPages) {
-                  const newGroup = Math.floor(currentPage / 3);
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-                  setPageGroup(newGroup);
-                }
-              }}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className={`px-2 py-1 rounded border text-xs transition-all ${
                 currentPage === totalPages
@@ -235,19 +252,17 @@ export default function DaftarPenelitianPage() {
             </button>
           </div>
 
-          {/* Modal Tambah */}
-          <TambahPenelitianCard
+          {/* Modals */}
+          <AddScientificWorkCard
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onSubmit={handleAddData}
           />
-
-          {/* Modal Edit */}
-          <EditPenelitianCard
+          <EditScientificWorkCard
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
             onSubmit={handleUpdateData}
-            defaultData={selectedPenelitian}
+            defaultData={selectedKarya}
           />
         </div>
       </main>

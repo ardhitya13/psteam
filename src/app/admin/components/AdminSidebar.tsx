@@ -143,8 +143,8 @@ export default function SidebarAdmin({
                   openDropdown.pengajuan ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0"}`} >
                 <ul className="mt-1 space-y-1">
                   {[
-                    { name: "Daftar Proyek", href: "/admin/kelola/proyek", icon: ClipboardList },
-                    { name: "Verifikasi Proyek", href: "/admin/kelola/verifikasiproyek", icon: CheckCircle,},
+                    { name: "Daftar Proyek", href: "/admin/project", icon: ClipboardList },
+                    { name: "Verifikasi Proyek", href: "/admin/project/verification", icon: CheckCircle,},
 
                   ].map(({ name, href, icon: Icon }) => (
                     <li key={name}>
@@ -178,7 +178,7 @@ export default function SidebarAdmin({
 
           {/* DAFTAR PELATIHAN */}
           <li>
-            <Link href="/admin/kelola/pelatihan" className="block mx-3 relative">
+            <Link href="/admin/training" className="block mx-3 relative">
               <div
                 ref={setRef("pelatihan")}
                 onMouseEnter={() => setHoveredItem("Daftar Pelatihan")}
@@ -244,18 +244,18 @@ export default function SidebarAdmin({
               >
                 <ul className="mt-1 space-y-1">
                   {[
-                    { name: "Penelitian", href: "/admin/portofolio/penelitian", icon: FileText },
+                    { name: "Penelitian", href: "/admin/portofolio/research", icon: FileText },
                     {
                       name: "Pengabdian Masyarakat",
-                      href: "/admin/portofolio/pengabdian",
+                      href: "/admin/portofolio/communityservice",
                       icon: BookOpen,
                     },
                     {
-                      name: "Publikasi Karya",
-                      href: "/admin/portofolio/karyailmiah",
+                      name: "Karya Ilmiah",
+                      href: "/admin/portofolio/scientificwork",
                       icon: PenTool,
                     },
-                    { name: "HKI/Paten", href: "/admin/portofolio/hki", icon: ShieldCheck },
+                    { name: "Hak Kekayaan Intelektual", href: "/admin/portofolio/intellectualproperty", icon: ShieldCheck },
                   ].map(({ name, href, icon: Icon }) => (
                     <li key={name}>
                       <Link href={href} className="block relative">
