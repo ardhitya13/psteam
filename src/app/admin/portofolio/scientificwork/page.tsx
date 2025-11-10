@@ -122,7 +122,7 @@ export default function DaftarKaryaIlmiahPage() {
 
           <div className="relative inline-block">
             <select className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-700 cursor-pointer">
-              <option>Filter Tahun</option>
+              <option>Pilih Tahun</option>
               <option>2025</option>
               <option>2024</option>
               <option>2023</option>

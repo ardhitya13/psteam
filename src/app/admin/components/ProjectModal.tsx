@@ -51,7 +51,7 @@ export default function ProyekModal({ isOpen, onClose, data, mode }: ProyekModal
                 onChange={(e) =>
                   setFormData({ ...formData, status: e.target.value })
                 }
-                className="w-full px-3 py-2 border rounded-md bg-white focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-gray-800"
               >
                 <option value="Belum Diproses">Belum Diproses</option>
                 <option value="Sedang Diproses">Sedang Diproses</option>
