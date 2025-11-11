@@ -18,12 +18,12 @@ type Props = {
   onSelect: (category: string) => void;
 };
 
-// Map icon berdasarkan kategori
 const iconMap: Record<string, IconType> = {
   "Web Development": FaGlobe,
   "Mobile Development": FaMobileAlt,
-  "Artificial Intelligence": FaRobot,
   "Internet of Things (IoT)": FaMicrochip,
+  "Artificial Intelligence": FaRobot,
+  Semua: FaLayerGroup,
 };
 
 export default function CategoryFilter({
@@ -31,7 +31,6 @@ export default function CategoryFilter({
   selectedCategory,
   onSelect,
 }: Props) {
-  // Inisialisasi AOS
   useEffect(() => {
     AOS.init({
       duration: 800,
@@ -41,9 +40,16 @@ export default function CategoryFilter({
     });
   }, []);
 
+  // 🔹 Pastikan AI selalu di urutan terakhir
+  const sortedCategories = [...categories].sort((a, b) => {
+    if (a === "Artificial Intelligence") return 1;
+    if (b === "Artificial Intelligence") return -1;
+    return 0;
+  });
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6 justify-items-center">
-      {categories.map((category, index) => {
+    <div className="flex flex-wrap justify-center gap-x-3 gap-y-4 mt-5">
+      {sortedCategories.map((category, index) => {
         const isSelected = selectedCategory === category;
         const Icon: IconType = iconMap[category] ?? FaLayerGroup;
 
@@ -54,17 +60,21 @@ export default function CategoryFilter({
             type="button"
             data-aos="zoom-in-up"
             data-aos-delay={index * 100}
-            className={`w-full sm:w-56 p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all duration-300 focus:outline-none
+            className={`flex flex-col items-center justify-center px-6 py-3 sm:px-7 sm:py-3.5 md:px-8 md:py-4 
+              rounded-xl border min-w-[140px] sm:min-w-[160px] md:min-w-[180px]
+              transition-all duration-300 focus:outline-none
               ${
                 isSelected
-                  ? "bg-blue-600 text-white border-blue-600 shadow-lg scale-105"
-                  : "bg-white text-gray-800 border-gray-200 hover:border-blue-400 hover:shadow-md hover:-translate-y-1"
+                  ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white border-blue-700 shadow-lg scale-[1.04]"
+                  : "bg-white text-gray-800 border-gray-200 hover:border-blue-400 hover:shadow-md hover:-translate-y-[2px]"
               }`}
           >
-            <div className="transition-transform duration-300 transform group-hover:scale-110">
-              <Icon className={`text-2xl ${isSelected ? "text-white" : "text-blue-600"}`} />
-            </div>
-            <span className="text-sm font-medium text-center">
+            <Icon
+              className={`text-lg sm:text-xl md:text-2xl ${
+                isSelected ? "text-white" : "text-blue-600"
+              }`}
+            />
+            <span className="text-xs sm:text-sm font-medium text-center mt-1">
               {category}
             </span>
           </button>

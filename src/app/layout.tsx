@@ -25,20 +25,19 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logopsteam4.png" type="image/png" />
       </head>
 
-      {/* 🌈 Background gradasi global (paksa tampil di semua halaman) */}
+      {/* 🌈 Background global gradasi vertikal — tanpa shorthand supaya aman */}
       <body
+        suppressHydrationWarning
+        className="antialiased text-white min-h-screen overflow-x-hidden transition-colors duration-300"
         style={{
-          background: "linear-gradient(90deg, #132C8E 0%, #050C28 100%)",
+          backgroundImage: "linear-gradient(180deg, #132C8E 0%, #050C28 100%)",
+          backgroundColor: "#132C8E",
           backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundAttachment: "fixed",
-          color: "white",
-          minHeight: "100vh",
-          margin: 0,
+          backgroundSize: "100% 100%",
+          backgroundPosition: "center top",
         }}
-        className="antialiased transition-colors duration-300"
       >
-        {/* ✅ Layout global dengan konten utama */}
+        {/* ✅ Wrapper utama semua halaman */}
         <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>

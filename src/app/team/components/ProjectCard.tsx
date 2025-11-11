@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "flowbite-react";
 import Image from "next/image";
 import {
@@ -83,56 +83,76 @@ const mahasiswa = [
 ];
 
 export default function ProjectCard() {
+  const [projectTitle, setProjectTitle] = useState("PSTeam");
+
   useEffect(() => {
     AOS.init({
       duration: 900,
       once: false,
       offset: 120,
     });
+
+    const savedTitle = localStorage.getItem("projectTitle");
+    if (savedTitle) setProjectTitle(savedTitle);
   }, []);
 
   // === Komponen Ikon Sosial ===
   const SocialIcons = ({ person }: { person: any }) => (
     <div className="flex justify-center gap-4 text-xl mt-5">
-      <a
-        href={person.github}
-        target="_blank"
-        className="text-gray-500 hover:text-black transition-all duration-300"
-      >
-        <FaGithub />
-      </a>
-      <a
-        href={person.linkedin}
-        target="_blank"
-        className="text-gray-500 hover:text-[#0a66c2] transition-all duration-300"
-      >
-        <FaLinkedin />
-      </a>
-      <a
-        href={person.facebook}
-        target="_blank"
-        className="text-gray-500 hover:text-[#1877f2] transition-all duration-300"
-      >
-        <FaFacebook />
-      </a>
-      <a
-        href={person.instagram}
-        target="_blank"
-        className="text-gray-500 hover:text-[#e4405f] transition-all duration-300"
-      >
-        <FaInstagram />
-      </a>
-      <a
-        href={person.website}
-        target="_blank"
-        className="text-gray-500 hover:text-green-600 transition-all duration-300"
-      >
-        <FaGlobe />
-      </a>
+      {person.github && (
+        <a
+          href={person.github}
+          target="_blank"
+          rel="noreferrer"
+          className="text-gray-500 hover:text-black transition-all duration-300"
+        >
+          <FaGithub />
+        </a>
+      )}
+      {person.linkedin && (
+        <a
+          href={person.linkedin}
+          target="_blank"
+          rel="noreferrer"
+          className="text-gray-500 hover:text-[#0a66c2] transition-all duration-300"
+        >
+          <FaLinkedin />
+        </a>
+      )}
+      {person.facebook && (
+        <a
+          href={person.facebook}
+          target="_blank"
+          rel="noreferrer"
+          className="text-gray-500 hover:text-[#1877f2] transition-all duration-300"
+        >
+          <FaFacebook />
+        </a>
+      )}
+      {person.instagram && (
+        <a
+          href={person.instagram}
+          target="_blank"
+          rel="noreferrer"
+          className="text-gray-500 hover:text-[#e4405f] transition-all duration-300"
+        >
+          <FaInstagram />
+        </a>
+      )}
+      {person.website && (
+        <a
+          href={person.website}
+          target="_blank"
+          rel="noreferrer"
+          className="text-gray-500 hover:text-green-600 transition-all duration-300"
+        >
+          <FaGlobe />
+        </a>
+      )}
     </div>
   );
 
-  // === Template Card (dosen & mahasiswa) ===
+  // === Template Card ===
   const renderCard = (person: any, index: number) => (
     <Card
       key={index}
@@ -147,7 +167,6 @@ export default function ProjectCard() {
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#132C8E]/10 to-[#050C28]/10 rounded-2xl" />
 
       <div className="flex flex-col items-center text-center">
-        {/* ✅ Gambar bulat dengan tulisan saat hover */}
         <div className="relative w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md transition-transform duration-300 hover:scale-105">
           <Image
             src={person.image}
@@ -192,13 +211,7 @@ export default function ProjectCard() {
   return (
     <section
       id="team"
-      className="py-20 text-gray-800"
-      style={{
-        background: "linear-gradient(90deg, #132C8E 0%, #050C28 100%)",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundAttachment: "fixed",
-      }}
+      className="py-20 text-gray-800 bg-transparent"
     >
       <div className="max-w-7xl mx-auto text-center px-6">
         {/* === Judul Utama === */}
@@ -206,9 +219,9 @@ export default function ProjectCard() {
           data-aos="fade-up"
           className="text-4xl font-bold mb-12 text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.6)]"
         >
-          Tim Pengembang {" "}
+          Tim Pengembang{" "}
           <span className="text-[#60A5FA] font-extrabold drop-shadow-[0_2px_8px_rgba(96,165,250,0.6)]">
-            PSTeam
+            {projectTitle}
           </span>
         </h2>
 

@@ -16,16 +16,21 @@ export default function NavBar() {
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [serviceOpen, setServiceOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
 
+  // 🔹 Handle scroll effect (auto hide & blur saat scroll)
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY;
+      setScrolled(currentY > 10);
+
       if (currentY < lastScrollY) setHidden(false);
       else if (currentY > lastScrollY && currentY > 100 && !menuOpen)
         setHidden(true);
+
       setLastScrollY(currentY);
     };
     window.addEventListener("scroll", handleScroll);
@@ -37,7 +42,7 @@ export default function NavBar() {
       category === "Semua Pelatihan & Sertifikasi" ? "Semua" : category;
 
     router.push(
-      `/services/pelatihan${
+      `/services/training${
         formattedCategory === "Semua"
           ? ""
           : `?category=${encodeURIComponent(formattedCategory)}`
@@ -66,12 +71,15 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 backdrop-blur-md border-b border-white/10 
-      bg-gradient-to-r from-[#132C8E]/90 to-[#050C28]/90 shadow-lg transition-all duration-500 ease-in-out ${
-        hidden ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
-      }`}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out
+      ${hidden ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"}
+      ${scrolled
+        ? "backdrop-blur-lg bg-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
+        : "bg-transparent backdrop-blur-none shadow-none"}
+    `}
     >
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4 font-inter text-white">
+        {/* Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <Image
             src="/logopsteam4.png"
@@ -83,10 +91,11 @@ export default function NavBar() {
           />
         </Link>
 
+        {/* Tombol kanan */}
         <div className="flex items-center space-x-4 md:order-2">
           <Link
             href="/login"
-            className="hidden md:block bg-[#60A5FA] hover:bg-[#4f8de0] text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-xl focus:ring-2 focus:ring-[#60A5FA]/50"
+            className="hidden md:block bg-gradient-to-r from-blue-800 to-blue-500 hover:opacity-90 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-xl focus:ring-2 focus:ring-blue-500/50"
           >
             Masuk
           </Link>
@@ -99,16 +108,17 @@ export default function NavBar() {
           </button>
         </div>
 
+        {/* Menu Utama */}
         <div
           className={`w-full md:flex md:w-auto md:order-1 transition-all duration-300 ${
             menuOpen
-              ? "block bg-[#0A1436]/95 shadow-lg rounded-xl mt-3 py-3 border border-white/10"
+              ? "block bg-[#0A1436]/90 shadow-lg rounded-xl mt-3 py-3 border border-white/10 overflow-y-auto max-h-[90vh]"
               : "hidden md:block"
           }`}
         >
           <ul
-            className="flex flex-col p-4 mt-2 font-semibold text-[17px] 
-            md:flex-row md:space-x-10 md:mt-0 md:p-0 space-y-2 md:space-y-0 items-center"
+            className="flex flex-col p-4 mt-2 font-semibold text-[17px] md:flex-row md:space-x-10 
+            md:mt-0 md:p-0 space-y-3 md:space-y-0 items-center justify-center text-center"
           >
             {menuItems.map((item) => (
               <li key={item.name}>
@@ -128,7 +138,7 @@ export default function NavBar() {
 
             {/* Dropdown Layanan */}
             <li
-              className="relative flex flex-col items-start w-full md:w-auto"
+              className="relative flex flex-col items-center w-full md:items-start md:w-auto text-center"
               onMouseEnter={() =>
                 window.innerWidth >= 768 && setServiceOpen(true)
               }
@@ -140,7 +150,7 @@ export default function NavBar() {
                 onClick={() =>
                   window.innerWidth < 768 && setServiceOpen(!serviceOpen)
                 }
-                className="inline-flex items-center justify-between w-full md:w-auto gap-1 py-2 px-3 rounded-lg text-gray-100 hover:text-[#60A5FA] font-semibold transition-all duration-200"
+                className="inline-flex items-center justify-center gap-1 py-2 px-3 rounded-lg text-gray-100 hover:text-[#60A5FA] font-semibold transition-all duration-200"
               >
                 <span>Layanan</span>
                 <span
@@ -152,20 +162,20 @@ export default function NavBar() {
                 </span>
               </button>
 
-              {/* ✅ Dropdown untuk mobile */}
+              {/* Dropdown Mobile */}
               {serviceOpen && (
-                <div className="md:hidden mt-2 w-full bg-[#0A1436]/90 border border-white/10 rounded-xl p-4 space-y-3 transition-all duration-300">
-                  <div>
+                <div className="md:hidden mt-2 w-[90%] mx-auto bg-[#0A1436]/90 border border-white/10 rounded-xl p-4 space-y-3 transition-all duration-300">
+                  <div className="text-center">
                     <h3 className="text-[#60A5FA] text-base font-semibold mb-2">
                       💡 Pengajuan Proyek
                     </h3>
                     <Link
-                      href="/services/pengajuan"
+                      href="/services/submission"
                       onClick={() => {
                         setMenuOpen(false);
                         setServiceOpen(false);
                       }}
-                      className="block bg-[#60A5FA] text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-[#4f8de0] transition"
+                      className="block bg-[#60A5FA] text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-[#4f8de0] transition mx-auto w-[80%]"
                     >
                       Ajukan Sekarang
                     </Link>
@@ -175,14 +185,16 @@ export default function NavBar() {
                     <h3 className="text-[#60A5FA] text-base font-semibold mb-3">
                       🎓 Pelatihan & Sertifikasi
                     </h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 justify-items-center">
                       {categories.map((item) => (
                         <button
                           key={item.title}
                           onClick={() => handleSelectCategory(item.title)}
-                          className="flex items-center gap-2 text-left border border-white/10 rounded-lg p-2 bg-white/5 hover:bg-[#60A5FA]/10 transition"
+                          className="flex flex-col items-center justify-center text-center border border-white/10 rounded-lg p-3 bg-white/5 hover:bg-[#60A5FA]/10 transition w-[90%]"
                         >
-                          <span className="text-[#60A5FA]">{item.icon}</span>
+                          <span className="text-[#60A5FA] mb-1">
+                            {item.icon}
+                          </span>
                           <span className="text-xs text-gray-100 font-medium">
                             {item.title}
                           </span>
@@ -193,16 +205,15 @@ export default function NavBar() {
                 </div>
               )}
 
-              {/* Dropdown Desktop tetap sama */}
+              {/* Dropdown Desktop */}
               <div
-                className={`hidden md:block fixed left-1/2 -translate-x-1/2 top-[calc(100%+10px)] w-[80vw] rounded-2xl shadow-2xl bg-[#0a1440]/95 border border-white/10 p-10 transition-all duration-500 ease-in-out backdrop-blur-xl z-40 ${
+                className={`hidden md:block fixed left-1/2 -translate-x-1/2 top-[calc(100%+10px)] w-[80vw] rounded-2xl shadow-2xl bg-[#0a1440]/90 border border-white/10 p-10 transition-all duration-500 ease-in-out backdrop-blur-xl z-40 ${
                   serviceOpen
                     ? "opacity-100 translate-y-0 visible"
                     : "opacity-0 -translate-y-5 invisible"
                 }`}
               >
                 <div className="flex gap-10 text-white">
-                  {/* Konten desktop tidak diubah */}
                   <div className="w-1/3 border-r border-white/10 pr-8">
                     <h3 className="text-lg font-semibold text-[#60A5FA] mb-3 flex items-center gap-2">
                       💡 Pengajuan Proyek
@@ -211,7 +222,7 @@ export default function NavBar() {
                       Ajukan ide proyek atau kerja sama dengan tim PSTeam untuk diwujudkan bersama.
                     </p>
                     <Link
-                      href="/services/pengajuan"
+                      href="/services/submission"
                       className="inline-block bg-[#60A5FA] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#4f8de0] transition shadow-md hover:shadow-lg"
                     >
                       Ajukan Sekarang
@@ -247,11 +258,12 @@ export default function NavBar() {
               </div>
             </li>
 
-            <li className="md:hidden mt-3">
+            {/* Tombol Masuk Mobile */}
+            <li className="md:hidden mt-5 mb-3">
               <Link
                 href="/login"
                 onClick={() => setMenuOpen(false)}
-                className="block text-center bg-[#60A5FA] text-white font-semibold py-2 rounded-lg shadow-md hover:bg-[#4f8de0] transition-all duration-300"
+                className="block text-center mx-auto w-[120%] bg-gradient-to-r from-blue-800 to-blue-500 text-white font-semibold text-sm py-2.5 rounded-lg shadow-md transition-all duration-300 hover:opacity-90"
               >
                 Masuk
               </Link>

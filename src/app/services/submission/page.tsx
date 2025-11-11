@@ -1,7 +1,7 @@
 "use client";
 
-import TataCaraPengajuan from "./components/TataCaraPengajuan";
-import FormPengajuan from "./components/FormPengajuan";
+import SubmissionGuidelines from "./components/SubmissionGuidelines";
+import SubmissionForm from "./components/SubmissionForm";
 
 export default function PengajuanPage() {
   return (
@@ -15,8 +15,8 @@ export default function PengajuanPage() {
 
       {/* 🔹 Konten Utama */}
       <div className="max-w-5xl mx-auto space-y-16">
-        <TataCaraPengajuan />
-        <FormPengajuan />
+        <SubmissionGuidelines />
+        <SubmissionForm />
       </div>
     </main>
   );

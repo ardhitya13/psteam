@@ -21,14 +21,13 @@ export default function DaftarPelatihanModal({
     nama: "",
     email: "",
     telepon: "",
-    perusahaan: "",
+    status: "",
     kota: "",
     catatan: "",
   });
 
   const [isVisible, setIsVisible] = useState(false);
 
-  // Inisialisasi efek AOS dan animasi masuk
   useEffect(() => {
     AOS.init({
       duration: 900,
@@ -37,17 +36,14 @@ export default function DaftarPelatihanModal({
       offset: 100,
     });
 
-    if (open) {
-      setTimeout(() => setIsVisible(true), 100);
-    } else {
-      setIsVisible(false);
-    }
+    if (open) setTimeout(() => setIsVisible(true), 100);
+    else setIsVisible(false);
   }, [open]);
 
   if (!open || !course) return null;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -63,7 +59,6 @@ export default function DaftarPelatihanModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-6">
-      {/* Animasi Modal */}
       <div
         className={`bg-white w-full max-w-4xl rounded-2xl shadow-2xl relative p-8 border border-gray-100 transform transition-all duration-700 ${
           isVisible
@@ -80,11 +75,7 @@ export default function DaftarPelatihanModal({
         </button>
 
         {/* Header */}
-        <div
-          className="text-center mb-6"
-          data-aos="fade-down"
-          data-aos-delay="100"
-        >
+        <div className="text-center mb-6" data-aos="fade-down" data-aos-delay="100">
           <h2 className="text-3xl font-bold text-gray-800">Daftar Pelatihan</h2>
           <p className="text-gray-600 text-sm mt-1">
             Lengkapi data berikut untuk mengikuti pelatihan pilihanmu.
@@ -113,7 +104,7 @@ export default function DaftarPelatihanModal({
             </p>
           </div>
 
-          {/* Kanan - Form Pendaftaran */}
+          {/* Kanan - Form */}
           <form
             onSubmit={handleDaftar}
             className="space-y-4"
@@ -137,7 +128,7 @@ export default function DaftarPelatihanModal({
             </div>
 
             {/* Email */}
-            <div data-aos="fade-up" data-aos-delay="200">
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Email <span className="text-red-500">*</span>
               </label>
@@ -153,7 +144,7 @@ export default function DaftarPelatihanModal({
             </div>
 
             {/* Telepon */}
-            <div data-aos="fade-up" data-aos-delay="250">
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Nomor Telepon <span className="text-red-500">*</span>
               </label>
@@ -168,26 +159,33 @@ export default function DaftarPelatihanModal({
               />
             </div>
 
-            {/* Perusahaan dan Kota */}
+            {/* Status Peserta & Kota */}
             <div
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end"
               data-aos="fade-up"
               data-aos-delay="300"
             >
+              {/* Dropdown Status Peserta */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Perusahaan (Opsional)
+                  Status Peserta
                 </label>
-                <input
-                  type="text"
-                  name="perusahaan"
-                  placeholder="Nama perusahaan..."
-                  value={formData.perusahaan}
+                <select
+                  name="status"
+                  value={formData.status}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
-                />
+                  className="w-full border border-gray-300 text-gray-900 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                >
+                  <option value="">Pilih status peserta...</option>
+                  <option value="Mahasiswa">Mahasiswa</option>
+                  <option value="Pekerja">Pekerja</option>
+                  <option value="Fresh Graduate">Fresh Graduate</option>
+                  <option value="Siswa SMA/SMK">Siswa SMA/SMK</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
               </div>
 
+              {/* Kota */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
                   Kota / Wilayah
@@ -204,13 +202,13 @@ export default function DaftarPelatihanModal({
             </div>
 
             {/* Catatan */}
-            <div data-aos="fade-up" data-aos-delay="350">
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Catatan Tambahan (Opsional)
               </label>
               <textarea
                 name="catatan"
-                placeholder="Tuliskan pertanyaan atau catatan..."
+                placeholder="Tuliskan pertanyaan atau catatan tambahan..."
                 rows={3}
                 value={formData.catatan}
                 onChange={handleChange}
@@ -218,12 +216,8 @@ export default function DaftarPelatihanModal({
               />
             </div>
 
-            {/* Tombol Daftar */}
-            <div
-              className="pt-4"
-              data-aos="zoom-in-up"
-              data-aos-delay="400"
-            >
+            {/* Tombol Kirim */}
+            <div className="pt-4" data-aos="zoom-in-up" data-aos-delay="400">
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-900 to-blue-700 hover:from-blue-800 hover:to-blue-600 text-white font-semibold px-6 py-3 rounded-full flex justify-center items-center gap-2 shadow-lg transition-all duration-300"

@@ -22,12 +22,13 @@ export default function PartnerSection() {
   ];
 
   return (
-    // ✅ Mengikuti background default dari layout.tsx
     <section
       id="partners"
-      className="relative py-24 sm:py-28 md:py-32 text-center"
+      // ✅ Transparan biar ikut background dari layout
+      className="relative py-24 sm:py-28 md:py-32 text-center bg-transparent overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto px-6 sm:px-10">
+      {/* ✅ Kontainer utama */}
+      <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10">
         {/* 🔹 Judul */}
         <h2
           data-aos="fade-up"
@@ -53,24 +54,25 @@ export default function PartnerSection() {
           serta pengembangan teknologi berkelanjutan.
         </p>
 
-        {/* 🔹 Logo partner */}
+        {/* 🔹 Daftar logo partner */}
         <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 lg:gap-24">
           {partners.map((partner, i) => (
             <div
               key={i}
               data-aos={partner.aos}
               data-aos-delay={i * 200}
-              className="relative hover:scale-110 transition-transform duration-500 ease-out"
+              className="flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl hover:scale-105 transition-all duration-500 ease-out"
               style={{
-                width: "clamp(140px, 18vw, 220px)",
-                height: "clamp(70px, 10vw, 130px)",
+                width: "clamp(160px, 20vw, 240px)",
+                height: "clamp(90px, 12vw, 150px)",
               }}
             >
               <Image
                 src={partner.logo}
                 alt={partner.name}
-                fill
-                className="object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)] transition-all duration-500 ease-out hover:drop-shadow-[0_8px_15px_rgba(96,165,250,0.5)]"
+                width={200}
+                height={100}
+                className="object-contain max-w-[80%] max-h-[80%] transition-transform duration-500 ease-out hover:scale-105"
                 priority
               />
             </div>

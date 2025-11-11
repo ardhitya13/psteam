@@ -95,7 +95,7 @@ export default function TeamSection() {
     },
     {
       name: "Farhan",
-      role: "BAnggota Tim Produksi PSTeam",
+      role: "Anggota Tim Produksi PSTeam",
       image: "/team/mahasiswa4.png",
       email: "farhan@example.com",
       website: "#",
@@ -157,7 +157,6 @@ export default function TeamSection() {
                  transition-transform duration-300 hover:scale-105 rounded-2xl 
                  border border-gray-200 flex flex-col justify-between h-[460px] w-full max-w-sm"
     >
-      {/* 🌌 Background lembut di belakang card */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#132C8E]/10 to-[#050C28]/10 rounded-2xl" />
 
       <div className="flex flex-col items-center text-center">
@@ -201,13 +200,7 @@ export default function TeamSection() {
   return (
     <section
       id="team"
-      className="py-20 text-gray-800"
-      style={{
-        background: "linear-gradient(90deg, #132C8E 0%, #050C28 100%)",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundAttachment: "fixed",
-      }}
+      className="py-20 text-gray-800 bg-transparent"
     >
       <div className="max-w-7xl mx-auto text-center px-6">
         {/* 🔹 Judul utama */}

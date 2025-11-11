@@ -14,14 +14,11 @@ export default function HeroSection() {
   }, []);
 
   return (
-    // ✅ Tidak ada background khusus, hanya overlay lembut transparan
+    // ✅ Tidak ada background atau overlay, biar ngikut dari layout
     <section className="relative overflow-hidden py-28 sm:py-32 md:py-36 text-center">
-      {/* 🔹 Overlay lembut untuk efek dalam tapi tetap transparan */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A1B55]/20 via-[#00143A]/10 to-transparent"></div>
-
       {/* === Konten Utama === */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10">
-        {/* 🔹 Judul (warna tetap) */}
+        {/* 🔹 Judul */}
         <h1
           data-aos="fade-up"
           className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-8 leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
@@ -32,7 +29,7 @@ export default function HeroSection() {
           </span>
         </h1>
 
-        {/* 🔹 Deskripsi (melebar, warna tetap) */}
+        {/* 🔹 Deskripsi */}
         <p
           data-aos="fade-up"
           data-aos-delay="150"
@@ -47,9 +44,6 @@ export default function HeroSection() {
           yang mendukung perkembangan dunia digital dan pendidikan.
         </p>
       </div>
-
-      {/* 🔹 Efek cahaya bawah lembut biar dinamis tapi nyatu */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-blue-400/10 blur-3xl opacity-50"></div>
     </section>
   );
 }

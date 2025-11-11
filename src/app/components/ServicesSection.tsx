@@ -9,7 +9,8 @@ import "aos/dist/aos.css";
 
 export default function ServicesSection() {
   useEffect(() => {
-    AOS.init({ duration: 1000, once: true });
+    // 🔹 Percepat AOS agar tidak terasa lambat
+    AOS.init({ duration: 600, once: true, easing: "ease-out-cubic" });
   }, []);
 
   const services = [
@@ -18,7 +19,7 @@ export default function ServicesSection() {
       description:
         "Kembangkan proyek digital Anda bersama tim profesional kami. Mulai dari perencanaan hingga implementasi.",
       icon: <FaLaptopCode className="text-5xl text-[#60A5FA] mb-4" />,
-      link: "/services/pengajuan",
+      link: "/services/submission",
       aos: "fade-right",
     },
     {
@@ -26,7 +27,7 @@ export default function ServicesSection() {
       description:
         "Ikuti pelatihan intensif di bidang Web, Mobile, IoT, dan AI. Dapatkan pengalaman praktis dan sertifikat.",
       icon: <FaChalkboardTeacher className="text-5xl text-[#4ADE80] mb-4" />,
-      link: "/services/pelatihan",
+      link: "/services/training",
       aos: "fade-left",
     },
   ];
@@ -36,8 +37,8 @@ export default function ServicesSection() {
       id="services"
       className="relative py-20 text-center overflow-hidden"
     >
-      {/* ✨ Background transparan agar mengikuti layout default */}
-      <div className="absolute inset-0 bg-transparent backdrop-blur-[2px] -z-10"></div>
+      {/* ✨ Background transparan menyatu dengan layout */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A1B55]/20 to-[#00143A]/30 -z-10"></div>
 
       <div className="max-w-6xl mx-auto px-6">
         {/* 🔹 Judul */}
@@ -68,15 +69,25 @@ export default function ServicesSection() {
           . Temukan layanan yang sesuai dengan kebutuhan Anda.
         </p>
 
-        {/* 🔹 Card Section */}
+        {/* 🔹 Kartu Layanan */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           {services.map((service, index) => (
-            <Link key={index} href={service.link}>
+            <Link key={index} href={service.link} scroll>
               <motion.div
-                whileHover={{ scale: 1.05 }}
                 data-aos={service.aos}
                 data-aos-delay={index * 200}
-                className="bg-white/90 text-gray-900 rounded-2xl p-8 shadow-xl hover:shadow-2xl cursor-pointer transition duration-300 border border-gray-100"
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0px 10px 30px rgba(96,165,250,0.25)",
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                  duration: 0.25, // ⚡ Hover cepat, tidak slowmo
+                }}
+                className="bg-white/90 text-gray-900 rounded-2xl p-8 shadow-xl hover:shadow-2xl cursor-pointer 
+                           transition-transform duration-200 border border-gray-100"
               >
                 <div className="flex flex-col items-center text-center">
                   {service.icon}

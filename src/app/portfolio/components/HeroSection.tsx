@@ -15,15 +15,14 @@ export default function HeroSection() {
 
   return (
     <section className="relative py-28 sm:py-32 md:py-36 text-center overflow-hidden">
-      {/* ✨ Overlay lembut biar nyatu dengan background layout */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-900/80 via-blue-950/85 to-[#050C28]/90"></div>
+      {/* 🚫 Hapus overlay agar background layout terlihat */}
 
       {/* 🧾 Konten utama */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10">
         {/* 🔹 Judul utama */}
         <h1
           data-aos="fade-up"
-          className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+          className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
         >
           Portofolio{" "}
           <span className="text-[#60A5FA] drop-shadow-[0_0_10px_rgba(96,165,250,0.6)]">

@@ -7,11 +7,12 @@ export default function DosenTabs({
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }) {
+  // ✅ Nama tab sekarang disesuaikan dengan key di DosenCard
   const tabs = [
-    { id: "penelitian", label: "Penelitian" },
-    { id: "pengabdian", label: "Pengabdian Masyarakat" },
-    { id: "publikasi", label: "Publikasi Karya" },
-    { id: "hki", label: "HKI / Paten" },
+    { id: "research", label: "Penelitian" },
+    { id: "communityService", label: "Pengabdian Masyarakat" },
+    { id: "publications", label: "Publikasi Karya" },
+    { id: "intellectualProperty", label: "HKI / Paten" },
   ];
 
   return (
@@ -24,7 +25,7 @@ export default function DosenTabs({
             ${
               activeTab === tab.id
                 ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white shadow-md scale-105"
-                : "bg-gray-100 text-gray-700 hover:bg-purple-100 hover:text-blue-500"
+                : "bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-600"
             }`}
         >
           {tab.label}

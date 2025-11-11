@@ -4,6 +4,7 @@ import { useState } from "react";
 import AdminNavbar from "./components/AdminNavbar";
 import AdminSidebar from "./components/AdminSidebar";
 import DashboardCard from "./components/DashboardCard";
+import DashboardTeamCard from "./components/DashboardTeamCard";
 import {
   CheckCircle,
   FolderKanban,
@@ -80,7 +81,7 @@ export default function AdminDashboard() {
     },
   ];
 
-  
+
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
@@ -89,9 +90,8 @@ export default function AdminDashboard() {
 
       {/* Konten Utama */}
       <main
-        className={`transition-all duration-300 pt-0 px-8 pb-6 space-y-8 ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[85px]`}
+        className={`transition-all duration-300 pt-0 px-8 pb-6 space-y-8 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          } mt-[85px]`}
       >
         {/* 🟦 Header Card Selamat Datang */}
         <div className="relative overflow-hidden bg-[#0a3b91] text-white rounded-3xl shadow-xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-center">
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
             <p className="text-blue-100 text-sm leading-relaxed">
               Kelola seluruh data sistem akademik, termasuk{" "}
               <span className="font-semibold text-white">
-                verifikasi proyek, daftar pelatihan, dan portofolio dosen.
+                verifikasi proyek, daftar pelatihan, tim pengembang, dan portofolio dosen.
               </span>
             </p>
           </div>
@@ -127,6 +127,12 @@ export default function AdminDashboard() {
             <DashboardCard key={i} {...card} showProgress={false} />
           ))}
         </div>
+
+        {/* Section Tim Pengembang */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <DashboardTeamCard totalTeam={8} totalMembers={26} />
+        </div>
+
       </main>
     </div>
   );
