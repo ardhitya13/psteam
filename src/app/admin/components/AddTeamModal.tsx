@@ -1,23 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, PlusCircle, Trash } from "lucide-react";
 
 type Row = {
   name: string;
   role: string;
   email: string;
-  image?: string; // Base64 dari file upload
+  image?: string;
   github?: string;
   linkedin?: string;
   facebook?: string;
   instagram?: string;
   website?: string;
   category: "dosen" | "mahasiswa";
+
+  // khusus dosen (SUDAH BAHASA INGGRIS)
+  studyProgram?: string;
+  education?: string;
+  specialization?: string;
 };
 
-export default function AddTeamModal({ onClose, onAdd }: any) {
-  const [teamTitle, setTeamTitle] = useState<string>("");
+export default function AddTeamModal({
+  onClose,
+  onAdd,
+  onAddMember,
+  forProjectId,
+  projectTitle,
+  presetRole,
+}: any) {
+  const isAddMemberMode = typeof forProjectId !== "undefined" && forProjectId !== null;
+
+  const [teamTitle, setTeamTitle] = useState<string>(projectTitle || "");
   const [dosen, setDosen] = useState<Row[]>([
     {
       name: "",
@@ -30,12 +44,18 @@ export default function AddTeamModal({ onClose, onAdd }: any) {
       instagram: "",
       website: "",
       category: "dosen",
+
+      // SUDAH BAHASA INGGRIS
+      studyProgram: "",
+      education: "",
+      specialization: "",
     },
   ]);
+
   const [mahasiswa, setMahasiswa] = useState<Row[]>([
     {
       name: "",
-      role: "Anggota Tim Produksi PSTeam",
+      role: "",
       email: "",
       image: "",
       github: "",
@@ -47,29 +67,19 @@ export default function AddTeamModal({ onClose, onAdd }: any) {
     },
   ]);
 
-  const handleChange = (
-    index: number,
-    type: "dosen" | "mahasiswa",
-    field: string,
-    value: string
-  ) => {
+  useEffect(() => {
+    if (projectTitle) setTeamTitle(projectTitle);
+  }, [projectTitle]);
+
+  const handleChange = (index: number, type: "dosen" | "mahasiswa", field: string, value: string) => {
     if (type === "dosen") {
-      setDosen((prev) =>
-        prev.map((it, i) => (i === index ? { ...it, [field]: value } : it))
-      );
+      setDosen((prev) => prev.map((it, i) => (i === index ? { ...it, [field]: value } : it)));
     } else {
-      setMahasiswa((prev) =>
-        prev.map((it, i) => (i === index ? { ...it, [field]: value } : it))
-      );
+      setMahasiswa((prev) => prev.map((it, i) => (i === index ? { ...it, [field]: value } : it)));
     }
   };
 
-  // Fungsi untuk handle upload file dan ubah ke Base64
-  const handleImageUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number,
-    type: "dosen" | "mahasiswa"
-  ) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number, type: "dosen" | "mahasiswa") => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -93,6 +103,9 @@ export default function AddTeamModal({ onClose, onAdd }: any) {
         instagram: "",
         website: "",
         category: "dosen",
+        studyProgram: "",
+        education: "",
+        specialization: "",
       },
     ]);
 
@@ -101,7 +114,7 @@ export default function AddTeamModal({ onClose, onAdd }: any) {
       ...p,
       {
         name: "",
-        role: "Anggota Tim Produksi PSTeam",
+        role: "",
         email: "",
         image: "",
         github: "",
@@ -113,25 +126,63 @@ export default function AddTeamModal({ onClose, onAdd }: any) {
       },
     ]);
 
-  const removeDosen = (i: number) =>
-    setDosen((p) => p.filter((_, idx) => idx !== i));
-  const removeMahasiswa = (i: number) =>
-    setMahasiswa((p) => p.filter((_, idx) => idx !== i));
+  const removeDosen = (i: number) => setDosen((p) => p.filter((_, idx) => idx !== i));
+  const removeMahasiswa = (i: number) => setMahasiswa((p) => p.filter((_, idx) => idx !== i));
 
   const handleSubmit = () => {
-    if (!teamTitle.trim()) {
-      alert("Masukkan judul tim produksi terlebih dahulu!");
-      return;
+    if (isAddMemberMode && presetRole) {
+      if (presetRole === "dosen") {
+        const member = { ...dosen[0] };
+        member.category = "dosen";
+        member.role = member.role?.trim() ? member.role : "Dosen Pembimbing";
+
+        if (!member.name?.trim()) return alert("Nama Dosen tidak boleh kosong.");
+        if (typeof onAddMember === "function") onAddMember(forProjectId, member);
+
+        onClose();
+        return;
+      }
+
+      if (presetRole === "mahasiswa") {
+        const member = { ...mahasiswa[0] };
+        member.category = "mahasiswa";
+        member.role = `Anggota Tim Produksi ${projectTitle || teamTitle || ""}`.trim();
+        if (!member.name?.trim()) return alert("Nama Mahasiswa tidak boleh kosong.");
+
+        if (typeof onAddMember === "function") onAddMember(forProjectId, member);
+
+        onClose();
+        return;
+      }
     }
 
-    const all = [...dosen, ...mahasiswa];
-    const hasEmptyName = all.some((it) => !it.name.trim());
+    if (!teamTitle.trim()) {
+      return alert("Masukkan judul tim produksi terlebih dahulu!");
+    }
+
+    const finalDosen = dosen.map((d) => ({
+      ...d,
+      role: d.role?.trim() ? d.role : "Dosen Pembimbing",
+      category: "dosen" as const,
+    }));
+
+    const finalMahasiswa = mahasiswa.map((m) => ({
+      ...m,
+      role: m.role?.trim() ? m.role : `Anggota Tim Produksi ${teamTitle}`,
+      category: "mahasiswa" as const,
+    }));
+
+    const allMembers = [...finalDosen, ...finalMahasiswa];
+
+    const hasEmptyName = allMembers.some((it) => !it.name?.trim());
     if (hasEmptyName) return alert("Pastikan semua nama terisi.");
 
-    onAdd({
-      teamTitle,
-      members: all,
-    });
+    if (typeof onAdd === "function") {
+      onAdd({
+        teamTitle,
+        members: allMembers,
+      });
+    }
     onClose();
   };
 
@@ -139,255 +190,266 @@ export default function AddTeamModal({ onClose, onAdd }: any) {
     "w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:outline-none text-gray-800 placeholder-gray-400 bg-white";
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-start md:items-center z-50 overflow-auto py-10">
-      <div className="bg-white w-[95%] md:w-[90%] max-w-5xl rounded-xl shadow-xl p-6 overflow-y-auto max-h-[90vh] relative border border-gray-200">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-600 hover:text-red-500"
-        >
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto"
+      >
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 hover:text-red-500 z-20">
           <X className="w-6 h-6" />
         </button>
 
-        <h2 className="text-2xl font-bold text-[#0a3b91] mb-6 text-center">
-          Tambah Tim Pengembang Baru
-        </h2>
+        <div className="p-6">
+          <h2 className="text-2xl font-bold text-[#0a3b91] mb-4 text-center">
+            {isAddMemberMode ? `Tambah Anggota - ${projectTitle || ""}` : "Tambah Tim Pengembang Baru"}
+          </h2>
 
-        {/* === Input Judul Tim === */}
-        <div className="mb-8">
-          <label className="text-sm font-medium text-gray-700">
-            Judul Tim Produksi *
-          </label>
-          <input
-            type="text"
-            className={inputClass}
-            placeholder="Contoh: Project Solar, Project AI, Project English Course"
-            value={teamTitle}
-            onChange={(e) => setTeamTitle(e.target.value)}
-          />
-        </div>
+          {!isAddMemberMode && (
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700">Judul Tim Produksi *</label>
+              <input
+                type="text"
+                className={inputClass}
+                placeholder="Contoh: Project Solar, Project AI"
+                value={teamTitle}
+                onChange={(e) => setTeamTitle(e.target.value)}
+              />
+            </div>
+          )}
 
-        {/* === Dosen Section === */}
-        <section className="mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-semibold text-blue-700">
-              Dosen Pembimbing
-            </h3>
-            <button
-              onClick={addDosen}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
-            >
-              <PlusCircle size={16} /> Tambah Dosen
-            </button>
-          </div>
+          {/* ------------------------- DOSEN ------------------------- */}
+          {(!isAddMemberMode || presetRole === "dosen") && (
+            <section className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold text-blue-700">Dosen Pembimbing</h3>
 
-          {dosen.map((d, i) => (
-            <div
-              key={i}
-              className="border border-gray-200 rounded-lg p-4 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 relative bg-white"
-            >
-              {/* Foto Upload */}
-              <div className="md:col-span-3 flex items-center gap-4">
-                <div className="w-20 h-20 border rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                  {d.image ? (
-                    <img
-                      src={d.image}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-gray-400 text-xs">No Image</span>
-                  )}
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Upload Foto Profil
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="block mt-1 text-sm text-gray-600"
-                    onChange={(e) => handleImageUpload(e, i, "dosen")}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Nama Dosen *
-                </label>
-                <input
-                  className={inputClass}
-                  value={d.name}
-                  onChange={(e) =>
-                    handleChange(i, "dosen", "name", e.target.value)
-                  }
-                  placeholder="Nama lengkap"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Email</label>
-                <input
-                  className={inputClass}
-                  value={d.email}
-                  onChange={(e) =>
-                    handleChange(i, "dosen", "email", e.target.value)
-                  }
-                  placeholder="email@contoh.com"
-                />
-              </div>
-
-              {/* Sosial Media */}
-              <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                {["github", "linkedin", "facebook", "instagram", "website"].map(
-                  (social) => (
-                    <div key={social}>
-                      <label className="text-sm font-medium text-gray-700 capitalize">
-                        {social}
-                      </label>
-                      <input
-                        className={inputClass}
-                        value={(d as any)[social]}
-                        onChange={(e) =>
-                          handleChange(i, "dosen", social, e.target.value)
-                        }
-                        placeholder={`https://${social}.com/username`}
-                      />
-                    </div>
-                  )
+                {!isAddMemberMode && (
+                  <button
+                    onClick={addDosen}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
+                  >
+                    <PlusCircle size={16} /> Tambah Dosen
+                  </button>
                 )}
               </div>
 
-              {dosen.length > 1 && (
-                <button
-                  onClick={() => removeDosen(i)}
-                  className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+              {dosen.map((d, i) => (
+                <div
+                  key={i}
+                  className="border border-gray-200 rounded-lg p-4 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 relative bg-white"
                 >
-                  <Trash size={18} />
-                </button>
-              )}
-            </div>
-          ))}
-        </section>
-
-        {/* === Mahasiswa Section === */}
-        <section className="mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-semibold text-green-700">
-              Anggota Mahasiswa
-            </h3>
-            <button
-              onClick={addMahasiswa}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm"
-            >
-              <PlusCircle size={16} /> Tambah Mahasiswa
-            </button>
-          </div>
-
-          {mahasiswa.map((m, i) => (
-            <div
-              key={i}
-              className="border border-gray-200 rounded-lg p-4 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 relative bg-white"
-            >
-              {/* Upload Foto Mahasiswa */}
-              <div className="md:col-span-3 flex items-center gap-4">
-                <div className="w-20 h-20 border rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                  {m.image ? (
-                    <img
-                      src={m.image}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-gray-400 text-xs">No Image</span>
-                  )}
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Upload Foto Profil
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="block mt-1 text-sm text-gray-600"
-                    onChange={(e) => handleImageUpload(e, i, "mahasiswa")}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Nama Mahasiswa *
-                </label>
-                <input
-                  className={inputClass}
-                  value={m.name}
-                  onChange={(e) =>
-                    handleChange(i, "mahasiswa", "name", e.target.value)
-                  }
-                  placeholder="Nama lengkap"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Email</label>
-                <input
-                  className={inputClass}
-                  value={m.email}
-                  onChange={(e) =>
-                    handleChange(i, "mahasiswa", "email", e.target.value)
-                  }
-                  placeholder="email@contoh.com"
-                />
-              </div>
-
-              {/* Sosial Media */}
-              <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                {["github", "linkedin", "facebook", "instagram", "website"].map(
-                  (social) => (
-                    <div key={social}>
-                      <label className="text-sm font-medium text-gray-700 capitalize">
-                        {social}
-                      </label>
+                  {/* FOTO */}
+                  <div className="md:col-span-3 flex items-center gap-4">
+                    <div className="w-20 h-20 border rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                      {d.image ? (
+                        <img src={d.image} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-gray-400 text-xs">No Image</span>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Upload Foto Profil</label>
                       <input
-                        className={inputClass}
-                        value={(m as any)[social]}
-                        onChange={(e) =>
-                          handleChange(i, "mahasiswa", social, e.target.value)
-                        }
-                        placeholder={`https://${social}.com/username`}
+                        type="file"
+                        accept="image/*"
+                        className="block mt-1 text-sm text-gray-600"
+                        onChange={(e) => handleImageUpload(e, i, "dosen")}
                       />
                     </div>
-                  )
+                  </div>
+
+                  {/* NAMA */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Nama Dosen *</label>
+                    <input
+                      className={inputClass}
+                      value={d.name}
+                      onChange={(e) => handleChange(i, "dosen", "name", e.target.value)}
+                      placeholder="Nama lengkap"
+                    />
+                  </div>
+
+                  {/* EMAIL */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      className={inputClass}
+                      value={d.email}
+                      onChange={(e) => handleChange(i, "dosen", "email", e.target.value)}
+                      placeholder="email@contoh.com"
+                    />
+                  </div>
+
+                  {/* STUDY PROGRAM */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Program Studi</label>
+                    <input
+                      className={inputClass}
+                      value={d.studyProgram || ""}
+                      onChange={(e) => handleChange(i, "dosen", "studyProgram", e.target.value)}
+                      placeholder="Contoh: Teknik Informatika"
+                    />
+                  </div>
+
+                  {/* EDUCATION */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Pendidikan</label>
+                    <input
+                      className={inputClass}
+                      value={d.education || ""}
+                      onChange={(e) => handleChange(i, "dosen", "education", e.target.value)}
+                      placeholder="Contoh: Magister (S2) Universitas Sumatera Utara"
+                    />
+                  </div>
+
+                  {/* SPECIALIZATION */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Spesialisasi</label>
+                    <input
+                      className={inputClass}
+                      value={d.specialization || ""}
+                      onChange={(e) => handleChange(i, "dosen", "specialization", e.target.value)}
+                      placeholder="Contoh: Software Development"
+                    />
+                  </div>
+
+                  {/* SOCIALS */}
+                  <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    {["github", "linkedin", "facebook", "instagram", "website"].map((social) => (
+                      <div key={social}>
+                        <label className="text-sm font-medium text-gray-700 capitalize">{social}</label>
+                        <input
+                          className={inputClass}
+                          value={(d as any)[social]}
+                          onChange={(e) => handleChange(i, "dosen", social, e.target.value)}
+                          placeholder={`https://${social}.com/username`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {dosen.length > 1 && !isAddMemberMode && (
+                    <button
+                      onClick={() => removeDosen(i)}
+                      className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+                    >
+                      <Trash size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </section>
+          )}
+
+          {/* ------------------------- MAHASISWA ------------------------- */}
+          {(!isAddMemberMode || presetRole === "mahasiswa") && (
+            <section className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold text-green-700">Anggota Mahasiswa</h3>
+
+                {!isAddMemberMode && (
+                  <button
+                    onClick={addMahasiswa}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm"
+                  >
+                    <PlusCircle size={16} /> Tambah Mahasiswa
+                  </button>
                 )}
               </div>
 
-              {mahasiswa.length > 1 && (
-                <button
-                  onClick={() => removeMahasiswa(i)}
-                  className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+              {mahasiswa.map((m, i) => (
+                <div
+                  key={i}
+                  className="border border-gray-200 rounded-lg p-4 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 relative bg-white"
                 >
-                  <Trash size={18} />
-                </button>
-              )}
-            </div>
-          ))}
-        </section>
+                  {/* FOTO */}
+                  <div className="md:col-span-3 flex items-center gap-4">
+                    <div className="w-20 h-20 border rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                      {m.image ? (
+                        <img src={m.image} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-gray-400 text-xs">No Image</span>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Upload Foto Profil</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="block mt-1 text-sm text-gray-600"
+                        onChange={(e) => handleImageUpload(e, i, "mahasiswa")}
+                      />
+                    </div>
+                  </div>
 
-        {/* === Buttons === */}
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-6 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold"
-          >
-            Simpan Tim
-          </button>
+                  {/* NAMA */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Nama Mahasiswa *</label>
+                    <input
+                      className={inputClass}
+                      value={m.name}
+                      onChange={(e) => handleChange(i, "mahasiswa", "name", e.target.value)}
+                      placeholder="Nama lengkap"
+                    />
+                  </div>
+
+                  {/* EMAIL */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      className={inputClass}
+                      value={m.email}
+                      onChange={(e) => handleChange(i, "mahasiswa", "email", e.target.value)}
+                      placeholder="email@contoh.com"
+                    />
+                  </div>
+
+                  {/* SOCIALS */}
+                  <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    {["github", "linkedin", "facebook", "instagram", "website"].map((social) => (
+                      <div key={social}>
+                        <label className="text-sm font-medium text-gray-700 capitalize">{social}</label>
+                        <input
+                          className={inputClass}
+                          value={(m as any)[social]}
+                          onChange={(e) => handleChange(i, "mahasiswa", social, e.target.value)}
+                          placeholder={`https://${social}.com/username`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {mahasiswa.length > 1 && !isAddMemberMode && (
+                    <button
+                      onClick={() => removeMahasiswa(i)}
+                      className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+                    >
+                      <Trash size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </section>
+          )}
+
+          {/* BUTTONS */}
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-gray-800"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="px-6 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold"
+            >
+              {isAddMemberMode ? "Tambah Anggota" : "Simpan Tim"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
