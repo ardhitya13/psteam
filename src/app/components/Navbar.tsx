@@ -82,7 +82,7 @@ export default function NavBar() {
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <Image
-            src="/logopsteam4.png"
+            src="/images/logopsteam4.png"
             alt="PSTeam Logo"
             width={78}
             height={80}

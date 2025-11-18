@@ -7,6 +7,7 @@ interface DetailProyekModalProps {
   onClose: () => void;
   data: {
     email?: string;
+    telepon?: string;
     judul?: string;
     tipe?: string;
     deskripsi?: string;
@@ -25,79 +26,95 @@ export default function DetailProyekModal({
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-center text-lg font-bold mb-6 text-[#000000]">
-        DETAIL SPESIFIKASI PROYEK
-      </h2>
+      {/* Perlebar modal */}
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-center text-lg font-bold mb-6 text-[#000000]">
+          DETAIL SPESIFIKASI PROYEK
+        </h2>
 
-      <div className="space-y-4">
-        {/* Email dan Status */}
-        <div className="flex gap-3">
-          <div className="w-1/2">
+        <div className="space-y-4">
+
+          {/* Email dan Status */}
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <label className="block text-gray-600 mb-1 text-xs font-semibold">
+                Email Pengaju
+              </label>
+              <input
+                value={data.email || ""}
+                disabled
+                className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
+              />
+            </div>
+
+            <div className="w-1/2">
+              <label className="block text-gray-600 mb-1 text-xs font-semibold">
+                Status Proyek
+              </label>
+              <input
+                value={data.status || ""}
+                disabled
+                className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
+              />
+            </div>
+          </div>
+
+          <div className="w-full">
             <label className="block text-gray-600 mb-1 text-xs font-semibold">
-              Email Pengaju
+              Nomor WhatsApp
             </label>
             <input
-              value={data.email || ""}
+              value={data.telepon || ""}
               disabled
               className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
             />
           </div>
 
-          <div className="w-1/2">
-            <label className="block text-gray-600 mb-1 text-xs font-semibold">
-              Status Proyek
-            </label>
-            <input
-              value={data.status || ""}
-              disabled
-              className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
-            />
+          {/* Judul & Tipe */}
+          <div className="flex gap-3 mt-4">
+            <div className="w-1/2">
+              <label className="block text-gray-600 mb-1 text-xs font-semibold">
+                Judul Proyek
+              </label>
+              <input
+                value={data.judul || ""}
+                disabled
+                className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
+              />
+            </div>
+
+            <div className="w-1/2">
+              <label className="block text-gray-600 mb-1 text-xs font-semibold">
+                Tipe Proyek
+              </label>
+              <input
+                value={data.tipe || ""}
+                disabled
+                className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
+              />
+            </div>
           </div>
+
+          {/* Deskripsi */}
+          <label className="block text-gray-600 mb-1 text-xs font-semibold">
+            Deskripsi Proyek
+          </label>
+          <textarea
+            value={data.deskripsi || ""}
+            disabled
+            className="w-full h-40 px-3 py-2 border rounded-md bg-gray-100 resize-none text-sm text-gray-800"
+          />
+
+          {/* Tombol Simpan */}
+          {canChangeStatus && (
+            <button
+              onClick={onClose}
+              className="w-full mt-2 bg-[#0a3b91] hover:bg-blue-800 text-white py-2 rounded-md font-semibold"
+            >
+              Simpan
+            </button>
+          )}
         </div>
-
-        <div className="flex gap-3 mt-4">
-          <div className="w-1/2">
-            <label className="block text-gray-600 mb-1 text-xs font-semibold">
-              Judul Proyek
-            </label>
-            <input
-              value={data.judul || ""}
-              disabled
-              className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
-            />
-          </div>
-
-          <div className="w-1/2">
-            <label className="block text-gray-600 mb-1 text-xs font-semibold">
-              Tipe Proyek
-            </label>
-            <input
-              value={data.tipe || ""}
-              disabled
-              className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
-            />
-          </div>
-        </div>
-        <label className="block text-gray-600 mb-1 text-xs font-semibold">
-          Deskripsi Proyek
-        </label>
-        {/* Deskripsi */}
-        <textarea
-          value={data.deskripsi || ""}
-          disabled
-          className="w-full h-28 px-3 py-2 border rounded-md bg-gray-100 resize-none text-sm text-gray-800"
-          placeholder="Deskripsi Proyek"
-        />
-
-        {/* Tombol Simpan jika canChangeStatus = true */}
-        {canChangeStatus && (
-          <button
-            onClick={onClose}
-            className="w-full mt-2 bg-[#0a3b91] hover:bg-blue-800 text-white py-2 rounded-md font-semibold"
-          >
-            Simpan
-          </button>
-        )}
       </div>
     </ModalWrapper>
   );

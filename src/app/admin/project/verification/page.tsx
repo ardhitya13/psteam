@@ -10,21 +10,23 @@ export default function VerifikasiProyekPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ Data proyek yang sedang dilihat
+  // Data proyek yang sedang dilihat
   const [selectedData, setSelectedData] = useState<{
     no: number;
     email: string;
+    telp: string;
     judul: string;
     tipe: string;
     deskripsi: string;
     status: string;
   } | null>(null);
 
-  // ✅ Data proyek yang menunggu verifikasi
+  // Data proyek menunggu verifikasi
   const [data, setData] = useState([
     {
       no: 1,
       email: "mahasiswa1@polibatam.ac.id",
+      telp: "081234567890",
       judul: "Sistem Pemesanan Online Coffee Shop",
       tipe: "Website",
       deskripsi: "Sistem untuk memesan kopi secara online.",
@@ -33,6 +35,7 @@ export default function VerifikasiProyekPage() {
     {
       no: 2,
       email: "mahasiswa2@polibatam.ac.id",
+      telp: "081267854321",
       judul: "Aplikasi Mobile Bimbingan Belajar",
       tipe: "Mobile",
       deskripsi: "Aplikasi untuk membantu siswa belajar daring.",
@@ -40,24 +43,20 @@ export default function VerifikasiProyekPage() {
     },
   ]);
 
-  // ✅ Fungsi untuk menerima proyek
+  // Terima proyek
   const handleTerima = (item: any) => {
-    // Ambil daftar proyek aktif dari localStorage (kalau belum ada, buat array kosong)
     const existingProjects = JSON.parse(localStorage.getItem("proyekAktif") || "[]");
 
-    // Tambahkan proyek yang diterima
     const updatedProjects = [...existingProjects, { ...item, status: "Diterima" }];
 
-    // Simpan ke localStorage
     localStorage.setItem("proyekAktif", JSON.stringify(updatedProjects));
 
-    // Hapus proyek dari daftar verifikasi
     setData((prev) => prev.filter((p) => p.no !== item.no));
 
     alert(`✅ Proyek "${item.judul}" berhasil diterima dan masuk ke Daftar Proyek Aktif.`);
   };
 
-  // ✅ Fungsi untuk menolak proyek
+  // Tolak proyek
   const handleTolak = (item: any) => {
     if (confirm(`Apakah kamu yakin ingin menolak proyek "${item.judul}"?`)) {
       setData((prev) => prev.filter((p) => p.no !== item.no));
@@ -85,6 +84,7 @@ export default function VerifikasiProyekPage() {
               <tr>
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">EMAIL</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">NO TELEPON</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">JUDUL</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">TIPE</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">SPESIFIKASI</th>
@@ -98,6 +98,7 @@ export default function VerifikasiProyekPage() {
                   <tr key={item.no} className="hover:bg-gray-50 transition-colors">
                     <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
                     <td className="border border-gray-200 px-4 py-2">{item.email}</td>
+                    <td className="border border-gray-200 px-4 py-2">{item.telp}</td>
                     <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
                     <td className="border border-gray-200 px-4 py-2 text-center">{item.tipe}</td>
                     <td className="border border-gray-200 px-4 py-2 text-center">
@@ -131,10 +132,7 @@ export default function VerifikasiProyekPage() {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="text-center py-4 text-gray-500 italic"
-                  >
+                  <td colSpan={7} className="text-center py-4 text-gray-500 italic">
                     Tidak ada proyek yang menunggu verifikasi.
                   </td>
                 </tr>
@@ -144,7 +142,6 @@ export default function VerifikasiProyekPage() {
         </div>
       </main>
 
-      {/* Modal detail */}
       <ProjectDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

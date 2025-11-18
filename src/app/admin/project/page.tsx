@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Search, Edit, Upload, Trash2, Plus } from "lucide-react";
+import { ChevronDown, Search, Edit, Upload, Trash2 } from "lucide-react";
 import React, { useState, useMemo } from "react";
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
@@ -17,11 +17,12 @@ export default function DaftarProyekPage() {
     const [pageGroup, setPageGroup] = useState(0);
     const itemsPerPage = 8;
 
-    // Dummy data
+    // Dummy data + NO TELEPON
     const data = [
         {
             no: 1,
             email: "anggun@polibatam.ac.id",
+            telp: "081234567890",
             judul: "Website Pemesanan Online Coffee Shop",
             tipe: "Website",
             status: "Belum Diproses",
@@ -29,6 +30,7 @@ export default function DaftarProyekPage() {
         {
             no: 2,
             email: "ardhitya@polibatam.ac.id",
+            telp: "081298765432",
             judul: "Aplikasi Mobile Penjualan Tshirt",
             tipe: "Mobile",
             status: "Sedang Diproses",
@@ -36,13 +38,13 @@ export default function DaftarProyekPage() {
         ...Array.from({ length: 40 }, (_, i) => ({
             no: i + 3,
             email: `user${i + 3}@polibatam.ac.id`,
+            telp: `0812${Math.floor(1000000 + Math.random() * 8999999)}`,
             judul: `Judul Proyek ${i + 3}`,
             tipe: ["Website", "Mobile", "AI", "IoT"][Math.floor(Math.random() * 4)],
             status: ["Belum Diproses", "Sedang Diproses", "Selesai"][i % 3],
         })),
     ];
 
-    // Filter dan pencarian
     const filteredData = useMemo(() => {
         return data.filter(
             (item) =>
@@ -51,7 +53,6 @@ export default function DaftarProyekPage() {
         );
     }, [data, filterType, searchQuery]);
 
-    // Pagination per 3 halaman
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const visibleData = filteredData.slice(
         (currentPage - 1) * itemsPerPage,
@@ -123,13 +124,14 @@ export default function DaftarProyekPage() {
                     </div>
                 </div>
 
-                {/* Tabel */}
+                {/* TABEL */}
                 <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
                     <table className="w-full border-collapse text-sm text-gray-700">
                         <thead className="bg-gray-300 text-gray-800">
                             <tr>
                                 <th className="border border-gray-200 px-4 py-2">NO</th>
                                 <th className="border border-gray-200 px-4 py-2">EMAIL</th>
+                                <th className="border border-gray-200 px-4 py-2">NO TELEPON</th>
                                 <th className="border border-gray-200 px-4 py-2">JUDUL</th>
                                 <th className="border border-gray-200 px-4 py-2">TIPE</th>
                                 <th className="border border-gray-200 px-4 py-2">STATUS</th>
@@ -143,6 +145,7 @@ export default function DaftarProyekPage() {
                                     <tr key={item.no} className="hover:bg-gray-50 transition-colors">
                                         <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
                                         <td className="border border-gray-200 px-4 py-2">{item.email}</td>
+                                        <td className="border border-gray-200 px-4 py-2">{item.telp}</td>
                                         <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
                                         <td className="border border-gray-200 px-4 py-2 text-center">{item.tipe}</td>
                                         <td className="border border-gray-200 px-4 py-2 text-center">
@@ -157,37 +160,36 @@ export default function DaftarProyekPage() {
                                                 {item.status}
                                             </span>
                                         </td>
+
+                                        {/* BUTTON Aksi (Ukuran Sama) */}
                                         <td className="border border-gray-200 px-4 py-2 text-center">
                                             <div className="flex justify-center gap-2">
+
                                                 <button
                                                     onClick={() => handleEdit(item)}
-                                                    className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-4 py-1 rounded flex items-center gap-1 border-none focus:outline-none"
+                                                    className="bg-yellow-400 hover:bg-yellow-500 text-white rounded border-none focus:outline-none w-24 h-8 flex items-center justify-center gap-1 text-xs"
                                                 >
                                                     <Edit size={14} /> Edit
                                                 </button>
 
                                                 <button
-                                                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded flex items-center gap-1 border-none focus:outline-none"
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white rounded border-none focus:outline-none w-24 h-8 flex items-center justify-center gap-1 text-xs"
                                                 >
                                                     <Upload size={14} /> Terbitkan
                                                 </button>
 
                                                 <button
-                                                    className="bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-1 rounded flex items-center gap-1 border-none focus:outline-none"
+                                                    className="bg-red-500 hover:bg-red-600 text-white rounded border-none focus:outline-none w-24 h-8 flex items-center justify-center gap-1 text-xs"
                                                 >
                                                     <Trash2 size={14} /> Hapus
                                                 </button>
                                             </div>
                                         </td>
-
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td
-                                        colSpan={6}
-                                        className="text-center py-6 text-gray-500 border border-gray-200"
-                                    >
+                                    <td colSpan={7} className="text-center py-6 text-gray-500 border border-gray-200">
                                         Tidak ada proyek yang ditemukan
                                     </td>
                                 </tr>
@@ -195,7 +197,7 @@ export default function DaftarProyekPage() {
                         </tbody>
                     </table>
 
-                    {/* Pagination (3 halaman) */}
+                    {/* Pagination */}
                     <div className="flex justify-end items-center py-3 px-4 gap-1 text-sm bg-gray-50 rounded-b-lg">
                         <button
                             onClick={() => {

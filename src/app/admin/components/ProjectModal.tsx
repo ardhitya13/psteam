@@ -31,7 +31,8 @@ export default function ProyekModal({ isOpen, onClose, data, mode }: ProyekModal
       </h2>
 
       <div className="space-y-4 text-sm">
-        {/* Email & Status */}
+
+        {/* Email & Telepon */}
         <div className="flex gap-3">
           <div className="flex flex-col w-1/2">
             <label className="text-xs text-gray-600 mb-1">Email Pengaju</label>
@@ -39,11 +40,23 @@ export default function ProyekModal({ isOpen, onClose, data, mode }: ProyekModal
               value={formData?.email || ""}
               disabled
               className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-700"
-              placeholder="Email Pengaju"
             />
           </div>
 
           <div className="flex flex-col w-1/2">
+            <label className="text-xs text-gray-600 mb-1">Nomor WhatsApp</label>
+            <input
+              value={formData?.telepon || ""}
+              disabled
+              className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-700"
+              placeholder="Nomor WA"
+            />
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="flex gap-3">
+          <div className="flex flex-col w-full">
             <label className="text-xs text-gray-600 mb-1">Status Proyek</label>
             {isEdit ? (
               <select
@@ -67,7 +80,7 @@ export default function ProyekModal({ isOpen, onClose, data, mode }: ProyekModal
           </div>
         </div>
 
-        {/* Judul & Tipe (non-editable) */}
+        {/* Judul & Tipe */}
         <div className="flex gap-3">
           <div className="flex flex-col w-1/2">
             <label className="text-xs text-gray-600 mb-1">Judul Proyek</label>
@@ -88,7 +101,7 @@ export default function ProyekModal({ isOpen, onClose, data, mode }: ProyekModal
           </div>
         </div>
 
-        {/* Deskripsi (non-editable) */}
+        {/* Deskripsi */}
         <div>
           <label className="text-xs text-gray-600 mb-1">Deskripsi</label>
           <textarea
@@ -98,7 +111,7 @@ export default function ProyekModal({ isOpen, onClose, data, mode }: ProyekModal
           />
         </div>
 
-        {/* Tombol Simpan hanya muncul jika mode edit */}
+        {/* Tombol Simpan */}
         {isEdit && (
           <div className="flex justify-end gap-2 pt-3">
             <button
