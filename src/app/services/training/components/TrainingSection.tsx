@@ -15,11 +15,12 @@ export default function TrainingSection() {
   const filterRef = useRef<HTMLDivElement | null>(null);
   const categoryFromQuery = searchParams.get("category");
 
-  const [kategoriTerpilih, setKategoriTerpilih] = useState<string>("Semua");
-  const [pelatihanTerpilih, setPelatihanTerpilih] = useState<Course | null>(null);
-  const [bukaDetail, setBukaDetail] = useState(false);
-  const [bukaDaftar, setBukaDaftar] = useState(false);
-  const [bukaPanduan, setBukaPanduan] = useState(false);
+  // 🌟 English variable names
+  const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
+  const [selectedTraining, setSelectedTraining] = useState<Course | null>(null);
+  const [openDetail, setOpenDetail] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
+  const [openGuide, setOpenGuide] = useState(false);
 
   useEffect(() => {
     AOS.init({ duration: 900, easing: "ease-out-cubic", once: true });
@@ -27,12 +28,13 @@ export default function TrainingSection() {
 
   useEffect(() => {
     if (categoryFromQuery) {
-      setKategoriTerpilih(categoryFromQuery);
+      setSelectedCategory(categoryFromQuery);
+
       setTimeout(() => {
         filterRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 300);
     } else {
-      setKategoriTerpilih("Semua");
+      setSelectedCategory("Semua");
     }
   }, [categoryFromQuery]);
 
@@ -91,45 +93,43 @@ export default function TrainingSection() {
     },
   ];
 
-  const pelatihanTersaring =
-    kategoriTerpilih === "Semua"
+  const filteredTraining =
+    selectedCategory === "Semua"
       ? semuaPelatihan
-      : semuaPelatihan.filter((c) => c.category === kategoriTerpilih);
+      : semuaPelatihan.filter((c) => c.category === selectedCategory);
 
-  const bukaModalDetail = (course: Course) => {
-    setPelatihanTerpilih(course);
-    setBukaDetail(true);
+  const openDetailModal = (course: Course) => {
+    setSelectedTraining(course);
+    setOpenDetail(true);
   };
 
-  const bukaModalDaftar = (course: Course) => {
-    setPelatihanTerpilih(course);
-    setBukaDaftar(true);
+  const openRegisterModal = (course: Course) => {
+    setSelectedTraining(course);
+    setOpenRegister(true);
   };
 
-  const tutupSemuaModal = () => {
-    setPelatihanTerpilih(null);
-    setBukaDetail(false);
-    setBukaDaftar(false);
+  const closeAllModals = () => {
+    setSelectedTraining(null);
+    setOpenDetail(false);
+    setOpenRegister(false);
   };
 
   return (
-    <main className="relative min-h-screen py-16 bg-gradient-to-b from-[#00143A] via-[#0A1B55] to-[#00143A] text-white">
+    <main className="relative min-h-screen py-16 bg-transparent text-white">
       <section className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="flex justify-between items-center mb-4" data-aos="fade-down">
           <div>
-            <h2 className="text-3xl font-bold text-white">Pelatihan & Sertifikasi</h2>
-            <p className="text-gray-200 text-sm sm:text-base">
+            <h2 className="text-3xl font-bold">Pelatihan & Sertifikasi</h2>
+            <p className="text-white text-sm sm:text-base">
               Pilih bidang pelatihan yang sesuai untuk memperdalam keahlian digitalmu.
             </p>
           </div>
 
           {/* Tombol Tata Cara */}
           <button
-            onClick={() => setBukaPanduan(true)}
-            className="bg-gradient-to-r from-blue-800 to-blue-500 text-white px-5 py-2.5 rounded-full 
-            shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]
-            focus:outline-none select-none [background-size:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%]"
+            onClick={() => setOpenGuide(true)}
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-blue-700 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
           >
             📋 Lihat Tata Cara Pendaftaran
           </button>
@@ -139,50 +139,50 @@ export default function TrainingSection() {
         <div ref={filterRef} className="mt-4 mb-8">
           <CategoryFilter
             categories={kategori}
-            selectedCategory={kategoriTerpilih}
-            onSelect={setKategoriTerpilih}
+            selectedCategory={selectedCategory}
+            onSelect={setSelectedCategory}
           />
         </div>
 
         {/* Info jumlah */}
         <div className="relative flex justify-center items-center my-6" data-aos="fade-up">
-          <div className="flex items-center w-fit px-6 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-sm">
-            <span className="text-blue-200 font-semibold text-sm sm:text-md tracking-wide">
-              {pelatihanTersaring.length} Pelatihan / Sertifikasi Tersedia
+          <div className="flex items-center w-fit px-6 py-2 bg-gray-100 rounded-full border border-gray-300 shadow-sm">
+            <span className="text-gray-700 font-semibold text-sm sm:text-md tracking-wide">
+              {filteredTraining.length} Pelatihan / Sertifikasi Tersedia
             </span>
           </div>
         </div>
 
         {/* Card Pelatihan */}
         <div className="mt-8 flex flex-col gap-5">
-          {pelatihanTersaring.map((course) => (
+          {filteredTraining.map((course) => (
             <CourseCardHorizontal
               key={course.id}
               course={course}
-              onClick={() => bukaModalDetail(course)}
-              onDaftar={bukaModalDaftar}
+              onClick={() => openDetailModal(course)}
+              onDaftar={openRegisterModal}
             />
           ))}
         </div>
 
         {/* Modal Detail */}
         <CourseDetailModal
-          open={bukaDetail}
-          course={pelatihanTerpilih}
-          onClose={tutupSemuaModal}
+          open={openDetail}
+          course={selectedTraining}
+          onClose={closeAllModals}
         />
 
         {/* Modal Daftar */}
         <RegisterTrainingModal
-          open={bukaDaftar}
-          course={pelatihanTerpilih}
-          onClose={tutupSemuaModal}
+          open={openRegister}
+          course={selectedTraining}
+          onClose={closeAllModals}
         />
 
         {/* Modal Tata Cara */}
         <RegistrationGuideModal
-          open={bukaPanduan}
-          onClose={() => setBukaPanduan(false)}
+          open={openGuide}
+          onClose={() => setOpenGuide(false)}
         />
       </section>
     </main>

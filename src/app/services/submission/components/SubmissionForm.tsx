@@ -5,13 +5,14 @@ import { FaCheckCircle, FaExclamationCircle, FaWhatsapp } from "react-icons/fa";
 
 export default function FormPengajuan() {
   const [formData, setFormData] = useState({
-    nama: "",
+    name: "",
     email: "",
-    telepon: "",
-    tipeProyek: "",
-    judul: "",
-    deskripsi: "",
+    phone: "",
+    projectType: "",
+    title: "",
+    description: "",
   });
+
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -29,12 +30,12 @@ export default function FormPengajuan() {
     e.preventDefault();
 
     if (
-      !formData.nama ||
+      !formData.name ||
       !formData.email ||
-      !formData.telepon ||
-      !formData.tipeProyek ||
-      !formData.judul ||
-      !formData.deskripsi
+      !formData.phone ||
+      !formData.projectType ||
+      !formData.title ||
+      !formData.description
     ) {
       setError("Semua field wajib diisi dengan benar!");
       setSuccess(false);
@@ -50,13 +51,10 @@ export default function FormPengajuan() {
     }, 1200);
   };
 
-  // 🔹 Nomor WhatsApp PSTEAM (aktif)
   const whatsappNumber = "6281364440803";
 
-  // 🔹 Buat pesan otomatis dengan data user
   const generateWhatsAppMessage = () => {
-    const pesan = `Halo PSTEAM! 👋\n\nSaya ingin mengajukan proyek dengan detail berikut:\n\n📌 Nama: ${formData.nama}\n📧 Email: ${formData.email}\n📞 Telepon: ${formData.telepon}\n💼 Tipe Proyek: ${formData.tipeProyek}\n🧾 Judul: ${formData.judul}\n📝 Deskripsi: ${formData.deskripsi}\n\nTerima kasih! 🙏`;
-    // ✅ Gunakan api.whatsapp.com agar tidak perlu simpan kontak
+    const pesan = `Halo PSTEAM! 👋\n\nSaya ingin mengajukan proyek dengan detail berikut:\n\n📌 Nama: ${formData.name}\n📧 Email: ${formData.email}\n📞 Telepon: ${formData.phone}\n💼 Tipe Proyek: ${formData.projectType}\n🧾 Judul: ${formData.title}\n📝 Deskripsi: ${formData.description}\n\nTerima kasih! 🙏`;
     return `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=${encodeURIComponent(
       pesan
     )}&type=phone_number&app_absent=0`;
@@ -65,12 +63,12 @@ export default function FormPengajuan() {
   const handleBackToForm = () => {
     setSuccess(false);
     setFormData({
-      nama: "",
+      name: "",
       email: "",
-      telepon: "",
-      tipeProyek: "",
-      judul: "",
-      deskripsi: "",
+      phone: "",
+      projectType: "",
+      title: "",
+      description: "",
     });
   };
 
@@ -80,7 +78,7 @@ export default function FormPengajuan() {
         Formulir Pengajuan Proyek
       </h3>
 
-      {/* ✅ Notifikasi Sukses */}
+      {/* UI Sukses */}
       {success && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-md animate-fadeIn z-10">
           <div className="bg-green-50 border border-green-200 p-8 rounded-2xl shadow-lg text-center max-w-md">
@@ -92,7 +90,6 @@ export default function FormPengajuan() {
               Tim PSTEAM akan meninjau dan menghubungi kamu melalui email atau WhatsApp.
             </p>
 
-            {/* 🔹 Tombol WhatsApp */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
                 href={generateWhatsAppMessage()}
@@ -104,7 +101,6 @@ export default function FormPengajuan() {
                 Hubungi via WhatsApp
               </a>
 
-              {/* 🔹 Tombol Kembali */}
               <button
                 onClick={handleBackToForm}
                 className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
@@ -116,7 +112,7 @@ export default function FormPengajuan() {
         </div>
       )}
 
-      {/* ⚠️ Notifikasi Error */}
+      {/* UI Error */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-md animate-fadeIn z-10">
           <div className="bg-red-50 border border-red-200 p-8 rounded-2xl shadow-lg text-center">
@@ -133,7 +129,7 @@ export default function FormPengajuan() {
         </div>
       )}
 
-      {/* Form */}
+      {/* FORM */}
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-5 text-gray-900 relative z-0"
@@ -145,9 +141,9 @@ export default function FormPengajuan() {
         <div className="grid md:grid-cols-2 gap-4">
           <input
             type="text"
-            name="nama"
+            name="name"
             placeholder="Nama Lengkap"
-            value={formData.nama}
+            value={formData.name}
             onChange={handleChange}
             className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black placeholder:text-gray-500"
           />
@@ -161,9 +157,9 @@ export default function FormPengajuan() {
           />
           <input
             type="tel"
-            name="telepon"
+            name="phone"
             placeholder="Nomor Telepon (WhatsApp)"
-            value={formData.telepon}
+            value={formData.phone}
             onChange={handleChange}
             className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none md:col-span-2 text-black placeholder:text-gray-500"
           />
@@ -175,8 +171,8 @@ export default function FormPengajuan() {
 
         <div className="grid md:grid-cols-2 gap-4">
           <select
-            name="tipeProyek"
-            value={formData.tipeProyek}
+            name="projectType"
+            value={formData.projectType}
             onChange={handleChange}
             className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
           >
@@ -189,18 +185,18 @@ export default function FormPengajuan() {
 
           <input
             type="text"
-            name="judul"
+            name="title"
             placeholder="Judul Proyek"
-            value={formData.judul}
+            value={formData.title}
             onChange={handleChange}
             className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
           />
         </div>
 
         <textarea
-          name="deskripsi"
+          name="description"
           placeholder="Deskripsikan proyekmu secara singkat..."
-          value={formData.deskripsi}
+          value={formData.description}
           onChange={handleChange}
           className="border border-gray-300 p-3 h-32 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-black"
         ></textarea>

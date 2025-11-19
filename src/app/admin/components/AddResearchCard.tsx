@@ -1,109 +1,168 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { Search, X } from "lucide-react";
 import ModalWrapper from "./ModalWrapper";
 
-interface TambahPenelitianCardProps {
+type Lecturer = {
+  id: number;
+  name: string;
+  program: string;
+};
+
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { nama: string; judul: string; tahun: number }) => void;
+  initialLecturerName?: string;
+  lecturers: Lecturer[];
+  onSubmit: (data: { lecturer_name: string; title: string; year: number }) => void;
 }
 
-export default function TambahPenelitianCard({
+export default function AddResearchCard({
   isOpen,
   onClose,
+  initialLecturerName,
+  lecturers,
   onSubmit,
-}: TambahPenelitianCardProps) {
-  const [formData, setFormData] = useState({
-    nama: "",
-    judul: "",
-    tahun: new Date().getFullYear(),
+}: Props) {
+  const [query, setQuery] = useState(initialLecturerName ?? "");
+  const [show, setShow] = useState(false);
+  const [form, setForm] = useState({
+    lecturer_name: initialLecturerName ?? "",
+    title: "",
+    year: new Date().getFullYear(),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    setQuery(initialLecturerName ?? "");
+    setForm((p) => ({ ...p, lecturer_name: initialLecturerName ?? "" }));
+  }, [initialLecturerName]);
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    if (!q) return lecturers;
+    return lecturers.filter(
+      (l) =>
+        l.name.toLowerCase().includes(q) ||
+        l.program.toLowerCase().includes(q)
+    );
+  }, [query, lecturers]);
+
+  function pick(name: string) {
+    setQuery(name);
+    setForm((p) => ({ ...p, lecturer_name: name }));
+    setShow(false);
+  }
+
+  function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!formData.nama || !formData.judul || !formData.tahun) return;
-    onSubmit(formData);
+    if (!form.lecturer_name.trim()) return alert("Nama dosen wajib dipilih.");
+    if (!form.title.trim()) return alert("Judul wajib diisi.");
+    if (!form.year) return alert("Tahun tidak valid.");
+
+    onSubmit(form);
     onClose();
 
-    // reset form
-    setFormData({ nama: "", judul: "", tahun: new Date().getFullYear() });
-  };
+    setForm({ lecturer_name: "", title: "", year: new Date().getFullYear() });
+    setQuery("");
+  }
+
+  if (!isOpen) return null;
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-        Tambah Penelitian Dosen
-      </h2>
+      <div className="bg-white rounded-lg shadow p-7 w-[800px] mx-auto text-gray-900">
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Nama Dosen */}
-        <div>
-          
-          <input
-            type="text"
-            name="nama"
-            value={formData.nama}
-            onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="Masukkan nama dosen"
-            required
-          />
-        </div>
-
-        {/* Judul Penelitian */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Judul Penelitian
-          </label>
-          <input
-            type="text"
-            name="judul"
-            value={formData.judul}
-            onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="Masukkan judul penelitian"
-            required
-          />
-        </div>
-
-        {/* Tahun */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tahun Penelitian
-          </label>
-          <input
-            type="number"
-            name="tahun"
-            min={2000}
-            max={2100}
-            value={formData.tahun}
-            onChange={(e) =>
-              setFormData({ ...formData, tahun: Number(e.target.value) })
-            }
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="Masukkan tahun"
-            required
-          />
-        </div>
-
-        {/* Tombol Aksi */}
-        <div className="flex justify-end gap-2 pt-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm shadow-sm"
-          >
-            Simpan
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-2xl font-bold text-gray-800">Tambah Karya Ilmiah</h2>
+          <button className="p-2 hover:bg-gray-200 rounded" onClick={onClose}>
+            <X />
           </button>
         </div>
-      </form>
+
+        <form className="space-y-5" onSubmit={submit}>
+
+          {/* Lecturer */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Dosen</label>
+            <div className="relative">
+              <input
+                className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 bg-white"
+                placeholder="Cari nama dosen..."
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setShow(true);
+                }}
+                onFocus={() => setShow(true)}
+              />
+
+              {show && query && (
+                <div className="absolute bg-white border border-gray-300 rounded shadow max-h-56 overflow-auto w-full z-50 mt-1">
+                  {filtered.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-gray-600">Tidak ditemukan</div>
+                  ) : (
+                    filtered.map((l) => (
+                      <div
+                        key={l.id}
+                        onClick={() => pick(l.name)}
+                        className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                      >
+                        <div className="font-medium text-gray-900">{l.name}</div>
+                        <div className="text-xs text-gray-600">{l.program}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                <Search size={17} />
+              </div>
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Judul</label>
+            <input
+              className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 bg-white"
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+            />
+          </div>
+
+          {/* Year */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Tahun</label>
+            <input
+              type="number"
+              min={1900}
+              max={2100}
+              className="w-40 border border-gray-300 rounded px-4 py-2 text-gray-900 bg-white"
+              value={form.year}
+              onChange={(e) => setForm((p) => ({ ...p, year: Number(e.target.value) }))}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              className="px-4 py-2 rounded border text-gray-700 bg-white hover:bg-gray-100"
+              onClick={onClose}
+            >
+              Batal
+            </button>
+
+            <button
+              type="submit"
+              className="px-5 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Tambah
+            </button>
+          </div>
+        </form>
+      </div>
     </ModalWrapper>
   );
 }

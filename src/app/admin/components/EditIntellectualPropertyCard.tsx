@@ -1,140 +1,171 @@
+// admin/components/EditIntellectualPropertyCard.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface EditIntellectualPropertyCardProps {
+type IPItem = {
+  id: number;
+  title: string;
+  type: string;
+  year: number;
+};
+
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (updatedData: {
-    no: number;
-    judul: string;
-    jenis: string;
-    tahun: number;
-  }) => void;
-  defaultData: {
-    no: number;
-    judul: string;
-    jenis: string;
-    tahun: number;
-  } | null;
+  kategoriHKI: string[];
+  defaultData:
+  | { lecId: number; item: IPItem; lecturer_name: string }
+  | null
+  | undefined;
+  onSubmit: (payload: { lecId: number; item: IPItem }) => void;
 }
 
 export default function EditIntellectualPropertyCard({
   isOpen,
   onClose,
-  onSubmit,
   defaultData,
-}: EditIntellectualPropertyCardProps) {
-  const [formData, setFormData] = useState({
-    no: 0,
-    judul: "",
-    jenis: "",
-    tahun: new Date().getFullYear(),
-  });
+  onSubmit,
+  kategoriHKI,
+}: Props) {
+  const [local, setLocal] =
+    useState<{ lecId: number; item: IPItem; lecturer_name: string } | null>(
+      null
+    );
 
-  // 🔹 Set default data when modal opens or data changes
+  /* === LOAD DATA === */
   useEffect(() => {
-    if (defaultData) {
-      setFormData(defaultData);
+    if (isOpen && defaultData) {
+      setLocal({
+        lecId: defaultData.lecId,
+        lecturer_name: defaultData.lecturer_name,
+        item: { ...defaultData.item },
+      });
     }
-  }, [defaultData]);
+  }, [isOpen, defaultData]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "tahun" ? Number(value) : value,
-    }));
-  };
+  if (!isOpen || !local) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  /* === SAVE === */
+  function save(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit(formData);
+
+    if (!local?.item) {
+      return alert("Data HKI tidak valid.");
+    }
+
+    const title = String(local.item.title ?? "").trim();
+    const type = String(local.item.type ?? "").trim();
+    const year = Number(local.item.year);
+
+    if (!title) return alert("Judul HKI harus diisi.");
+    if (!type) return alert("Tipe HKI wajib dipilih.");
+    if (!year || Number.isNaN(year)) return alert("Tahun tidak valid.");
+
+    onSubmit({
+      lecId: local.lecId,
+      item: { ...local.item, title, type, year },
+    });
+
     onClose();
-  };
+  }
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <div className="w-[95%] max-w-md bg-white rounded-xl">
-        <h2 className="text-xl font-semibold text-gray-800 mb-5 text-center">
-          Edit Data HKI / Paten
+      <div className="w-[860px] max-w-[95%] mx-auto p-6 bg-white rounded-lg shadow-sm">
+        <h2 className="text-2xl font-semibold text-center text-gray-900 mb-6">
+          Edit HKI
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Judul HKI */}
+        <form onSubmit={save} className="space-y-5 text-gray-900">
+
+          {/* === Nama Dosen === */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Judul HKI / Paten
-            </label>
+            <label className="block text-sm font-medium mb-2">Nama Dosen</label>
             <input
-              type="text"
-              name="judul"
-              value={formData.judul}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
+              disabled
+              value={local.lecturer_name}
+              className="w-full px-4 py-3 border rounded-md bg-gray-100"
             />
           </div>
 
-          {/* Jenis HKI */}
+          {/* === Judul === */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Jenis HKI
-            </label>
-            <select
-              name="jenis"
-              value={formData.jenis}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none"
-            >
-              <option value="">Pilih Jenis HKI</option>
-              <option value="Hak Cipta Nasional">Hak Cipta Nasional</option>
-              <option value="Hak Cipta Internasional">Hak Cipta Internasional</option>
-              <option value="Paten Sederhana">Paten Sederhana</option>
-              <option value="Paten Lengkap">Paten Lengkap</option>
-              <option value="Desain Industri">Desain Industri</option>
-              <option value="Merek Dagang">Merek Dagang</option>
-              <option value="Rahasia Dagang">Rahasia Dagang</option>
-            </select>
-          </div>
-
-          {/* Tahun Terbit */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tahun Terbit
-            </label>
+            <label className="block text-sm font-medium mb-2">Judul HKI</label>
             <input
-              type="number"
-              name="tahun"
-              value={formData.tahun}
-              onChange={handleChange}
-              min={2000}
-              max={2100}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
+              value={local.item.title}
+              onChange={(e) =>
+                setLocal((p) =>
+                  p && { ...p, item: { ...p.item, title: e.target.value } }
+                )
+              }
+              className="w-full px-4 py-3 border rounded-md bg-white"
             />
           </div>
 
-          {/* Tombol Aksi */}
-          <div className="flex justify-end gap-3 mt-6">
+          {/* === Tahun & Tipe === */}
+          <div className="grid grid-cols-2 gap-4">
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Tahun</label>
+              <input
+                type="number"
+                min={1900}
+                max={2100}
+                value={local.item.year}
+                onChange={(e) =>
+                  setLocal((p) =>
+                    p && {
+                      ...p,
+                      item: { ...p.item, year: Number(e.target.value) },
+                    }
+                  )
+                }
+                className="w-full px-4 py-3 border rounded-md bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Tipe HKI</label>
+              <select
+                value={local.item.type}
+                onChange={(e) =>
+                  setLocal((p) =>
+                    p && {
+                      ...p,
+                      item: { ...p.item, type: e.target.value },
+                    }
+                  )
+                }
+                className="w-full px-4 py-3 border rounded-md bg-white"
+              >
+                {kategoriHKI.map((k) => (
+                  <option key={k}>{k}</option>
+                ))}
+              </select>
+            </div>
+
+          </div>
+
+          {/* === Buttons === */}
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 text-sm transition-all"
+              className="px-4 py-2 rounded-md bg-white border hover:bg-gray-50"
             >
               Batal
             </button>
+
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-all"
+              className="px-5 py-2 rounded-md bg-yellow-400 text-white hover:bg-yellow-500"
             >
               Simpan Perubahan
             </button>
           </div>
+
         </form>
       </div>
     </ModalWrapper>

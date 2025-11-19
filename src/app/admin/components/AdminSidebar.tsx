@@ -327,6 +327,12 @@ export default function SidebarAdmin({
               >
                 <ul className="mt-1 space-y-1">
                   {[
+                    // Kelola Dosen ditempatkan paling atas sesuai permintaan
+                    {
+                      name: "Kelola Dosen",
+                      href: "/admin/portofolio/lecturers",
+                      icon: Users,
+                    },
                     {
                       name: "Penelitian",
                       href: "/admin/portofolio/research",

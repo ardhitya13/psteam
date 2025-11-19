@@ -1,143 +1,150 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface EditKaryaIlmiahCardProps {
+interface EditProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (updatedData: {
-    no: number;
-    judul: string;
-    jenis: string;
-    tahun: number;
-  }) => void;
-  defaultData: {
-    no: number;
-    judul: string;
-    jenis: string;
-    tahun: number;
-  } | null;
+  defaultData:
+    | {
+        lecId: number;
+        lecturer_name: string;
+        item: {
+          id: number;
+          title: string;
+          type: string;
+          year: number;
+        };
+      }
+    | null;
+  kategoriScientificWork: string[];
+  onSubmit: (payload: { lecId: number; item: any }) => void;
 }
 
-export default function EditKaryaIlmiahCard({
+export default function EditScientificWorkCard({
   isOpen,
   onClose,
-  onSubmit,
   defaultData,
-}: EditKaryaIlmiahCardProps) {
-  const [formData, setFormData] = useState({
-    no: 0,
-    judul: "",
-    jenis: "",
-    tahun: new Date().getFullYear(),
-  });
+  kategoriScientificWork,
+  onSubmit,
+}: EditProps) {
+  const [local, setLocal] = useState<any>(null);
 
-  // 🔹 Set data awal saat defaultData berubah
   useEffect(() => {
     if (defaultData) {
-      setFormData(defaultData);
+      setLocal({
+        lecId: defaultData.lecId,
+        lecturer_name: defaultData.lecturer_name,
+        item: { ...defaultData.item },
+      });
+    } else {
+      setLocal(null);
     }
-  }, [defaultData]);
+  }, [defaultData, isOpen]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "tahun" ? Number(value) : value,
-    }));
-  };
+  if (!isOpen || !local) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function save(e: any) {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit(local);
     onClose();
-  };
+  }
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <div className="w-[95%] max-w-md bg-white rounded-xl">
-        <h2 className="text-xl font-semibold text-gray-800 mb-5 text-center">
-          Edit Data Karya Ilmiah
+      <div className="w-[980px] max-w-[95%] mx-auto p-6 bg-white rounded-lg shadow">
+        <h2 className="text-2xl font-semibold text-center text-gray-900 mb-6">
+          Edit Karya Ilmiah
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form className="space-y-5 text-gray-900" onSubmit={save}>
+          {/* Nama dosen (disabled) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nama Dosen
+            </label>
+            <input
+              disabled
+              value={local.lecturer_name}
+              className="w-full px-4 py-3 border rounded-md bg-gray-100 text-gray-700"
+            />
+          </div>
+
           {/* Judul */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Judul Karya Ilmiah
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Judul Karya
             </label>
             <input
-              type="text"
-              name="judul"
-              value={formData.judul}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
+              value={local.item.title}
+              onChange={(e) =>
+                setLocal({
+                  ...local,
+                  item: { ...local.item, title: e.target.value },
+                })
+              }
+              className="w-full px-4 py-3 border rounded-md bg-white text-gray-900"
             />
           </div>
 
-          {/* Jenis */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Jenis Karya
-            </label>
-            <select
-              name="jenis"
-              value={formData.jenis}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none"
-            >
-              <option value="">Pilih Jenis Karya</option>
-              <option value="Jurnal Nasional">Jurnal Nasional</option>
-              <option value="Jurnal Nasional Terakreditasi">
-                Jurnal Nasional Terakreditasi
-              </option>
-              <option value="Jurnal Internasional">Jurnal Internasional</option>
-              <option value="Prosiding Seminar Nasional">
-                Prosiding Seminar Nasional
-              </option>
-              <option value="Prosiding Seminar Internasional">
-                Prosiding Seminar Internasional
-              </option>
-              <option value="Buku Ajar">Buku Ajar</option>
-              <option value="Artikel Ilmiah">Artikel Ilmiah</option>
-              <option value="Lain-lain">Lain-lain</option>
-            </select>
+          {/* Tahun + Tipe */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Tahun */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tahun
+              </label>
+              <input
+                type="number"
+                value={local.item.year}
+                onChange={(e) =>
+                  setLocal({
+                    ...local,
+                    item: { ...local.item, year: Number(e.target.value) },
+                  })
+                }
+                className="w-full px-4 py-3 border rounded-md bg-white text-gray-900"
+              />
+            </div>
+
+            {/* Tipe */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tipe Karya
+              </label>
+              <select
+                value={local.item.type}
+                onChange={(e) =>
+                  setLocal({
+                    ...local,
+                    item: { ...local.item, type: e.target.value },
+                  })
+                }
+                className="w-full px-4 py-3 border rounded-md bg-white text-gray-900"
+              >
+                {kategoriScientificWork.map((k) => (
+                  <option key={k} value={k}>
+                    {k}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Tahun */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tahun Publikasi
-            </label>
-            <input
-              type="number"
-              name="tahun"
-              value={formData.tahun}
-              onChange={handleChange}
-              min={2000}
-              max={2100}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
-            />
-          </div>
-
-          {/* Tombol Aksi */}
-          <div className="flex justify-end gap-3 mt-6">
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 text-sm transition-all"
+              className="px-4 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50"
             >
               Batal
             </button>
+
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-all"
+              className="px-5 py-2 rounded-md bg-yellow-500 text-white hover:bg-yellow-600"
             >
               Simpan Perubahan
             </button>

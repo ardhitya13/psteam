@@ -1,136 +1,122 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface EditPengabdianCardProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (updatedData: {
-    no: number;
-    nama: string;
-    judul: string;
-    tahun: number;
-  }) => void;
-  defaultData: {
-    no: number;
-    nama: string;
-    judul: string;
-    tahun: number;
-  } | null;
-}
-
-export default function EditPengabdianCard({
+export default function EditCommunityServiceCard({
   isOpen,
   onClose,
-  onSubmit,
   defaultData,
-}: EditPengabdianCardProps) {
-  const [formData, setFormData] = useState({
-    no: 0,
-    nama: "",
-    judul: "",
-    tahun: new Date().getFullYear(),
-  });
+  onSubmit,
+}: any) {
+  const [local, setLocal] = useState<any>(null);
 
-  // Set default data saat modal dibuka
+  /* =============================
+     LOAD DATA KE STATE LOCAL
+     ============================= */
   useEffect(() => {
     if (defaultData) {
-      setFormData(defaultData);
+      setLocal({
+        lecId: defaultData.lecId, // ID dosen
+        item: {
+          ...defaultData.item,
+          lecturer_name: defaultData.lecturer_name ?? defaultData.item.lecturer_name ?? "",
+        },
+      });
+    } else {
+      setLocal(null);
     }
-  }, [defaultData]);
+  }, [defaultData, isOpen]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "tahun" ? Number(value) : value,
-    }));
-  };
+  if (!isOpen || !local) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  /* =============================
+     SAVE BUTTON
+     ============================= */
+  function save(e: any) {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit(local); // kirim {lecId, item} ke parent
     onClose();
-  };
-
-  if (!isOpen) return null;
+  }
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-        Edit Data Pengabdian Masyarakat
-      </h2>
+      <div className="w-[900px] max-w-[95%] mx-auto p-6 bg-white rounded-lg shadow-sm">
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Nama Dosen */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nama Dosen
-          </label>
-          <input
-            type="text"
-            name="nama"
-            value={formData.nama}
-            onChange={handleChange}
-            placeholder="Nama Dosen"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <h2 className="text-2xl font-semibold text-center text-gray-900 mb-6">
+          Edit Pengabdian Masyarakat
+        </h2>
 
-        {/* Judul Pengabdian */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Judul Pengabdian
-          </label>
-          <input
-            type="text"
-            name="judul"
-            value={formData.judul}
-            onChange={handleChange}
-            placeholder="Judul Pengabdian"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <form onSubmit={save} className="space-y-5 text-gray-900">
 
-        {/* Tahun */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tahun
-          </label>
-          <input
-            type="number"
-            name="tahun"
-            value={formData.tahun}
-            onChange={handleChange}
-            min={2000}
-            max={2100}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+          {/* NAMA DOSEN */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nama Dosen
+            </label>
+            <input
+              disabled
+              value={local.item.lecturer_name || ""}
+              className="w-full px-4 py-3 border rounded-md bg-gray-100 text-gray-800"
+            />
+          </div>
 
-        {/* Tombol Aksi */}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-medium"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium"
-          >
-            Simpan Perubahan
-          </button>
-        </div>
-      </form>
+          {/* JUDUL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Judul Pengabdian
+            </label>
+            <input
+              value={local.item.title}
+              onChange={(e) =>
+                setLocal({
+                  ...local,
+                  item: { ...local.item, title: e.target.value },
+                })
+              }
+              className="w-full px-4 py-3 border rounded-md bg-white text-gray-900"
+            />
+          </div>
+
+          {/* TAHUN */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tahun
+              </label>
+              <input
+                type="number"
+                value={local.item.year}
+                onChange={(e) =>
+                  setLocal({
+                    ...local,
+                    item: { ...local.item, year: Number(e.target.value) },
+                  })
+                }
+                className="w-full px-4 py-3 border rounded-md bg-white text-gray-900"
+              />
+            </div>
+          </div>
+
+          {/* BUTTON */}
+          <div className="flex justify-end gap-3 mt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50"
+            >
+              Batal
+            </button>
+
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-md bg-yellow-500 text-white hover:bg-yellow-600"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </form>
+      </div>
     </ModalWrapper>
   );
 }

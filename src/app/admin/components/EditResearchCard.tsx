@@ -1,116 +1,156 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { useState, useEffect } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface EditPenelitianCardProps {
+type ResearchItem = {
+  id: number;
+  title: string;
+  year: number;
+};
+
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (updatedData: { no: number; nama: string; judul: string; tahun: number }) => void;
-  defaultData: { no: number; nama: string; judul: string; tahun: number } | null;
+  defaultData: {
+    lecId: number;
+    item: ResearchItem;
+    lecturer_name: string;
+  } | null;
+  onSubmit: (payload: { lecId: number; item: ResearchItem }) => void;
 }
 
-export default function EditPenelitianCard({
+export default function EditResearchCard({
   isOpen,
   onClose,
-  onSubmit,
   defaultData,
-}: EditPenelitianCardProps) {
-  const [formData, setFormData] = useState({
-    no: 0,
-    nama: "",
-    judul: "",
-    tahun: new Date().getFullYear(),
-  });
+  onSubmit,
+}: Props) {
+  const [local, setLocal] = useState<{
+    lecId: number;
+    item: ResearchItem;
+    lecturer_name: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (defaultData) setFormData(defaultData);
-  }, [defaultData]);
+    if (defaultData) {
+      setLocal({
+        lecId: defaultData.lecId,
+        item: { ...defaultData.item },
+        lecturer_name: defaultData.lecturer_name,
+      });
+    } else {
+      setLocal(null);
+    }
+  }, [defaultData, isOpen]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: name === "tahun" ? Number(value) : value }));
-  };
+  if (!isOpen || !local) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function save(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit(formData);
+
+    if (!local || !local.item) {
+      alert("Data tidak valid.");
+      return;
+    }
+
+    if (!local.item.title?.trim()) {
+      alert("Judul wajib diisi.");
+      return;
+    }
+
+    if (!local.item.year) {
+      alert("Tahun tidak valid.");
+      return;
+    }
+
+    onSubmit({
+      lecId: local.lecId,
+      item: local.item,
+    });
+
     onClose();
-  };
+  }
 
   return (
-  <ModalWrapper isOpen={isOpen} onClose={onClose}>
-    {/* 🔽 HAPUS background putih di wrapper dalam */}
-    <div className="w-[95%] max-w-md">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-5">
-        <h2 className="text-xl font-semibold text-gray-800">Edit Penelitian</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-800 transition-colors"
-        >
-        </button>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nama Dosen</label>
-          <input
-            type="text"
-            name="nama"
-            value={formData.nama}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Judul Penelitian</label>
-          <input
-            type="text"
-            name="judul"
-            value={formData.judul}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Penelitian</label>
-          <input
-            type="number"
-            name="tahun"
-            value={formData.tahun}
-            onChange={handleChange}
-            min={2000}
-            max={2100}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-          />
-        </div>
-
-        {/* Tombol */}
-        <div className="flex justify-end gap-3 mt-6">
+    <ModalWrapper onClose={onClose} isOpen={isOpen}>
+      <div className="bg-white p-6 rounded-lg shadow w-[700px] mx-auto text-black">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-xl text-black">Edit Karya Ilmiah</h2>
           <button
-            type="button"
+            className="p-2 hover:bg-gray-200 rounded text-black"
             onClick={onClose}
-            className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition-all"
           >
-            Batal
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
-          >
-            Simpan Perubahan
+            <X className="text-black" />
           </button>
         </div>
-      </form>
-    </div>
-  </ModalWrapper>
-);
+
+        <form className="space-y-4" onSubmit={save}>
+          {/* Lecturer */}
+          <div>
+            <label className="text-sm font-semibold text-black">
+              Nama Dosen
+            </label>
+            <input
+              disabled
+              className="w-full border rounded px-4 py-2 bg-gray-200 text-black font-medium"
+              value={local.lecturer_name}
+            />
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="text-sm font-semibold text-black">Judul</label>
+            <input
+              className="w-full border rounded px-4 py-2 text-black"
+              value={local.item.title}
+              onChange={(e) =>
+                setLocal((p) =>
+                  p && { ...p, item: { ...p.item, title: e.target.value } }
+                )
+              }
+            />
+          </div>
+
+          {/* Year */}
+          <div>
+            <label className="text-sm font-semibold text-black">Tahun</label>
+            <input
+              type="number"
+              min={1900}
+              max={2100}
+              className="w-40 border rounded px-4 py-2 text-black"
+              value={local.item.year}
+              onChange={(e) =>
+                setLocal((p) =>
+                  p && {
+                    ...p,
+                    item: { ...p.item, year: Number(e.target.value) },
+                  }
+                )
+              }
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              className="px-4 py-2 border border-red-600 text-red-600 rounded font-semibold bg-white"
+              onClick={onClose}
+            >
+              Batal
+            </button>
+
+            <button
+              type="submit"
+              className="px-5 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded font-semibold"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </form>
+      </div>
+    </ModalWrapper>
+  );
 }
