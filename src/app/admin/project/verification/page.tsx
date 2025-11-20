@@ -70,13 +70,18 @@ export default function VerifikasiProyekPage() {
       <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
-        className={`transition-all duration-300 pt-0 px-8 pb-10 ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[85px]`}
+        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          } mt-[85px]`}
       >
-        <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-          VERIFIKASI PROYEK
-        </h1>
+        {/* TITLE */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-black uppercase">
+            Verifikasi Proyek
+          </h1>
+          <p className="text-gray-600 text-sm">
+            Kelola pendaftaran proyek PSTeam.
+          </p>
+        </div>
 
         <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
           <table className="w-full text-sm text-gray-700 border border-gray-200 border-collapse">

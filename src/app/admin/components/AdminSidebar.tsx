@@ -13,7 +13,7 @@ import {
   BookOpen,
   PenTool,
   ShieldCheck,
-  Users, // 🧩 Tambah ikon untuk menu tim
+  Users, // Tambah ikon untuk menu tim
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -68,9 +68,8 @@ export default function SidebarAdmin({
 
   return (
     <aside
-      className={`fixed left-0 top-[64px] h-[calc(100vh-64px)] bg-[#0a3b91] text-white transition-all duration-300 ${
-        isOpen ? "w-[232px]" : "w-[80px]"
-      } z-40 overflow-y-auto`}
+      className={`fixed left-0 top-[64px] h-[calc(100vh-64px)] bg-[#0a3b91] text-white transition-all duration-300 ${isOpen ? "w-[232px]" : "w-[80px]"
+        } z-40 overflow-y-auto`}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-blue-800">
@@ -112,12 +111,12 @@ export default function SidebarAdmin({
             </Link>
           </li>
 
-          {/* DAFTAR PENGAJUAN */}
+          {/* KELOLA PROYEK */}
           <li>
             <div className="mx-3">
               <div
                 ref={setRef("pengajuan")}
-                onMouseEnter={() => setHoveredItem("Daftar Pengajuan")}
+                onMouseEnter={() => setHoveredItem("Kelola Proyek")}
                 onMouseLeave={() => setHoveredItem(null)}
                 onClick={() =>
                   setOpenDropdown((prev) => ({
@@ -135,7 +134,7 @@ export default function SidebarAdmin({
                   />
                   {isOpen && (
                     <span className="text-white text-[15px] font-semibold transition-colors duration-200 group-hover:text-[#0a3b91]">
-                      Daftar Pengajuan
+                      Kelola Proyek
                     </span>
                   )}
                 </div>
@@ -153,20 +152,16 @@ export default function SidebarAdmin({
                   ))}
               </div>
 
-              {!isOpen && hoveredItem === "Daftar Pengajuan" && (
-                <Tooltip
-                  text="Daftar Pengajuan"
-                  targetRef={refs.current["pengajuan"]}
-                />
+              {!isOpen && hoveredItem === "Kelola Proyek" && (
+                <Tooltip text="Kelola Proyek" targetRef={refs.current["pengajuan"]} />
               )}
 
-              {/* Dropdown */}
+              {/* DROPDOWN PROYEK */}
               <div
-                className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                  openDropdown.pengajuan
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${openDropdown.pengajuan
                     ? "max-h-[200px] opacity-100"
                     : "max-h-0 opacity-0"
-                }`}
+                  }`}
               >
                 <ul className="mt-1 space-y-1">
                   {[
@@ -211,34 +206,109 @@ export default function SidebarAdmin({
             </div>
           </li>
 
-          {/* DAFTAR PELATIHAN */}
+          {/* KELOLA PELATIHAN */}
           <li>
-            <Link href="/admin/training" className="block mx-3 relative">
+            <div className="mx-3">
               <div
-                ref={setRef("pelatihan")}
-                onMouseEnter={() => setHoveredItem("Daftar Pelatihan")}
+                ref={setRef("pelatihanDropdown")}
+                onMouseEnter={() => setHoveredItem("Kelola Pelatihan")}
                 onMouseLeave={() => setHoveredItem(null)}
-                className="group flex items-center gap-3 py-3 px-3 rounded-md transition-all duration-200 hover:bg-white cursor-pointer"
+                onClick={() =>
+                  setOpenDropdown((prev) => ({
+                    pengajuan: false,
+                    portofolio: false,
+                    pelatihan: !prev.pelatihan,
+                  }))
+                }
+                className="group flex items-center justify-between w-full py-3 px-3 rounded-md transition-all duration-200 cursor-pointer hover:bg-white"
               >
-                <GraduationCap
-                  size={22}
-                  strokeWidth={2.4}
-                  className="text-white transition-colors duration-200 group-hover:text-[#0a3b91]"
-                />
-                {isOpen && (
-                  <span className="text-white text-[15px] font-semibold transition-colors duration-200 group-hover:text-[#0a3b91]">
-                    Daftar Pelatihan
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  <GraduationCap
+                    size={22}
+                    strokeWidth={2.4}
+                    className="text-white transition-colors duration-200 group-hover:text-[#0a3b91]"
+                  />
+                  {isOpen && (
+                    <span className="text-white text-[15px] font-semibold transition-colors duration-200 group-hover:text-[#0a3b91]">
+                      Kelola Pelatihan
+                    </span>
+                  )}
+                </div>
+
+                {isOpen &&
+                  (openDropdown.pelatihan ? (
+                    <ChevronUp size={18} className="text-white group-hover:text-[#0a3b91]" />
+                  ) : (
+                    <ChevronDown size={18} className="text-white group-hover:text-[#0a3b91]" />
+                  ))}
               </div>
-              {!isOpen && hoveredItem === "Daftar Pelatihan" && (
+
+              {!isOpen && hoveredItem === "Kelola Pelatihan" && (
                 <Tooltip
-                  text="Daftar Pelatihan"
-                  targetRef={refs.current["pelatihan"]}
+                  text="Kelola Pelatihan"
+                  targetRef={refs.current["pelatihanDropdown"]}
                 />
               )}
-            </Link>
+
+              {/* DROPDOWN PELATIHAN */}
+              <div
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${openDropdown.pelatihan
+                    ? "max-h-[150px] opacity-100"
+                    : "max-h-0 opacity-0"
+                  }`}
+              >
+                <ul className="mt-1 space-y-1">
+                  {[
+                    {
+                      name: "Daftar Pendaftar",
+                      href: "/admin/training/participants",
+                      icon: GraduationCap,
+                    },
+                    {
+                      name: "Verifikasi Pelatihan",
+                      href: "/admin/training/verify",
+                      icon: CheckCircle,
+                    },
+                    {
+                      name: "Daftar Pelatihan",
+                      href: "/admin/training",
+                      icon: GraduationCap,
+                    },
+                    
+                  ].map(({ name, href, icon: Icon }) => (
+                    <li key={name}>
+                      <Link href={href} className="block relative">
+                        <div
+                          ref={setRef(name)}
+                          onMouseEnter={() => setHoveredItem(name)}
+                          onMouseLeave={() => setHoveredItem(null)}
+                          className="group flex items-center gap-3 py-2 px-5 rounded-md text-[14px] font-medium text-white hover:bg-white transition-all duration-200 cursor-pointer"
+                        >
+                          <Icon
+                            size={18}
+                            strokeWidth={2}
+                            className="text-white transition-colors duration-200 group-hover:text-[#0a3b91]"
+                          />
+
+                          {isOpen && (
+                            <span className="text-white transition-colors duration-200 group-hover:text-[#0a3b91]">
+                              {name}
+                            </span>
+                          )}
+                        </div>
+
+                        {!isOpen && hoveredItem === name && (
+                          <Tooltip text={name} targetRef={refs.current[name]} />
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </li>
+
+
 
           {/* 🧩 MENU TIM */}
           <li>
@@ -319,11 +389,10 @@ export default function SidebarAdmin({
 
               {/* Dropdown Portofolio */}
               <div
-                className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                  openDropdown.portofolio
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${openDropdown.portofolio
                     ? "max-h-[300px] opacity-100"
                     : "max-h-0 opacity-0"
-                }`}
+                  }`}
               >
                 <ul className="mt-1 space-y-1">
                   {[

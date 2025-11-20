@@ -69,16 +69,20 @@ export default function DaftarProyekPage() {
             <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
             <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-            <main
-                className={`transition-all duration-300 pt-0 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-                    } mt-[85px]`}
-            >
-                <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-                    DAFTAR PROYEK
-                </h1>
+            <main className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+                    } mt-[85px]`}>
+                {/* TITLE */}
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl font-bold text-black uppercase">
+                            Daftar Proyek
+                        </h1>
+                        <p className="text-gray-600 text-sm">
+                            Kelola daftar proyek yang sudah di terima.
+                        </p>
+                    </div>
 
                 {/* Kontrol Atas */}
-                <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
+                <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-5">
                     <div className="relative inline-block">
                         <select
                             value={filterType}
