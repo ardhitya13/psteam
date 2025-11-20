@@ -69,7 +69,7 @@ export default function SidebarAdmin({
   return (
     <aside
       className={`fixed left-0 top-[64px] h-[calc(100vh-64px)] bg-[#0a3b91] text-white transition-all duration-300 ${isOpen ? "w-[232px]" : "w-[80px]"
-        } z-40 overflow-y-auto`}
+        } z-40 overflow-hidden`}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-blue-800">
