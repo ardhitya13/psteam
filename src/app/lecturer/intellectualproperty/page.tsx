@@ -2,16 +2,16 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
-import NavbarDosen from "../components/NavbarDosen";
-import SidebarDosen from "../components/SidebarDosen";
-import TambahHkiCard from "../components/TambahHkiCard";
-import EditHkiCard from "../components/EditHkiCard";
+import NavbarDosen from "../components/NavbarLecturer";
+import SidebarDosen from "../components/SidebarLecturer";
+import AddIntellectualPropertyCard from "../components/AddIntellectualPropertyCard";
+import EditIntellectualPropertyCard from "../components/EditIntellectualPropertyCard";
 
 type HkiItem = {
   no: number;
-  judul: string;
-  jenis: string;
-  tahun: number;
+  title: string;
+  type: string;
+  year: number;
 };
 
 export default function DaftarHkiPage() {
@@ -29,28 +29,28 @@ export default function DaftarHkiPage() {
   // === Data Dummy ===
   const [data, setData] = useState<HkiItem[]>(
     [
-      { no: 1, judul: "Poster Aplikasi Polibatam Guest", jenis: "Hak Cipta Nasional", tahun: 2021 },
-      { no: 2, judul: "Sistem Informasi Organisasi Mahasiswa (SIOMA)", jenis: "Hak Cipta Nasional", tahun: 2022 },
-      { no: 3, judul: "Sistem Informasi Pelatihan Karyawan Baru", jenis: "Hak Cipta Nasional", tahun: 2022 },
-      { no: 4, judul: "Website Company Profile PT. ADE MESTAKUNG ABADI", jenis: "Hak Cipta Nasional", tahun: 2023 },
-      { no: 5, judul: "Aplikasi Absensi Berbasis QR Code", jenis: "Hak Cipta Nasional", tahun: 2023 },
-      { no: 6, judul: "Sistem E-Learning Polibatam", jenis: "Hak Cipta Nasional", tahun: 2024 },
-      { no: 7, judul: "Desain UI Dashboard Akademik", jenis: "Hak Cipta Nasional", tahun: 2025 },
-      { no: 8, judul: "Aplikasi Inventaris Barang Kampus", jenis: "Hak Cipta Nasional", tahun: 2024 },
-      { no: 9, judul: "Website Monitoring Proyek Mahasiswa", jenis: "Hak Cipta Nasional", tahun: 2025 },
-      { no: 10, judul: "Sistem Penilaian Dosen Otomatis", jenis: "Hak Cipta Nasional", tahun: 2025 },
-      { no: 11, judul: "Aplikasi Keuangan Digital Kampus", jenis: "Hak Cipta Nasional", tahun: 2023 },
-      { no: 12, judul: "Aplikasi Pengajuan Surat Mahasiswa", jenis: "Hak Cipta Nasional", tahun: 2024 },
+      { no: 1, title: "Poster Aplikasi Polibatam Guest", type: "Hak Cipta Nasional", year: 2021 },
+      { no: 2, title: "Sistem Informasi Organisasi Mahasiswa (SIOMA)", type: "Hak Cipta Nasional", year: 2022 },
+      { no: 3, title: "Sistem Informasi Pelatihan Karyawan Baru", type: "Hak Cipta Nasional", year: 2022 },
+      { no: 4, title: "Website Company Profile PT. ADE MESTAKUNG ABADI", type: "Hak Cipta Nasional", year: 2023 },
+      { no: 5, title: "Aplikasi Absensi Berbasis QR Code", type: "Hak Cipta Nasional", year: 2023 },
+      { no: 6, title: "Sistem E-Learning Polibatam", type: "Hak Cipta Nasional", year: 2024 },
+      { no: 7, title: "Desain UI Dashboard Akademik", type: "Hak Cipta Nasional", year: 2025 },
+      { no: 8, title: "Aplikasi Inventaris Barang Kampus", type: "Hak Cipta Nasional", year: 2024 },
+      { no: 9, title: "Website Monitoring Proyek Mahasiswa", type: "Hak Cipta Nasional", year: 2025 },
+      { no: 10, title: "Sistem Penilaian Dosen Otomatis", type: "Hak Cipta Nasional", year: 2025 },
+      { no: 11, title: "Aplikasi Keuangan Digital Kampus", type: "Hak Cipta Nasional", year: 2023 },
+      { no: 12, title: "Aplikasi Pengajuan Surat Mahasiswa", type: "Hak Cipta Nasional", year: 2024 },
     ]
   );
 
   // === Tambah Data ===
-  const handleAddData = (newData: { judul: string; jenis: string; tahun: number }) => {
+  const handleAddData = (newData: { title: string; type: string; year: number }) => {
     const newItem: HkiItem = {
       no: data.length + 1,
-      judul: newData.judul,
-      jenis: newData.jenis,
-      tahun: newData.tahun,
+      title: newData.title,
+      type: newData.type,
+      year: newData.year,
     };
     setData((prev) => [...prev, newItem]);
   };
@@ -80,9 +80,9 @@ export default function DaftarHkiPage() {
   // === Filter & Search ===
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const cocokTahun = selectedYear === "Semua" || item.tahun === Number(selectedYear);
-      const cocokJudul = item.judul.toLowerCase().includes(searchTerm.toLowerCase());
-      return cocokTahun && cocokJudul;
+      const cocokyear = selectedYear === "Semua" || item.year === Number(selectedYear);
+      const cocoktitle = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+      return cocokyear && cocoktitle;
     });
   }, [data, searchTerm, selectedYear]);
 
@@ -142,7 +142,7 @@ export default function DaftarHkiPage() {
             <Plus size={16} /> Tambah HKI / Paten
           </button>
 
-          {/* Filter Tahun */}
+          {/* Filter year */}
           <div className="relative inline-block">
             <select
               value={selectedYear}
@@ -165,7 +165,7 @@ export default function DaftarHkiPage() {
           <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200">
             <input
               type="text"
-              placeholder="Cari Judul HKI..."
+              placeholder="Cari title HKI..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg text-gray-900 placeholder-gray-500"
@@ -182,9 +182,9 @@ export default function DaftarHkiPage() {
             <thead className="bg-gray-300 text-gray-800">
               <tr>
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">JENIS HKI</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
+                <th className="border border-gray-200 px-4 py-2">title KARYA</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">type HKI</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">year</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>
@@ -193,9 +193,9 @@ export default function DaftarHkiPage() {
                 visibleData.map((item) => (
                   <tr key={item.no} className="hover:bg-gray-50 transition-colors">
                     <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                    <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.jenis}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.tahun}</td>
+                    <td className="border border-gray-200 px-4 py-2">{item.title}</td>
+                    <td className="border border-gray-200 px-4 py-2 text-center">{item.type}</td>
+                    <td className="border border-gray-200 px-4 py-2 text-center">{item.year}</td>
                     <td className="border border-gray-200 px-4 py-2 text-center">
                       <div className="flex justify-center gap-2">
                         <button
@@ -267,12 +267,12 @@ export default function DaftarHkiPage() {
         </div>
 
         {/* === Modal Tambah & Edit === */}
-        <TambahHkiCard
+        <AddIntellectualPropertyCard
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleAddData}
         />
-        <EditHkiCard
+        <EditIntellectualPropertyCard
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           onSubmit={handleUpdateData}

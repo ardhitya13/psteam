@@ -3,34 +3,34 @@
 import { useState, useEffect } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface EditKaryaIlmiahCardProps {
+interface EditIntellectualPropertyCardProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (updatedData: {
     no: number;
-    judul: string;
-    jenis: string;
-    tahun: number;
+    title: string;
+    type: string;
+    year: number;
   }) => void;
   defaultData: {
     no: number;
-    judul: string;
-    jenis: string;
-    tahun: number;
+    title: string;
+    type: string;
+    year: number;
   } | null;
 }
 
-export default function EditKaryaIlmiahCard({
+export default function EditIntellectualPropertyCard({
   isOpen,
   onClose,
   onSubmit,
   defaultData,
-}: EditKaryaIlmiahCardProps) {
+}: EditIntellectualPropertyCardProps) {
   const [formData, setFormData] = useState({
     no: 0,
-    judul: "",
-    jenis: "",
-    tahun: new Date().getFullYear(),
+    title: "",
+    type: "",
+    year: new Date().getFullYear(),
   });
 
   // 🔹 Set data awal saat defaultData berubah
@@ -46,7 +46,7 @@ export default function EditKaryaIlmiahCard({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "tahun" ? Number(value) : value,
+      [name]: name === "year" ? Number(value) : value,
     }));
   };
 
@@ -64,34 +64,34 @@ export default function EditKaryaIlmiahCard({
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Judul */}
+          {/* title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Judul Karya Ilmiah
+              title Karya Ilmiah
             </label>
             <input
               type="text"
-              name="judul"
-              value={formData.judul}
+              name="title"
+              value={formData.title}
               onChange={handleChange}
               required
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
             />
           </div>
 
-          {/* Jenis */}
+          {/* type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Jenis Karya
+              type Karya
             </label>
             <select
-              name="jenis"
-              value={formData.jenis}
+              name="type"
+              value={formData.type}
               onChange={handleChange}
               required
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none"
             >
-              <option value="">Pilih Jenis Karya</option>
+              <option value="">Pilih type Karya</option>
               <option value="Jurnal Nasional">Jurnal Nasional</option>
               <option value="Jurnal Nasional Terakreditasi">
                 Jurnal Nasional Terakreditasi
@@ -109,15 +109,15 @@ export default function EditKaryaIlmiahCard({
             </select>
           </div>
 
-          {/* Tahun */}
+          {/* year */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tahun Publikasi
+              year Publikasi
             </label>
             <input
               type="number"
-              name="tahun"
-              value={formData.tahun}
+              name="year"
+              value={formData.year}
               onChange={handleChange}
               min={2000}
               max={2100}

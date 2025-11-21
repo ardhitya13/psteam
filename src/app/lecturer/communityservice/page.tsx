@@ -2,20 +2,23 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
-import NavbarDosen from "../components/NavbarDosen";
-import SidebarDosen from "../components/SidebarDosen";
-import TambahKaryaIlmiahCard from "../components/TambahKaryaIlmiahCard";
+import NavbarDosen from "../components/NavbarLecturer";
+import SidebarDosen from "../components/SidebarLecturer";
+import TambahPengabdianCard from "../components/TambahPengabdianCard";
+import EditPengabdianCard from "../components/EditCommunityServiceCard";
 
-type KaryaIlmiahItem = {
+type PengabdianItem = {
   no: number;
-  judul: string;
-  jenis: string;
-  tahun: number;
+  nama: string;
+  title: string;
+  year: number;
 };
 
-export default function DaftarKaryaIlmiahPage() {
+export default function DaftarPengabdianPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedPengabdian, setSelectedPengabdian] = useState<PengabdianItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("Semua");
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,65 +26,72 @@ export default function DaftarKaryaIlmiahPage() {
   const itemsPerPage = 10;
   const maxVisiblePages = 2;
 
-  // === Data Dummy ===
-  const [data, setData] = useState<KaryaIlmiahItem[]>(
-    [
-      { no: 1, judul: "Penerapan IoT dalam Smart Campus", jenis: "Jurnal Nasional Terakreditasi", tahun: 2025 },
-      { no: 2, judul: "Analisis Big Data untuk Prediksi Cuaca", jenis: "Jurnal Internasional", tahun: 2024 },
-      { no: 3, judul: "Studi Desain UI/UX untuk Aplikasi Edukasi", jenis: "Prosiding Nasional", tahun: 2023 },
-      { no: 4, judul: "Implementasi Blockchain dalam Keamanan Data", jenis: "Jurnal Nasional", tahun: 2025 },
-      { no: 5, judul: "Pemanfaatan AI untuk Pendidikan Digital", jenis: "Jurnal Nasional Terakreditasi", tahun: 2022 },
-      { no: 6, judul: "Optimalisasi Energi dengan Teknologi Smart Grid", jenis: "Prosiding Internasional", tahun: 2021 },
-      { no: 7, judul: "Sistem Keamanan Jaringan Berbasis IDS", jenis: "Jurnal Nasional", tahun: 2023 },
-      { no: 8, judul: "Pengembangan Chatbot Akademik Berbasis NLP", jenis: "Prosiding Nasional", tahun: 2024 },
-      { no: 9, judul: "Pemanfaatan Cloud Computing untuk UMKM", jenis: "Jurnal Nasional", tahun: 2025 },
-      { no: 10, judul: "Rancang Bangun Aplikasi Kesehatan Digital", jenis: "Jurnal Internasional", tahun: 2022 },
-      { no: 11, judul: "Sistem Informasi Pengelolaan Sekolah", jenis: "Jurnal Nasional", tahun: 2021 },
-      { no: 12, judul: "Pemodelan Data Mahasiswa Menggunakan AI", jenis: "Jurnal Nasional Terakreditasi", tahun: 2024 },
-    ]
+  // === Data Dummy Banyak ===
+  const [data, setData] = useState<PengabdianItem[]>(
+    Array.from({ length: 25 }, (_, i) => ({
+      no: i + 1,
+      nama: "Arifah Husaini",
+      title: `Kegiatan Pengabdian Masyarakat ${i + 1}`,
+      year: 2020 + ((i + 1) % 6),
+    }))
   );
 
   // === Tambah Data ===
-  const handleAddData = (newData: { judul: string; jenis: string; tahun: number }) => {
-    const newItem: KaryaIlmiahItem = {
+  const handleAddData = (newData: { nama: string; title: string; year: number }) => {
+    const newItem: PengabdianItem = {
       no: data.length + 1,
-      judul: newData.judul,
-      jenis: newData.jenis,
-      tahun: newData.tahun,
+      nama: "Arifah Husaini",
+      title: newData.title,
+      year: newData.year,
     };
     setData((prev) => [...prev, newItem]);
   };
 
-  // === Edit Data (dummy) ===
+  // === Edit Data ===
   const handleEdit = (no: number) => {
-    alert(`Edit karya ilmiah nomor ${no}`);
+    const pengabdian = data.find((item) => item.no === no) ?? null;
+    setSelectedPengabdian(pengabdian);
+    setIsEditModalOpen(!!pengabdian);
+  };
+
+  const handleUpdateData = (updatedData: { no: number; nama: string; title: string; year: number }) => {
+    setData((prev) =>
+      prev.map((item) =>
+        item.no === updatedData.no
+          ? { ...item, title: updatedData.title, year: updatedData.year }
+          : item
+      )
+    );
+    setIsEditModalOpen(false);
+    setSelectedPengabdian(null);
   };
 
   // === Hapus Data ===
   const handleHapus = (no: number) => {
-    if (confirm("Yakin ingin menghapus karya ilmiah ini?")) {
+    if (confirm("Yakin ingin menghapus data ini?")) {
       setData((prev) => prev.filter((item) => item.no !== no));
     }
   };
 
-  // === Filter & Search ===
+  // === Filter + Pencarian ===
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const cocokTahun = selectedYear === "Semua" || item.tahun === Number(selectedYear);
-      const cocokJudul = item.judul.toLowerCase().includes(searchTerm.toLowerCase());
-      return cocokTahun && cocokJudul;
+      const cocokyear = selectedYear === "Semua" || item.year === Number(selectedYear);
+      const cocoktitle = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+      return cocokyear && cocoktitle;
     });
   }, [data, searchTerm, selectedYear]);
 
+  // Reset pagination saat filter berubah
   useEffect(() => {
     setCurrentPage(1);
     setPageStart(1);
   }, [searchTerm, selectedYear]);
 
-  // === Pagination ===
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const visibleData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // === Pagination Sliding <1 2> ===
   const visiblePages = Array.from(
     { length: Math.min(maxVisiblePages, totalPages - pageStart + 1) },
     (_, i) => pageStart + i
@@ -116,28 +126,28 @@ export default function DaftarKaryaIlmiahPage() {
         } mt-[85px]`}
       >
         <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-          DAFTAR KARYA ILMIAH DOSEN
+          DAFTAR PENGABDIAN MASYARAKAT
         </h1>
 
         {/* === Kontrol Atas === */}
         <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
-          {/* Tambah Data */}
+          {/* Tombol Tambah */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
           >
-            <Plus size={16} /> Tambah Karya Ilmiah
+            <Plus size={16} /> Tambah Pengabdian
           </button>
 
-          {/* Filter Tahun */}
+          {/* Filter year */}
           <div className="relative inline-block">
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-900 cursor-pointer"
             >
-              <option value="Semua">Semua Tahun</option>
-              {[2025, 2024, 2023, 2022, 2021].map((year) => (
+              <option value="Semua">Semua year</option>
+              {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
                 <option key={year} value={year}>
                   {year}
                 </option>
@@ -152,7 +162,7 @@ export default function DaftarKaryaIlmiahPage() {
           <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200">
             <input
               type="text"
-              placeholder="Cari Judul Karya Ilmiah..."
+              placeholder="Cari title Pengabdian..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg text-gray-900 placeholder-gray-500"
@@ -169,21 +179,20 @@ export default function DaftarKaryaIlmiahPage() {
             <thead className="bg-gray-300 text-gray-800">
               <tr>
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">JENIS</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
+                <th className="border border-gray-200 px-4 py-2">NAMA DOSEN</th>
+                <th className="border border-gray-200 px-4 py-2">title PENGABDIAN</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">year</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>
-
             <tbody>
               {visibleData.length > 0 ? (
                 visibleData.map((item) => (
                   <tr key={item.no} className="hover:bg-gray-50 transition-colors">
                     <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                    <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.jenis}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.tahun}</td>
+                    <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
+                    <td className="border border-gray-200 px-4 py-2">{item.title}</td>
+                    <td className="border border-gray-200 px-4 py-2 text-center">{item.year}</td>
                     <td className="border border-gray-200 px-4 py-2 text-center">
                       <div className="flex justify-center gap-2">
                         <button
@@ -212,7 +221,7 @@ export default function DaftarKaryaIlmiahPage() {
             </tbody>
           </table>
 
-          {/* === Pagination <1 2> === */}
+          {/* === Pagination <1 2> geser === */}
           <div className="flex justify-end items-center px-4 py-3 border-t bg-white rounded-b-lg">
             <button
               onClick={handlePrevGroup}
@@ -254,11 +263,27 @@ export default function DaftarKaryaIlmiahPage() {
           </div>
         </div>
 
-        {/* Modal Tambah */}
-        <TambahKaryaIlmiahCard
+        {/* === Modal Tambah & Edit === */}
+        <TambahPengabdianCard
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleAddData}
+        />
+
+        <EditPengabdianCard
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateData}
+          defaultData={
+            selectedPengabdian
+              ? {
+                  no: selectedPengabdian.no,
+                  nama: selectedPengabdian.nama,
+                  title: selectedPengabdian.title,
+                  year: selectedPengabdian.year,
+                }
+              : null
+          }
         />
       </main>
     </div>

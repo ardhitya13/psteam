@@ -1,33 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
-import ModalWrapper from "../components/ModalWrapper";
+import ModalWrapper from "./ModalWrapper";
 
-interface TambahPenelitianCardProps {
+interface AddResearchCardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { nama: string; judul: string; tahun: number }) => void;
+  onSubmit: (data: { nama: string; title: string; year: number }) => void;
 }
 
-export default function TambahPenelitianCard({
+export default function AddResearchCard({
   isOpen,
   onClose,
   onSubmit,
-}: TambahPenelitianCardProps) {
+}: AddResearchCardProps) {
   const [formData, setFormData] = useState({
     nama: "",
-    judul: "",
-    tahun: new Date().getFullYear(),
+    title: "",
+    year: new Date().getFullYear(),
   });
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nama || !formData.judul || !formData.tahun) return;
+    if (!formData.nama || !formData.title || !formData.year) return;
     onSubmit(formData);
     onClose();
-    setFormData({ nama: "", judul: "", tahun: new Date().getFullYear() });
+    setFormData({ nama: "", title: "", year: new Date().getFullYear() });
   };
 
   return (
@@ -48,14 +48,14 @@ export default function TambahPenelitianCard({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Judul Penelitian</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">title Penelitian</label>
           <input
             type="text"
-            name="judul"
-            value={formData.judul}
-            onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
+            name="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 placeholder-gray-500"
-            placeholder="Masukkan judul penelitian"
+            placeholder="Masukkan title penelitian"
             required
           />
         </div>
@@ -64,13 +64,13 @@ export default function TambahPenelitianCard({
           <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Penelitian</label>
           <input
             type="number"
-            name="tahun"
+            name="year"
             min={2000}
             max={2100}
-            value={formData.tahun}
-            onChange={(e) => setFormData({ ...formData, tahun: Number(e.target.value) })}
+            value={formData.year}
+            onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 placeholder-gray-500"
-            placeholder="Masukkan tahun"
+            placeholder="Masukkan year"
             required
           />
         </div>

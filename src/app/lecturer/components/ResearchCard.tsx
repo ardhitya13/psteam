@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 
-interface PenelitianCardProps {
+interface ResearchCardProps {
   onClose: () => void; // 👈 tambahkan properti ini
 }
 
-export default function PenelitianCard({ onClose }: PenelitianCardProps) {
-  const [judul, setJudul] = useState("");
+export default function ResearchCard({ onClose }: ResearchCardProps) {
+  const [title, settitle] = useState("");
   const [tanggal, setTanggal] = useState("");
   const [dokumen, setDokumen] = useState<File | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ judul, tanggal, dokumen });
+    console.log({ title, tanggal, dokumen });
     alert("Data penelitian berhasil diunggah!");
     onClose(); // 👈 otomatis tutup modal setelah submit
   };
@@ -36,9 +36,9 @@ export default function PenelitianCard({ onClose }: PenelitianCardProps) {
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             type="text"
-            placeholder="Judul Penelitian"
-            value={judul}
-            onChange={(e) => setJudul(e.target.value)}
+            placeholder="title Penelitian"
+            value={title}
+            onChange={(e) => settitle(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />

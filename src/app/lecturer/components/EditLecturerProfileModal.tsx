@@ -10,7 +10,7 @@ type Props = {
   onSubmit: (data: any) => void;
 };
 
-export default function EditProfilDosenModal({
+export default function EditLecturerProfileModal({
   isOpen,
   onClose,
   defaultData,

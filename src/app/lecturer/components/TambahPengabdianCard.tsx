@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import ModalWrapper from "../components/ModalWrapper";
+import ModalWrapper from "./ModalWrapper";
 
 interface TambahPengabdianCardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: { nama: string; judul: string; tahun: number }) => void;
+  onSubmit: (formData: { nama: string; title: string; year: number }) => void;
 }
 
 export default function TambahPengabdianCard({
@@ -16,8 +16,8 @@ export default function TambahPengabdianCard({
 }: TambahPengabdianCardProps) {
   const [formData, setFormData] = useState({
     nama: "Arifah Husaini",
-    judul: "",
-    tahun: new Date().getFullYear(),
+    title: "",
+    year: new Date().getFullYear(),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,8 +26,8 @@ export default function TambahPengabdianCard({
     onClose();
     setFormData({
       nama: "Arifah Husaini",
-      judul: "",
-      tahun: new Date().getFullYear(),
+      title: "",
+      year: new Date().getFullYear(),
     });
   };
 
@@ -36,7 +36,7 @@ export default function TambahPengabdianCard({
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
       <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-        Tambah Judul Pengabdian Masyarakat
+        Tambah title Pengabdian Masyarakat
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -54,34 +54,34 @@ export default function TambahPengabdianCard({
           />
         </div>
 
-        {/* Judul */}
+        {/* title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Judul Pengabdian
           </label>
           <input
             type="text"
-            name="judul"
-            value={formData.judul}
-            onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
-            placeholder="Masukkan judul pengabdian..."
+            name="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Masukkan title pengabdian..."
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900"
             required
           />
         </div>
 
-        {/* Tahun */}
+        {/* year */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tahun
+            year
           </label>
           <input
             type="number"
-            name="tahun"
+            name="year"
             min={2000}
             max={2100}
-            value={formData.tahun}
-            onChange={(e) => setFormData({ ...formData, tahun: Number(e.target.value) })}
+            value={formData.year}
+            onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900"
             required
           />
