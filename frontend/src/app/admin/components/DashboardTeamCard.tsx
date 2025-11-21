@@ -1,17 +1,44 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 
-interface DashboardTeamCardProps {
-  totalTeam: number;
-  totalMembers: number;
-}
+const API_URL = "http://localhost:4000/team";
 
-export default function DashboardTeamCard({
-  totalTeam,
-  totalMembers,
-}: DashboardTeamCardProps) {
+export default function DashboardTeamCard() {
+  const [totalTeam, setTotalTeam] = useState(0);
+  const [totalMembers, setTotalMembers] = useState(0);
+
+  // ===== LOAD REALTIME =====
+  const loadData = async () => {
+    try {
+      const res = await fetch(API_URL, { cache: "no-store" });
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setTotalTeam(data.length);
+
+        // Hitung total semua anggota dari semua tim
+        const memberCount = data.reduce(
+          (sum: number, project: any) => sum + project.members.length,
+          0
+        );
+
+        setTotalMembers(memberCount);
+      }
+    } catch (err) {
+      console.error("Dashboard Fetch Error:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadData(); // load pertama
+
+    const interval = setInterval(loadData, 5000); // realtime update 5 detik
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <motion.div
       whileHover={{ scale: 1.03 }}

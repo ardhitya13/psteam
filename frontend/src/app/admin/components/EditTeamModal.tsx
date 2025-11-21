@@ -13,6 +13,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = () => {
       setForm((p: any) => ({ ...p, image: reader.result as string }));
@@ -20,17 +21,20 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
     reader.readAsDataURL(file);
   };
 
-  const inputClass =
-    "w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:outline-none text-gray-800 placeholder-gray-400 bg-white";
-
   const handleSubmit = () => {
     if (!form.name.trim()) return alert("Nama tidak boleh kosong!");
+
     onUpdate(form);
     onClose();
   };
 
+  const inputClass =
+    "w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 " +
+    "focus:outline-none text-gray-800 placeholder-gray-400 bg-white";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      {/* BACKDROP */}
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
 
       <div
@@ -38,6 +42,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
         aria-modal="true"
         className="relative bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
       >
+        {/* CLOSE BUTTON */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-600 hover:text-red-500 z-20"
@@ -50,7 +55,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
             Edit Anggota Tim
           </h2>
 
-          {/* IMAGE SECTION */}
+          {/* ===================== IMAGE UPLOAD ===================== */}
           <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border flex items-center justify-center">
               {form.image ? (
@@ -77,15 +82,16 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
             </div>
           </div>
 
-          {/* FORM */}
+          {/* ===================== FORM ===================== */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* NAMA */}
+            {/* NAME */}
             <div>
-              <label className="text-sm font-medium text-gray-700">Nama</label>
+              <label className="text-sm font-medium text-gray-700">Nama *</label>
               <input
                 className={inputClass}
                 value={form.name || ""}
                 onChange={(e) => handleChange("name", e.target.value)}
+                placeholder="Nama lengkap"
               />
             </div>
 
@@ -96,6 +102,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
                 className={inputClass}
                 value={form.email || ""}
                 onChange={(e) => handleChange("email", e.target.value)}
+                placeholder="email@example.com"
               />
             </div>
 
@@ -104,13 +111,32 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
               <label className="text-sm font-medium text-gray-700">
                 Peran (Tidak Dapat Diubah)
               </label>
-              <input className={inputClass} value={form.role || ""} disabled />
+              <input
+                className={inputClass}
+                value={form.role || ""}
+                disabled
+              />
             </div>
 
-            {/* IF DOSEN → DOSEN INFO */}
+            {/* CATEGORY (DISABLED) */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Kategori
+              </label>
+              <select
+                className={inputClass}
+                value={form.category}
+                disabled
+              >
+                <option value="dosen">Dosen</option>
+                <option value="mahasiswa">Mahasiswa</option>
+              </select>
+            </div>
+
+            {/* ========== DOSEN INFO SECTION ========== */}
             {form.category === "dosen" && (
               <>
-                {/* STUDY PROGRAM */}
+                {/* Program Studi */}
                 <div>
                   <label className="text-sm font-medium text-gray-700">
                     Program Studi
@@ -121,11 +147,11 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
                     onChange={(e) =>
                       handleChange("studyProgram", e.target.value)
                     }
-                    placeholder="Contoh: Teknik Informatika"
+                    placeholder="Teknik Informatika"
                   />
                 </div>
 
-                {/* EDUCATION */}
+                {/* Pendidikan */}
                 <div>
                   <label className="text-sm font-medium text-gray-700">
                     Pendidikan
@@ -133,12 +159,14 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
                   <input
                     className={inputClass}
                     value={form.education || ""}
-                    onChange={(e) => handleChange("education", e.target.value)}
-                    placeholder="Contoh: Magister (S2)"
+                    onChange={(e) =>
+                      handleChange("education", e.target.value)
+                    }
+                    placeholder="Magister (S2)"
                   />
                 </div>
 
-                {/* SPECIALIZATION */}
+                {/* Spesialisasi */}
                 <div>
                   <label className="text-sm font-medium text-gray-700">
                     Spesialisasi
@@ -149,27 +177,11 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
                     onChange={(e) =>
                       handleChange("specialization", e.target.value)
                     }
-                    placeholder="Contoh: Software Development"
+                    placeholder="Software Development"
                   />
                 </div>
               </>
             )}
-
-            {/* CATEGORY (DISABLED) */}
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Kategori
-              </label>
-              <select
-                className={inputClass}
-                value={form.category}
-                onChange={(e) => handleChange("category", e.target.value)}
-                disabled
-              >
-                <option value="dosen">Dosen</option>
-                <option value="mahasiswa">Mahasiswa</option>
-              </select>
-            </div>
 
             {/* WEBSITE */}
             <div>
@@ -227,7 +239,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
             </div>
           </div>
 
-          {/* BUTTONS */}
+          {/* ===================== BUTTONS ===================== */}
           <div className="flex justify-end gap-3 mt-8">
             <button
               onClick={onClose}
