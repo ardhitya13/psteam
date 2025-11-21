@@ -4,24 +4,24 @@ import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface EditPenelitianCardProps {
+interface EditResearchCardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (updatedData: { no: number; nama: string; judul: string; tahun: number }) => void;
-  defaultData: { no: number; nama: string; judul: string; tahun: number } | null;
+  onSubmit: (updatedData: { no: number; nama: string; title: string; year: number }) => void;
+  defaultData: { no: number; nama: string; title: string; year: number } | null;
 }
 
-export default function EditPenelitianCard({
+export default function EditResearchCard({
   isOpen,
   onClose,
   onSubmit,
   defaultData,
-}: EditPenelitianCardProps) {
+}: EditResearchCardProps) {
   const [formData, setFormData] = useState({
     no: 0,
     nama: "",
-    judul: "",
-    tahun: new Date().getFullYear(),
+    title: "",
+    year: new Date().getFullYear(),
   });
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function EditPenelitianCard({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: name === "tahun" ? Number(value) : value }));
+    setFormData((prev) => ({ ...prev, [name]: name === "year" ? Number(value) : value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -71,8 +71,8 @@ export default function EditPenelitianCard({
           <label className="block text-sm font-medium text-gray-700 mb-1">Judul Penelitian</label>
           <input
             type="text"
-            name="judul"
-            value={formData.judul}
+            name="title"
+            value={formData.title}
             onChange={handleChange}
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
@@ -83,8 +83,8 @@ export default function EditPenelitianCard({
           <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Penelitian</label>
           <input
             type="number"
-            name="tahun"
-            value={formData.tahun}
+            name="year"
+            value={formData.year}
             onChange={handleChange}
             min={2000}
             max={2100}

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import NavbarDosen from "./components/NavbarDosen";
-import SidebarDosen from "./components/SidebarDosen";
+import NavbarDosen from "./components/NavbarLecturer";
+import SidebarDosen from "./components/SidebarLecturer";
 
 export default function DosenLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

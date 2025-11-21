@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import NavbarDosen from "./components/NavbarDosen";
-import SidebarDosen from "./components/SidebarDosen";
+import NavbarDosen from "./components/NavbarLecturer";
+import SidebarDosen from "./components/SidebarLecturer";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Users, BookOpen, FileText, ShieldCheck } from "lucide-react";

@@ -1,30 +1,30 @@
 "use client";
 
 import React, { useState } from "react";
-import ModalWrapper from "../components/ModalWrapper";
+import ModalWrapper from "./ModalWrapper";
 
-interface TambahKaryaIlmiahCardProps {
+interface AddScientificWorkCardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: { judul: string; jenis: string; tahun: number }) => void;
+  onSubmit: (formData: { title: string; type: string; year: number }) => void;
 }
 
-export default function TambahKaryaIlmiahCard({
+export default function AddScientificWorkCard({
   isOpen,
   onClose,
   onSubmit,
-}: TambahKaryaIlmiahCardProps) {
+}: AddScientificWorkCardProps) {
   const [formData, setFormData] = useState({
-    judul: "",
-    jenis: "",
-    tahun: new Date().getFullYear(),
+    title: "",
+    type: "",
+    year: new Date().getFullYear(),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
     onClose();
-    setFormData({ judul: "", jenis: "", tahun: new Date().getFullYear() });
+    setFormData({ title: "", type: "", year: new Date().getFullYear() });
   };
 
   return (
@@ -34,37 +34,37 @@ export default function TambahKaryaIlmiahCard({
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Input Judul */}
+        {/* Input title */}
         <div>
           <label
-            htmlFor="judul"
+            htmlFor="title"
             className="block text-sm font-semibold text-gray-700 mb-1"
           >
-            Judul Karya Ilmiah
+            title Karya Ilmiah
           </label>
           <input
-            id="judul"
+            id="title"
             type="text"
-            placeholder="Masukkan judul karya ilmiah"
-            value={formData.judul}
-            onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
+            placeholder="Masukkan title karya ilmiah"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
 
-        {/* Input Jenis */}
+        {/* Input type */}
         <div>
           <label
-            htmlFor="jenis"
+            htmlFor="type"
             className="block text-sm font-semibold text-gray-700 mb-1"
           >
             Jenis Karya
           </label>
           <select
-            id="jenis"
-            value={formData.jenis}
-            onChange={(e) => setFormData({ ...formData, jenis: e.target.value })}
+            id="type"
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
             required
           >
@@ -80,21 +80,21 @@ export default function TambahKaryaIlmiahCard({
           </select>
         </div>
 
-        {/* Input Tahun */}
+        {/* Input year */}
         <div>
           <label
-            htmlFor="tahun"
+            htmlFor="year"
             className="block text-sm font-semibold text-gray-700 mb-1"
           >
             Tahun Publikasi
           </label>
           <input
-            id="tahun"
+            id="year"
             type="number"
             placeholder="Masukkan tahun publikasi"
-            value={formData.tahun}
+            value={formData.year}
             onChange={(e) =>
-              setFormData({ ...formData, tahun: Number(e.target.value) })
+              setFormData({ ...formData, year: Number(e.target.value) })
             }
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             required

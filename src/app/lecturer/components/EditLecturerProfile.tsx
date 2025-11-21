@@ -12,11 +12,11 @@ import {
   Facebook,
   Github,
 } from "lucide-react";
-import NavbarDosen from "./NavbarDosen";
-import SidebarDosen from "./SidebarDosen";
-import EditProfilDosenModal from "./EditProfilDosenModal";
+import NavbarDosen from "./NavbarLecturer";
+import SidebarDosen from "./SidebarLecturer";
+import EditLecturerProfileModal from "./EditLecturerProfileModal";
 
-export default function EditProfilDosen() {
+export default function EditLecturerProfile() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -154,7 +154,7 @@ export default function EditProfilDosen() {
       </main>
 
       {/* === Modal === */}
-      <EditProfilDosenModal
+      <EditLecturerProfileModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         defaultData={profile}

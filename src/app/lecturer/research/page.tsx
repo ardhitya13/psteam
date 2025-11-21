@@ -2,16 +2,16 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
-import NavbarDosen from "../components/NavbarDosen";
-import SidebarDosen from "../components/SidebarDosen";
-import TambahPenelitianCard from "../components/TambahPenelitianCard";
-import EditPengabdianCard from "../components/EditPengabdianCard";
+import NavbarDosen from "../components/NavbarLecturer";
+import SidebarDosen from "../components/SidebarLecturer";
+import TambahPenelitianCard from "../components/AddResearchCard";
+import EditCommunityServiceCard from "../components/EditCommunityServiceCard";
 
 type PenelitianItem = {
   no: number;
   nama: string;
-  judul: string;
-  tahun: number;
+  title: string;
+  year: number;
 };
 
 export default function DaftarPenelitianPage() {
@@ -31,18 +31,18 @@ export default function DaftarPenelitianPage() {
     Array.from({ length: 25 }, (_, i) => ({
       no: i + 1,
       nama: "Arifah Husaini",
-      judul: `Judul Penelitian ${i + 1}`,
-      tahun: 2020 + ((i + 1) % 6),
+      title: `title Penelitian ${i + 1}`,
+      year: 2020 + ((i + 1) % 6),
     }))
   );
 
   // === Tambah Data ===
-  const handleAddData = (newData: { nama: string; judul: string; tahun: number }) => {
+  const handleAddData = (newData: { nama: string; title: string; year: number }) => {
     const newItem: PenelitianItem = {
       no: data.length + 1,
       nama: "Arifah Husaini",
-      judul: newData.judul,
-      tahun: newData.tahun,
+      title: newData.title,
+      year: newData.year,
     };
     setData((prev) => [...prev, newItem]);
   };
@@ -54,11 +54,11 @@ export default function DaftarPenelitianPage() {
     setIsEditModalOpen(!!penelitian);
   };
 
-  const handleUpdateData = (updatedData: { no: number; nama: string; judul: string; tahun: number }) => {
+  const handleUpdateData = (updatedData: { no: number; nama: string; title: string; year: number }) => {
     setData((prev) =>
       prev.map((item) =>
         item.no === updatedData.no
-          ? { ...item, judul: updatedData.judul, tahun: updatedData.tahun }
+          ? { ...item, title: updatedData.title, year: updatedData.year }
           : item
       )
     );
@@ -76,9 +76,9 @@ export default function DaftarPenelitianPage() {
   // === Filter + Pencarian ===
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const cocokTahun = selectedYear === "Semua" || item.tahun === Number(selectedYear);
-      const cocokJudul = item.judul.toLowerCase().includes(searchTerm.toLowerCase());
-      return cocokTahun && cocokJudul;
+      const cocokyear = selectedYear === "Semua" || item.year === Number(selectedYear);
+      const cocoktitle = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+      return cocokyear && cocoktitle;
     });
   }, [data, searchTerm, selectedYear]);
 
@@ -139,14 +139,14 @@ export default function DaftarPenelitianPage() {
             <Plus size={16} /> Tambah Penelitian
           </button>
 
-          {/* Filter Tahun */}
+          {/* Filter year */}
           <div className="relative inline-block">
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-900 cursor-pointer"
             >
-              <option value="Semua">Semua Tahun</option>
+              <option value="Semua">Semua year</option>
               {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
                 <option key={year} value={year}>
                   {year}
@@ -162,7 +162,7 @@ export default function DaftarPenelitianPage() {
           <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200">
             <input
               type="text"
-              placeholder="Cari Judul Penelitian..."
+              placeholder="Cari title Penelitian..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg text-gray-900 placeholder-gray-500"
@@ -180,8 +180,8 @@ export default function DaftarPenelitianPage() {
               <tr>
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
                 <th className="border border-gray-200 px-4 py-2">NAMA DOSEN</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL PENELITIAN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
+                <th className="border border-gray-200 px-4 py-2">title PENELITIAN</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">year</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>
@@ -191,8 +191,8 @@ export default function DaftarPenelitianPage() {
                   <tr key={item.no} className="hover:bg-gray-50 transition-colors">
                     <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
                     <td className="border border-gray-200 px-4 py-2">{item.nama}</td>
-                    <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.tahun}</td>
+                    <td className="border border-gray-200 px-4 py-2">{item.title}</td>
+                    <td className="border border-gray-200 px-4 py-2 text-center">{item.year}</td>
                     <td className="border border-gray-200 px-4 py-2 text-center">
                       <div className="flex justify-center gap-2">
                         <button
@@ -270,7 +270,7 @@ export default function DaftarPenelitianPage() {
           onSubmit={handleAddData}
         />
 
-        <EditPengabdianCard
+        <EditCommunityServiceCard
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           onSubmit={handleUpdateData}
@@ -279,8 +279,8 @@ export default function DaftarPenelitianPage() {
               ? {
                   no: selectedPenelitian.no,
                   nama: selectedPenelitian.nama,
-                  judul: selectedPenelitian.judul,
-                  tahun: selectedPenelitian.tahun,
+                  title: selectedPenelitian.title,
+                  year: selectedPenelitian.year,
                 }
               : null
           }

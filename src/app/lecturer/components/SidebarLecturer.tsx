@@ -12,7 +12,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation"; // ✅ untuk deteksi halaman aktif
 
-export default function SidebarDosen({
+export default function SidebarLecturer({
   isOpen,
   toggle,
 }: {

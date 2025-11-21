@@ -1,30 +1,30 @@
 "use client";
 
 import React, { useState } from "react";
-import ModalWrapper from "../components/ModalWrapper";
+import ModalWrapper from "./ModalWrapper";
 
 interface TambahKaryaIlmiahCardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: { judul: string; jenis: string; tahun: number }) => void;
+  onSubmit: (formData: { title: string; type: string; year: number }) => void;
 }
 
-export default function TambahHkiCard({
+export default function AddIntellectualPropertyCard({
   isOpen,
   onClose,
   onSubmit,
 }: TambahKaryaIlmiahCardProps) {
   const [formData, setFormData] = useState({
-    judul: "",
-    jenis: "",
-    tahun: new Date().getFullYear(),
+    title: "",
+    type: "",
+    year: new Date().getFullYear(),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
     onClose();
-    setFormData({ judul: "", jenis: "", tahun: new Date().getFullYear() });
+    setFormData({ title: "", type: "", year: new Date().getFullYear() });
   };
 
   return (
@@ -34,37 +34,37 @@ export default function TambahHkiCard({
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Input Judul */}
+        {/* Input title */}
         <div>
           <label
-            htmlFor="judul"
+            htmlFor="title"
             className="block text-sm font-semibold text-gray-900 mb-1"
           >
             Judul Karya
           </label>
           <input
-            id="judul"
+            id="title"
             type="text"
             placeholder="Masukkan judul karya"
-            value={formData.judul}
-            onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
 
-        {/* Input Jenis */}
+        {/* Input type */}
         <div>
           <label
-            htmlFor="jenis"
+            htmlFor="type"
             className="block text-sm font-semibold text-gray-900 mb-1"
           >
             Jenis Karya
           </label>
           <select
-            id="jenis"
-            value={formData.jenis}
-            onChange={(e) => setFormData({ ...formData, jenis: e.target.value })}
+            id="type"
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           >
@@ -74,21 +74,21 @@ export default function TambahHkiCard({
           </select>
         </div>
 
-        {/* Input Tahun */}
+        {/* Input year */}
         <div>
           <label
-            htmlFor="tahun"
+            htmlFor="year"
             className="block text-sm font-semibold text-gray-900 mb-1"
           >
             Tahun Pengajuan HKI
           </label>
           <input
-            id="tahun"
+            id="year"
             type="number"
-            placeholder="Masukkan tahun pengajuan"
-            value={formData.tahun}
+            placeholder="Enter the year of application"
+            value={formData.year}
             onChange={(e) =>
-              setFormData({ ...formData, tahun: Number(e.target.value) })
+              setFormData({ ...formData, year: Number(e.target.value) })
             }
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
