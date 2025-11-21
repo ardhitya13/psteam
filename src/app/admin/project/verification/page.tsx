@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FileText } from "lucide-react";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminSidebar from "../../components/AdminSidebar";
-import ProjectDetailModal from "../../components/ProjectDetailModal";
+import ProjectDetailModal from "../../components/DetailVerifyModal";
 
 export default function VerifikasiProyekPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
