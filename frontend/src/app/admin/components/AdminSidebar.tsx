@@ -159,8 +159,8 @@ export default function SidebarAdmin({
               {/* DROPDOWN PROYEK */}
               <div
                 className={`transition-all duration-300 ease-in-out overflow-hidden ${openDropdown.pengajuan
-                    ? "max-h-[200px] opacity-100"
-                    : "max-h-0 opacity-0"
+                  ? "max-h-[200px] opacity-100"
+                  : "max-h-0 opacity-0"
                   }`}
               >
                 <ul className="mt-1 space-y-1">
@@ -204,6 +204,36 @@ export default function SidebarAdmin({
                 </ul>
               </div>
             </div>
+          </li>
+
+          {/* PUBLIKASI PRODUK */}
+          <li>
+            <Link href="/admin/productpublication" className="block mx-3 relative">
+              <div
+                ref={setRef("publikasiProduk")}
+                onMouseEnter={() => setHoveredItem("Publikasi Produk")}
+                onMouseLeave={() => setHoveredItem(null)}
+                className="group flex items-center gap-3 py-3 px-3 rounded-md transition-all duration-200 hover:bg-white cursor-pointer"
+              >
+                <Briefcase
+                  size={22}
+                  strokeWidth={2.4}
+                  className="text-white transition-colors duration-200 group-hover:text-[#0a3b91]"
+                />
+                {isOpen && (
+                  <span className="text-white text-[15px] font-semibold transition-colors duration-200 group-hover:text-[#0a3b91]">
+                    Publikasi Produk
+                  </span>
+                )}
+              </div>
+
+              {!isOpen && hoveredItem === "Publikasi Produk" && (
+                <Tooltip
+                  text="Publikasi Produk"
+                  targetRef={refs.current["publikasiProduk"]}
+                />
+              )}
+            </Link>
           </li>
 
           {/* KELOLA PELATIHAN */}
@@ -253,8 +283,8 @@ export default function SidebarAdmin({
               {/* DROPDOWN PELATIHAN */}
               <div
                 className={`transition-all duration-300 ease-in-out overflow-hidden ${openDropdown.pelatihan
-                    ? "max-h-[150px] opacity-100"
-                    : "max-h-0 opacity-0"
+                  ? "max-h-[150px] opacity-100"
+                  : "max-h-0 opacity-0"
                   }`}
               >
                 <ul className="mt-1 space-y-1">
@@ -274,7 +304,7 @@ export default function SidebarAdmin({
                       href: "/admin/training",
                       icon: GraduationCap,
                     },
-                    
+
                   ].map(({ name, href, icon: Icon }) => (
                     <li key={name}>
                       <Link href={href} className="block relative">
@@ -390,8 +420,8 @@ export default function SidebarAdmin({
               {/* Dropdown Portofolio */}
               <div
                 className={`transition-all duration-300 ease-in-out overflow-hidden ${openDropdown.portofolio
-                    ? "max-h-[300px] opacity-100"
-                    : "max-h-0 opacity-0"
+                  ? "max-h-[300px] opacity-100"
+                  : "max-h-0 opacity-0"
                   }`}
               >
                 <ul className="mt-1 space-y-1">

@@ -377,7 +377,7 @@ export default function ResearchTable() {
               setIsAddOpen(true);
             }}
           >
-            <Plus size={16} /> Tambah Karya Ilmiah
+            <Plus size={16} /> Tambah Penelitian
           </button>
 
           {/* per-page select */}
@@ -459,7 +459,7 @@ export default function ResearchTable() {
                         </button>
 
                         <button className={BTN_PRIMARY} onClick={() => { setInitialLecturer(lec.name); setIsAddOpen(true); }}>
-                          <Plus size={14} /> Karya Ilmiah
+                          <Plus size={14} /> Tambah Penelitian
                         </button>
                       </div>
                     </td>
