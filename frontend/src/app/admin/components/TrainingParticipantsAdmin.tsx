@@ -33,22 +33,12 @@ export default function TrainingParticipantsAdmin() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     useEffect(() => {
-        // Dummy Data
-        const dummy: Participant[] = [
-            /* contoh nanti dari backend */
-            /*
-            {
-              id: 1,
-              name: "Ardhitya",
-              email: "user@mail.com",
-              phone: "081234567",
-              trainingTitle: "Flutter Mobile Apps",
-              type: "mobile",
-              batch: "Batch 1",
-            }
-            */
-        ];
-        setParticipants(dummy);
+        fetch("http://localhost:4000/api/trainings/approved")
+            .then((r) => r.json())
+            .then((data) => {
+                console.log("DATA DARI BACKEND: ", data);
+                setParticipants(Array.isArray(data) ? data : []);
+            });
     }, []);
 
     const filtered = participants.filter((p) => {
@@ -121,7 +111,7 @@ export default function TrainingParticipantsAdmin() {
                                 className={` transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 *
                                     ${isSearchOpen ? "w-56 pl-10 pr-3 opacity-100" : "w-10 opacity-0 pointer-events-none"}
                                     `}
-                                    />
+                            />
                         </div>
 
                         {/* FILTER TIPE */}
@@ -192,22 +182,13 @@ export default function TrainingParticipantsAdmin() {
                                 ) : (
                                     pageItems.map((p, i) => (
                                         <tr key={p.id} className="hover:bg-blue-50 border">
-                                            <td className="px-4 py-3 border">
-                                                {startIndex + i + 1}
-                                            </td>
-
-                                            <td className="px-4 py-3 border font-semibold">
-                                                {p.name}
-                                            </td>
-
-                                            <td className="px-4 py-3 border">{p.email}</td>
-                                            <td className="px-4 py-3 border">{p.phone}</td>
-
-                                            <td className="px-4 py-3 border">{p.trainingTitle}</td>
-
-                                            <td className="px-4 py-3 border capitalize">{p.type}</td>
-
-                                            <td className="px-4 py-3 border">{p.batch}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{startIndex + i + 1}</td>
+                                            <td className="border border-gray-300 px-4 py-2 font-semibold">{p.name}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{p.email}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{p.phone}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{p.trainingTitle}</td>
+                                            <td className="border border-gray-300 px-4 py-2 capitalize">{p.type}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{p.batch}</td>
                                         </tr>
                                     ))
                                 )}
@@ -231,8 +212,8 @@ export default function TrainingParticipantsAdmin() {
                                     key={i}
                                     onClick={() => setCurrentPage(i + 1)}
                                     className={`w-10 h-10 border rounded-md ${safeCurrentPage === i + 1
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-white hover:bg-gray-100"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-white hover:bg-gray-100"
                                         }`}
                                 >
                                     {i + 1}

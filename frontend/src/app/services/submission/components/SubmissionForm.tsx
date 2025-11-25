@@ -26,7 +26,10 @@ export default function FormPengajuan() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // ============================
+  // 🔥 KIRIM KE BACKEND
+  // ============================
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
@@ -42,22 +45,45 @@ export default function FormPengajuan() {
       return;
     }
 
-    setError("");
     setSubmitted(true);
+    setError("");
 
-    setTimeout(() => {
+    try {
+      const res = await fetch("http://localhost:4000/api/submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.name,
+          email: formData.email,
+          phoneNumber: formData.phone,
+          projectTitle: formData.title,
+          projectDescription: formData.description,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Gagal mengirim ke backend");
+      }
+
       setSuccess(true);
+    } catch (err) {
+      console.error(err);
+      setError("Gagal mengirim data ke server. Coba lagi.");
+    } finally {
       setSubmitted(false);
-    }, 1200);
+    }
   };
 
   const whatsappNumber = "6281364440803";
 
   const generateWhatsAppMessage = () => {
     const pesan = `Halo PSTEAM! 👋\n\nSaya ingin mengajukan proyek dengan detail berikut:\n\n📌 Nama: ${formData.name}\n📧 Email: ${formData.email}\n📞 Telepon: ${formData.phone}\n💼 Tipe Proyek: ${formData.projectType}\n🧾 Judul: ${formData.title}\n📝 Deskripsi: ${formData.description}\n\nTerima kasih! 🙏`;
+
     return `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=${encodeURIComponent(
       pesan
-    )}&type=phone_number&app_absent=0`;
+    )}`;
   };
 
   const handleBackToForm = () => {
@@ -94,8 +120,7 @@ export default function FormPengajuan() {
               <a
                 href={generateWhatsAppMessage()}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
               >
                 <FaWhatsapp className="text-xl" />
                 Hubungi via WhatsApp
@@ -103,7 +128,7 @@ export default function FormPengajuan() {
 
               <button
                 onClick={handleBackToForm}
-                className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+                className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg"
               >
                 Kembali ke Form
               </button>
@@ -114,14 +139,14 @@ export default function FormPengajuan() {
 
       {/* UI Error */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-md animate-fadeIn z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-md z-10">
           <div className="bg-red-50 border border-red-200 p-8 rounded-2xl shadow-lg text-center">
-            <FaExclamationCircle className="text-red-600 text-5xl mx-auto mb-3 animate-pulse" />
+            <FaExclamationCircle className="text-red-600 text-5xl mx-auto mb-3" />
             <h4 className="text-red-700 text-lg font-semibold">Gagal Mengirim!</h4>
             <p className="text-gray-600 mt-1">{error}</p>
             <button
               onClick={() => setError("")}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
             >
               Coba Lagi
             </button>
@@ -134,7 +159,7 @@ export default function FormPengajuan() {
         onSubmit={handleSubmit}
         className="flex flex-col gap-5 text-gray-900 relative z-0"
       >
-        <h4 className="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">
+        <h4 className="text-lg font-semibold mb-2 border-b pb-2">
           Data Diri
         </h4>
 
@@ -145,7 +170,7 @@ export default function FormPengajuan() {
             placeholder="Nama Lengkap"
             value={formData.name}
             onChange={handleChange}
-            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black placeholder:text-gray-500"
+            className="border p-3 rounded-lg"
           />
           <input
             type="email"
@@ -153,7 +178,7 @@ export default function FormPengajuan() {
             placeholder="Alamat Email"
             value={formData.email}
             onChange={handleChange}
-            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black placeholder:text-gray-500"
+            className="border p-3 rounded-lg"
           />
           <input
             type="tel"
@@ -161,11 +186,11 @@ export default function FormPengajuan() {
             placeholder="Nomor Telepon (WhatsApp)"
             value={formData.phone}
             onChange={handleChange}
-            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none md:col-span-2 text-black placeholder:text-gray-500"
+            className="border p-3 rounded-lg md:col-span-2"
           />
         </div>
 
-        <h4 className="text-lg font-semibold text-gray-800 mt-4 mb-2 border-b pb-2">
+        <h4 className="text-lg font-semibold mt-4 mb-2 border-b pb-2">
           Detail Proyek
         </h4>
 
@@ -174,7 +199,7 @@ export default function FormPengajuan() {
             name="projectType"
             value={formData.projectType}
             onChange={handleChange}
-            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
+            className="border p-3 rounded-lg"
           >
             <option value="">Pilih Tipe Proyek</option>
             <option value="Web Development">Web Development</option>
@@ -189,27 +214,24 @@ export default function FormPengajuan() {
             placeholder="Judul Proyek"
             value={formData.title}
             onChange={handleChange}
-            className="border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
+            className="border p-3 rounded-lg"
           />
         </div>
 
         <textarea
           name="description"
-          placeholder="Deskripsikan proyekmu secara singkat..."
+          placeholder="Deskripsikan proyekmu..."
           value={formData.description}
           onChange={handleChange}
-          className="border border-gray-300 p-3 h-32 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-black"
+          className="border p-3 h-32 rounded-lg"
         ></textarea>
 
         <button
           type="submit"
           disabled={submitted}
-          className={`w-full py-3 rounded-lg font-semibold text-white transition-all duration-300 shadow-md
-            ${
-              submitted
-                ? "bg-green-600 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 active:scale-[0.98]"
-            }`}
+          className={`w-full py-3 rounded-lg font-semibold text-white transition-all
+            ${submitted ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"}
+          `}
         >
           {submitted ? "Mengirim..." : "Kirim Pengajuan"}
         </button>

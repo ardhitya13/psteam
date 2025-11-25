@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import teamRoutes from "./routes/teamRoutes";
+import projectSubmissionRoutes from "./routes/projectSubmissionRoutes";
+import trainingRoutes from "./routes/trainingRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -12,6 +14,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Register routes
 app.use("/team", teamRoutes);
+app.use("/api/submissions", projectSubmissionRoutes);
+app.use("/api/trainings", trainingRoutes);
 
 // Root test
 app.get("/", (req, res) => {

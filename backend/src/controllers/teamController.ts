@@ -3,16 +3,22 @@ import { Request, Response } from "express";
 import { prisma } from "../db";
 
 // ==========================================
-// GET ALL PROJECTS
+// GET ALL PROJECTS  (BENAR & FIXED)
 // ==========================================
 export const getTeams = async (req: Request, res: Response) => {
   try {
     const teams = await prisma.teamProject.findMany({
-      include: { members: true },
+      include: { teamMember: true },   // relasi asli dari Prisma schema
       orderBy: { id: "desc" },
     });
 
-    return res.json(teams);
+    // NORMALISASI -> agar dipakai frontend sebagai teamMembers
+    const normalized = teams.map((t) => ({
+      ...t,
+      teamMembers: t.teamMember, // FIX PENTING agar frontend membaca anggota
+    }));
+
+    return res.json(normalized);
   } catch (err) {
     console.error("getTeams error:", err);
     return res.status(500).json({ error: "Failed to fetch teams" });
@@ -20,7 +26,7 @@ export const getTeams = async (req: Request, res: Response) => {
 };
 
 // ==========================================
-// CREATE PROJECT + MEMBERS
+// CREATE PROJECT + MEMBERS (UPDATED)
 // ==========================================
 export const createTeam = async (req: Request, res: Response) => {
   try {
@@ -29,8 +35,10 @@ export const createTeam = async (req: Request, res: Response) => {
     const project = await prisma.teamProject.create({
       data: {
         teamTitle: data.teamTitle,
-        members: {
-          create: (data.members || []).map((m: any) => ({
+
+        // Frontend mengirim teamMembers (bukan members)
+        teamMember: {
+          create: (data.teamMembers || []).map((m: any) => ({
             name: m.name,
             role: m.role,
             email: m.email,
@@ -47,10 +55,13 @@ export const createTeam = async (req: Request, res: Response) => {
           })),
         },
       },
-      include: { members: true },
+      include: { teamMember: true },
     });
 
-    return res.json(project);
+    return res.json({
+      ...project,
+      teamMembers: project.teamMember,
+    });
   } catch (err) {
     console.error("createTeam error:", err);
     return res.status(500).json({ error: "Failed to create team" });
@@ -58,7 +69,7 @@ export const createTeam = async (req: Request, res: Response) => {
 };
 
 // ==========================================
-// ADD NEW MEMBER
+// ADD NEW MEMBER (BENAR)
 // ==========================================
 export const addMember = async (req: Request, res: Response) => {
   try {

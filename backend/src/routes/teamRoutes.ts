@@ -11,10 +11,7 @@ import {
 
 const router = Router();
 
-// PUBLIC - GET
 router.get("/", getTeams);
-
-// PUBLIC - POST / PUT / DELETE (no token)
 router.post("/", createTeam);
 router.post("/:id/member", addMember);
 router.put("/member/:memberId", updateMember);

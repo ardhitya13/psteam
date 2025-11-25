@@ -51,7 +51,7 @@ type TeamPerson = {
 type TeamProject = {
   id: number;
   teamTitle: string;
-  members: TeamPerson[];
+  teamMembers: TeamPerson[]; // FIXED
 };
 
 export default function TeamAdmin() {
@@ -67,13 +67,9 @@ export default function TeamAdmin() {
     title: string;
   } | null>(null);
 
-  const [presetRole, setPresetRole] = useState<
-    "dosen" | "mahasiswa" | ""
-  >("");
+  const [presetRole, setPresetRole] = useState<"dosen" | "mahasiswa" | "">("");
 
-  const [openDropdownId, setOpenDropdownId] = useState<number | null>(
-    null
-  );
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
   // pagination & search
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,7 +81,14 @@ export default function TeamAdmin() {
   const loadProjects = async () => {
     try {
       const data = await getAllProjects();
-      setProjects(data || []);
+
+      // NORMALISASI (jaga-jaga backend mengirim field lama)
+      const normalized = (data || []).map((p: any) => ({
+        ...p,
+        teamMembers: p.teamMembers ?? p.members ?? [],
+      }));
+
+      setProjects(normalized);
     } catch (err) {
       console.error("Error load data:", err);
     }
@@ -98,11 +101,10 @@ export default function TeamAdmin() {
   // ============= ADD PROJECT =============
   const handleAdd = async (data: {
     teamTitle: string;
-    members: TeamPerson[];
+    teamMembers: TeamPerson[];
   }) => {
     try {
       await createProject(data);
-      // reload all projects to guarantee consistency with backend
       await loadProjects();
     } catch (err) {
       console.error("Error adding project:", err);
@@ -111,13 +113,9 @@ export default function TeamAdmin() {
   };
 
   // ============= ADD MEMBER =============
-  const handleAddMember = async (
-    projectId: number,
-    member: TeamPerson
-  ) => {
+  const handleAddMember = async (projectId: number, teamMember: TeamPerson) => {
     try {
-      await addMember(projectId, member);
-      // reload all projects to reflect exact backend state
+      await addMember(projectId, teamMember);
       await loadProjects();
     } catch (err) {
       console.error("Error adding member:", err);
@@ -128,9 +126,9 @@ export default function TeamAdmin() {
   // ============= DELETE PROJECT =============
   const handleDeleteProject = async (id: number) => {
     if (!confirm("Yakin ingin menghapus tim ini?")) return;
+
     try {
       await deleteProject(id);
-      // reload to be safe
       await loadProjects();
     } catch (err) {
       console.error("Error deleting project:", err);
@@ -139,14 +137,10 @@ export default function TeamAdmin() {
   };
 
   // ============= DELETE MEMBER =============
-  const handleDeleteMember = async (
-    projectId: number,
-    memberId?: number
-  ) => {
+  const handleDeleteMember = async (projectId: number, memberId?: number) => {
     if (!memberId) return;
     try {
       await deleteMember(memberId);
-      // reload projects after delete
       await loadProjects();
     } catch (err) {
       console.error("Error deleting member:", err);
@@ -159,9 +153,7 @@ export default function TeamAdmin() {
     if (!updated.id) return;
     try {
       await updateMember(updated.id, updated);
-      // reload to keep everything consistent
       await loadProjects();
-      // close edit modal
       setEditData(null);
     } catch (err) {
       console.error("Error updating member:", err);
@@ -173,18 +165,13 @@ export default function TeamAdmin() {
     setExpandedProject(expandedProject === id ? null : id);
   };
 
-  // ============= FILTER & PAGINATION ============
+  // FILTER & PAGINATION
   const filteredProjects = projects.filter((p) =>
     p.teamTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredProjects.length / itemsPerPage)
-  );
-
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / itemsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-
   const startIndex = (safeCurrentPage - 1) * itemsPerPage;
 
   const paginatedProjects = filteredProjects.slice(
@@ -192,7 +179,7 @@ export default function TeamAdmin() {
     startIndex + itemsPerPage
   );
 
-  useEffect(() => {
+    useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, itemsPerPage]);
 
@@ -202,15 +189,10 @@ export default function TeamAdmin() {
 
   return (
     <div className="min-h-screen w-full bg-[#f5f7fb] flex flex-col">
-      <AdminNavbar
-        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
+      <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <div className="flex flex-1">
-        <AdminSidebar
-          isOpen={isSidebarOpen}
-          toggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
+        <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
         <main
           className={`flex-1 transition-all duration-300 px-8 py-6 ${
@@ -222,12 +204,8 @@ export default function TeamAdmin() {
         >
           {/* TITLE */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-black uppercase">
-              Daftar Tim Pengembang
-            </h1>
-            <p className="text-gray-600 text-sm">
-              Kelola daftar project dan anggota tim.
-            </p>
+            <h1 className="text-3xl font-bold text-black uppercase">Daftar Tim Pengembang</h1>
+            <p className="text-gray-600 text-sm">Kelola daftar project dan anggota tim.</p>
           </div>
 
           {/* CONTROL BAR */}
@@ -239,9 +217,7 @@ export default function TeamAdmin() {
                   onClick={() => {
                     setIsSearchOpen(true);
                     setTimeout(() => {
-                      const input = document.getElementById(
-                        "searchInput"
-                      ) as HTMLInputElement;
+                      const input = document.getElementById("searchInput") as HTMLInputElement;
                       input?.focus();
                     }, 50);
                   }}
@@ -263,18 +239,11 @@ export default function TeamAdmin() {
                 }}
                 className={`transition-all duration-300 bg-white border border-gray-300 rounded-md shadow-sm 
                   text-sm text-gray-900 placeholder-gray-400
-                  ${
-                    isSearchOpen
-                      ? "w-56 pl-10 pr-3 py-2 opacity-100 z-30"
-                      : "w-10 pl-0 pr-0 py-2 opacity-0 pointer-events-none z-10"
-                  }`}
+                  ${isSearchOpen ? "w-56 pl-10 pr-3 py-2 opacity-100 z-30" : "w-10 pl-0 pr-0 py-2 opacity-0 pointer-events-none z-10"}`}
               />
 
               {isSearchOpen && (
-                <Search
-                  size={16}
-                  className="absolute left-3 text-gray-500 pointer-events-none z-40"
-                />
+                <Search size={16} className="absolute left-3 text-gray-500 pointer-events-none z-40" />
               )}
             </div>
 
@@ -282,9 +251,7 @@ export default function TeamAdmin() {
             <div className="relative">
               <select
                 value={itemsPerPage}
-                onChange={(e) =>
-                  setItemsPerPage(Number(e.target.value))
-                }
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
                 className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none"
                 style={{
                   WebkitAppearance: "none",
@@ -321,19 +288,12 @@ export default function TeamAdmin() {
 
           {/* TABLE WRAPPER */}
           <div className="bg-white shadow-md rounded-lg border border-gray-300 overflow-visible">
-            {/* TABEL */}
             <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
               <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
                 <tr>
-                  <th className="py-3 px-4 border border-gray-300 w-16">
-                    No
-                  </th>
-                  <th className="py-3 px-4 border border-gray-300">
-                    Nama Project
-                  </th>
-                  <th className="py-3 px-4 border border-gray-300">
-                    Jumlah Anggota
-                  </th>
+                  <th className="py-3 px-4 border border-gray-300 w-16">No</th>
+                  <th className="py-3 px-4 border border-gray-300">Nama Project</th>
+                  <th className="py-3 px-4 border border-gray-300">Jumlah Anggota</th>
                   <th className="py-3 px-4 border border-gray-300">Aksi</th>
                 </tr>
               </thead>
@@ -353,7 +313,7 @@ export default function TeamAdmin() {
                         </td>
 
                         <td className="py-3 px-4 border border-gray-300">
-                          {project.members.length}
+                          {project.teamMembers.length}
                         </td>
 
                         {/* ACTION */}
@@ -365,9 +325,7 @@ export default function TeamAdmin() {
                               className="bg-[#DBEAFE] hover:bg-[#BFDBFE] text-blue-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm font-semibold"
                             >
                               <Users size={14} />
-                              {expandedProject === project.id
-                                ? "Tutup"
-                                : "Lihat Anggota"}
+                              {expandedProject === project.id ? "Tutup" : "Lihat Anggota"}
                               {expandedProject === project.id ? (
                                 <ChevronUp size={14} />
                               ) : (
@@ -379,27 +337,19 @@ export default function TeamAdmin() {
                             <div className="relative inline-block text-left">
                               <button
                                 onClick={() =>
-                                  setOpenDropdownId((prev) =>
-                                    prev === project.id
-                                      ? null
-                                      : project.id
-                                  )
+                                  setOpenDropdownId((prev) => (prev === project.id ? null : project.id))
                                 }
                                 className="bg-[#0ea5a4] hover:bg-[#059e9d] text-white px-3 py-1 rounded-md flex items-center gap-2 text-sm font-semibold"
                               >
-                                <span className="font-bold">+</span>{" "}
-                                Tambah Anggota ▾
+                                <span className="font-bold">+</span> Tambah Anggota ▾
                               </button>
 
                               {openDropdownId === project.id && (
                                 <div
                                   className="absolute right-0 mt-2 w-44 origin-top-right bg-white border border-gray-200 rounded-md shadow-lg z-50"
-                                  onMouseLeave={() =>
-                                    setOpenDropdownId(null)
-                                  }
+                                  onMouseLeave={() => setOpenDropdownId(null)}
                                 >
                                   <div className="py-1">
-                                    {/* TAMBAH DOSEN */}
                                     <button
                                       className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                                       onClick={() => {
@@ -415,7 +365,6 @@ export default function TeamAdmin() {
                                       Tambah Dosen
                                     </button>
 
-                                    {/* TAMBAH MAHASISWA */}
                                     <button
                                       className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                                       onClick={() => {
@@ -437,9 +386,7 @@ export default function TeamAdmin() {
 
                             {/* DELETE PROJECT */}
                             <button
-                              onClick={() =>
-                                handleDeleteProject(project.id)
-                              }
+                              onClick={() => handleDeleteProject(project.id)}
                               className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm"
                             >
                               <Trash className="w-4 h-4" /> Hapus
@@ -451,35 +398,26 @@ export default function TeamAdmin() {
                       {/* EXPANDED CONTENT */}
                       {expandedProject === project.id && (
                         <tr>
-                          <td
-                            colSpan={4}
-                            className="p-0 border border-gray-300 overflow-visible"
-                          >
-                            {/* ===========================
-                                     DETAIL MEMBER
-                              =========================== */}
+                          <td colSpan={4} className="p-0 border border-gray-300 overflow-visible">
                             <div className="p-3 bg-gray-50">
                               <h2 className="text-lg font-bold text-gray-900 mb-3 text-center">
-                                Anggota Tim Produksi{" "}
-                                {project.teamTitle}
+                                Anggota Tim Produksi {project.teamTitle}
                               </h2>
 
                               {(() => {
-                                const dosenMembers =
-                                  project.members.filter(
-                                    (m) =>
-                                      m.category === "dosen"
-                                  );
+                                const dosenMembers = project.teamMembers.filter(
+                                  (m) => m.category === "dosen"
+                                );
 
-                                const mahasiswaMembers =
-                                  project.members.filter(
-                                    (m) =>
-                                      m.category === "mahasiswa"
-                                  );
+                                const mahasiswaMembers = project.teamMembers.filter(
+                                  (m) => m.category === "mahasiswa"
+                                );
 
                                 return (
                                   <div className="space-y-6">
-                                    {/* ========== DOSEN TABLE ========== */}
+                                    {/* ===================================
+                                        TABEL DOSEN
+                                    ====================================== */}
                                     <div>
                                       <h3 className="text-md font-semibold text-black mb-2">
                                         Daftar Dosen
@@ -489,262 +427,125 @@ export default function TeamAdmin() {
                                         <table className="w-full text-xs md:text-sm text-left border-collapse border border-gray-300 bg-white rounded-md">
                                           <thead className="bg-gray-100 text-gray-700 border border-gray-300">
                                             <tr>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Foto
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Nama
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Peran
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Kategori
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Email
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Dosen Info
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Sosial Media
-                                              </th>
-                                              <th className="py-2 px-3 text-center border border-gray-300">
-                                                Aksi
-                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">Foto</th>
+                                              <th className="py-2 px-3 border border-gray-300">Nama</th>
+                                              <th className="py-2 px-3 border border-gray-300">Peran</th>
+                                              <th className="py-2 px-3 border border-gray-300">Kategori</th>
+                                              <th className="py-2 px-3 border border-gray-300">Email</th>
+                                              <th className="py-2 px-3 border border-gray-300">Dosen Info</th>
+                                              <th className="py-2 px-3 border border-gray-300">Sosial Media</th>
+                                              <th className="py-2 px-3 text-center border border-gray-300">Aksi</th>
                                             </tr>
                                           </thead>
 
                                           <tbody>
-                                            {dosenMembers.length >
-                                            0 ? (
-                                              dosenMembers.map(
-                                                (m) => (
-                                                  <tr
-                                                    key={
-                                                      m.id
-                                                    }
-                                                    className="hover:bg-gray-50 transition border border-gray-300"
-                                                  >
-                                                    {/* FOTO */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200">
-                                                        {m.image ? (
-                                                          <img
-                                                            src={
-                                                              m.image
-                                                            }
-                                                            alt={
-                                                              m
-                                                                .name
-                                                            }
-                                                            className="object-cover w-full h-full"
-                                                          />
-                                                        ) : (
-                                                          <div className="text-gray-400 flex items-center justify-center text-xs h-full">
-                                                            -
-                                                          </div>
-                                                        )}
-                                                      </div>
-                                                    </td>
-
-                                                    {/* NAMA */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      {
-                                                        m.name
-                                                      }
-                                                    </td>
-
-                                                    {/* ROLE */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      {
-                                                        m.role
-                                                      }
-                                                    </td>
-
-                                                    {/* CATEGORY */}
-                                                    <td className="py-2 px-3 border border-gray-300 capitalize">
-                                                      {
-                                                        m.category
-                                                      }
-                                                    </td>
-
-                                                    {/* EMAIL */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      {
-                                                        m.email
-                                                      }
-                                                    </td>
-
-                                                    {/* DOSEN INFO */}
-                                                    <td className="py-2 px-3 border border-gray-300 align-top">
-                                                      <div className="text-sm text-gray-700 font-medium mb-1">
-                                                        Dosen
-                                                        Info
-                                                      </div>
-                                                      <div className="text-xs text-gray-500 space-y-1">
-                                                        <div>
-                                                          <span className="font-medium">
-                                                            •
-                                                            Program
-                                                            Studi
-                                                            :
-                                                          </span>{" "}
-                                                          {m
-                                                            .studyProgram ||
-                                                            "-"}
+                                            {dosenMembers.length > 0 ? (
+                                              dosenMembers.map((m) => (
+                                                <tr
+                                                  key={m.id}
+                                                  className="hover:bg-gray-50 transition border border-gray-300"
+                                                >
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200">
+                                                      {m.image ? (
+                                                        <img
+                                                          src={m.image}
+                                                          alt={m.name}
+                                                          className="object-cover w-full h-full"
+                                                        />
+                                                      ) : (
+                                                        <div className="text-gray-400 flex items-center justify-center text-xs h-full">
+                                                          -
                                                         </div>
-                                                        <div>
-                                                          <span className="font-medium">
-                                                            •
-                                                            Pendidikan
-                                                            :
-                                                          </span>{" "}
-                                                          {m
-                                                            .education ||
-                                                            "-"}
-                                                        </div>
-                                                        <div>
-                                                          <span className="font-medium">
-                                                            •
-                                                            Spesialis
-                                                            :
-                                                          </span>{" "}
-                                                          {m
-                                                            .specialization ||
-                                                            "-"}
-                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  </td>
+
+                                                  <td className="py-2 px-3 border border-gray-300">{m.name}</td>
+                                                  <td className="py-2 px-3 border border-gray-300">{m.role}</td>
+                                                  <td className="py-2 px-3 border border-gray-300 capitalize">
+                                                    {m.category}
+                                                  </td>
+                                                  <td className="py-2 px-3 border border-gray-300">{m.email}</td>
+
+                                                  <td className="py-2 px-3 border border-gray-300 align-top">
+                                                    <div className="text-sm text-gray-700 font-medium mb-1">
+                                                      Dosen Info
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 space-y-1">
+                                                      <div>
+                                                        <span className="font-medium">• Program Studi:</span>{" "}
+                                                        {m.studyProgram || "-"}
                                                       </div>
-                                                    </td>
-
-                                                    {/* SOCIALS */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      <div className="flex gap-3 text-gray-600 items-center">
-                                                        {m.github && (
-                                                          <a
-                                                            href={
-                                                              m.github
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Github
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-black"
-                                                            />
-                                                          </a>
-                                                        )}
-
-                                                        {m.linkedin && (
-                                                          <a
-                                                            href={
-                                                              m.linkedin
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Linkedin
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-blue-700"
-                                                            />
-                                                          </a>
-                                                        )}
-
-                                                        {m.facebook && (
-                                                          <a
-                                                            href={
-                                                              m.facebook
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Facebook
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-blue-600"
-                                                            />
-                                                          </a>
-                                                        )}
-
-                                                        {m.instagram && (
-                                                          <a
-                                                            href={
-                                                              m.instagram
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Instagram
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-pink-500"
-                                                            />
-                                                          </a>
-                                                        )}
-
-                                                        {m.website && (
-                                                          <a
-                                                            href={
-                                                              m.website
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Globe
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-green-600"
-                                                            />
-                                                          </a>
-                                                        )}
+                                                      <div>
+                                                        <span className="font-medium">• Pendidikan:</span>{" "}
+                                                        {m.education || "-"}
                                                       </div>
-                                                    </td>
-
-                                                    {/* ACTION */}
-                                                    <td className="py-2 px-3 text-center border border-gray-300">
-                                                      <div className="flex justify-center gap-2">
-                                                        <button
-                                                          onClick={() =>
-                                                            setEditData(
-                                                              m
-                                                            )
-                                                          }
-                                                          className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
-                                                        >
-                                                          <Edit className="w-3 h-3" />{" "}
-                                                          Edit
-                                                        </button>
-
-                                                        <button
-                                                          onClick={() =>
-                                                            handleDeleteMember(
-                                                              project.id,
-                                                              m.id
-                                                            )
-                                                          }
-                                                          className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
-                                                        >
-                                                          <Trash className="w-3 h-3" />{" "}
-                                                          Hapus
-                                                        </button>
+                                                      <div>
+                                                        <span className="font-medium">• Spesialis:</span>{" "}
+                                                        {m.specialization || "-"}
                                                       </div>
-                                                    </td>
-                                                  </tr>
-                                                )
-                                              )
+                                                    </div>
+                                                  </td>
+
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    <div className="flex gap-3 text-gray-600 items-center">
+                                                      {m.github && (
+                                                        <a href={m.github} target="_blank">
+                                                          <Github size={20} className="hover:text-black" />
+                                                        </a>
+                                                      )}
+                                                      {m.linkedin && (
+                                                        <a href={m.linkedin} target="_blank">
+                                                          <Linkedin size={20} className="hover:text-blue-700" />
+                                                        </a>
+                                                      )}
+                                                      {m.facebook && (
+                                                        <a href={m.facebook} target="_blank">
+                                                          <Facebook size={20} className="hover:text-blue-600" />
+                                                        </a>
+                                                      )}
+                                                      {m.instagram && (
+                                                        <a href={m.instagram} target="_blank">
+                                                          <Instagram size={20} className="hover:text-pink-500" />
+                                                        </a>
+                                                      )}
+                                                      {m.website && (
+                                                        <a href={m.website} target="_blank">
+                                                          <Globe size={20} className="hover:text-green-600" />
+                                                        </a>
+                                                      )}
+                                                    </div>
+                                                  </td>
+
+                                                  <td className="py-2 px-3 text-center border border-gray-300">
+                                                    <div className="flex justify-center gap-2">
+                                                      <button
+                                                        onClick={() => setEditData(m)}
+                                                        className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
+                                                      >
+                                                        <Edit className="w-3 h-3" /> Edit
+                                                      </button>
+
+                                                      <button
+                                                        onClick={() =>
+                                                          handleDeleteMember(project.id, m.id)
+                                                        }
+                                                        className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
+                                                      >
+                                                        <Trash className="w-3 h-3" /> Hapus
+                                                      </button>
+                                                    </div>
+                                                  </td>
+                                                </tr>
+                                              ))
                                             ) : (
                                               <tr>
                                                 <td
                                                   colSpan={8}
                                                   className="text-center py-3 text-gray-500 italic border border-gray-300"
                                                 >
-                                                  Belum ada
-                                                  Dosen untuk
-                                                  project
-                                                  ini.
+                                                  Belum ada Dosen untuk project ini.
                                                 </td>
                                               </tr>
                                             )}
@@ -753,7 +554,9 @@ export default function TeamAdmin() {
                                       </div>
                                     </div>
 
-                                    {/* ========== MAHASISWA TABLE ========== */}
+                                    {/* ===================================
+                                        TABEL MAHASISWA
+                                    ====================================== */}
                                     <div>
                                       <h3 className="text-md font-semibold text-black mb-2">
                                         Daftar Mahasiswa
@@ -763,219 +566,111 @@ export default function TeamAdmin() {
                                         <table className="w-full text-xs md:text-sm text-left border-collapse border border-gray-300 bg-white rounded-md">
                                           <thead className="bg-gray-100 text-gray-700 border border-gray-300">
                                             <tr>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Foto
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Nama
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Peran
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Kategori
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Email
-                                              </th>
-                                              <th className="py-2 px-3 border border-gray-300">
-                                                Sosial Media
-                                              </th>
-                                              <th className="py-2 px-3 text-center border border-gray-300">
-                                                Aksi
-                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">Foto</th>
+                                              <th className="py-2 px-3 border border-gray-300">Nama</th>
+                                              <th className="py-2 px-3 border border-gray-300">Peran</th>
+                                              <th className="py-2 px-3 border border-gray-300">Kategori</th>
+                                              <th className="py-2 px-3 border border-gray-300">Email</th>
+                                              <th className="py-2 px-3 border border-gray-300">Sosial Media</th>
+                                              <th className="py-2 px-3 text-center border border-gray-300">Aksi</th>
                                             </tr>
                                           </thead>
 
                                           <tbody>
-                                            {mahasiswaMembers.length >
-                                            0 ? (
-                                              mahasiswaMembers.map(
-                                                (m) => (
-                                                  <tr
-                                                    key={
-                                                      m.id
-                                                    }
-                                                    className="hover:bg-gray-50 transition border border-gray-300"
-                                                  >
-                                                    {/* FOTO */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200">
-                                                        {m.image ? (
-                                                          <img
-                                                            src={
-                                                              m.image
-                                                            }
-                                                            alt={
-                                                              m
-                                                                .name
-                                                            }
-                                                            className="object-cover w-full h-full"
-                                                          />
-                                                        ) : (
-                                                          <div className="text-gray-400 flex items-center justify-center text-xs h-full">
-                                                            -
-                                                          </div>
-                                                        )}
-                                                      </div>
-                                                    </td>
+                                            {mahasiswaMembers.length > 0 ? (
+                                              mahasiswaMembers.map((m) => (
+                                                <tr
+                                                  key={m.id}
+                                                  className="hover:bg-gray-50 transition border border-gray-300"
+                                                >
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200">
+                                                      {m.image ? (
+                                                        <img
+                                                          src={m.image}
+                                                          alt={m.name}
+                                                          className="object-cover w-full h-full"
+                                                        />
+                                                      ) : (
+                                                        <div className="text-gray-400 flex items-center justify-center text-xs h-full">
+                                                          -
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  </td>
 
-                                                    {/* NAMA */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      {
-                                                        m.name
-                                                      }
-                                                    </td>
+                                                  <td className="py-2 px-3 border border-gray-300">{m.name}</td>
 
-                                                    {/* ROLE */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      {m.role?.trim()
-                                                        ? m.role
-                                                        : `Anggota Tim Produksi ${project.teamTitle}`}
-                                                    </td>
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    {m.role?.trim()
+                                                      ? m.role
+                                                      : `Anggota Tim Produksi ${project.teamTitle}`}
+                                                  </td>
 
-                                                    {/* CATEGORY */}
-                                                    <td className="py-2 px-3 border border-gray-300 capitalize">
-                                                      {
-                                                        m.category
-                                                      }
-                                                    </td>
+                                                  <td className="py-2 px-3 border border-gray-300 capitalize">
+                                                    {m.category}
+                                                  </td>
 
-                                                    {/* EMAIL */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      {
-                                                        m.email
-                                                      }
-                                                    </td>
+                                                  <td className="py-2 px-3 border border-gray-300">{m.email}</td>
 
-                                                    {/* SOCIALS */}
-                                                    <td className="py-2 px-3 border border-gray-300">
-                                                      <div className="flex gap-3 text-gray-600 items-center">
-                                                        {m.github && (
-                                                          <a
-                                                            href={
-                                                              m.github
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Github
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-black"
-                                                            />
-                                                          </a>
-                                                        )}
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    <div className="flex gap-3 text-gray-600 items-center">
+                                                      {m.github && (
+                                                        <a href={m.github} target="_blank">
+                                                          <Github size={20} className="hover:text-black" />
+                                                        </a>
+                                                      )}
+                                                      {m.linkedin && (
+                                                        <a href={m.linkedin} target="_blank">
+                                                          <Linkedin size={20} className="hover:text-blue-700" />
+                                                        </a>
+                                                      )}
+                                                      {m.facebook && (
+                                                        <a href={m.facebook} target="_blank">
+                                                          <Facebook size={20} className="hover:text-blue-600" />
+                                                        </a>
+                                                      )}
+                                                      {m.instagram && (
+                                                        <a href={m.instagram} target="_blank">
+                                                          <Instagram size={20} className="hover:text-pink-500" />
+                                                        </a>
+                                                      )}
+                                                      {m.website && (
+                                                        <a href={m.website} target="_blank">
+                                                          <Globe size={20} className="hover:text-green-600" />
+                                                        </a>
+                                                      )}
+                                                    </div>
+                                                  </td>
 
-                                                        {m.linkedin && (
-                                                          <a
-                                                            href={
-                                                              m.linkedin
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Linkedin
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-blue-700"
-                                                            />
-                                                          </a>
-                                                        )}
+                                                  <td className="py-2 px-3 text-center border border-gray-300">
+                                                    <div className="flex justify-center gap-2">
+                                                      <button
+                                                        onClick={() => setEditData(m)}
+                                                        className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
+                                                      >
+                                                        <Edit className="w-3 h-3" /> Edit
+                                                      </button>
 
-                                                        {m.facebook && (
-                                                          <a
-                                                            href={
-                                                              m.facebook
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Facebook
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-blue-600"
-                                                            />
-                                                          </a>
-                                                        )}
-
-                                                        {m.instagram && (
-                                                          <a
-                                                            href={
-                                                              m.instagram
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Instagram
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-pink-500"
-                                                            />
-                                                          </a>
-                                                        )}
-
-                                                        {m.website && (
-                                                          <a
-                                                            href={
-                                                              m.website
-                                                            }
-                                                            target="_blank"
-                                                          >
-                                                            <Globe
-                                                              size={
-                                                                20
-                                                              }
-                                                              className="hover:text-green-600"
-                                                            />
-                                                          </a>
-                                                        )}
-                                                      </div>
-                                                    </td>
-
-                                                    {/* ACTION */}
-                                                    <td className="py-2 px-3 text-center border border-gray-300">
-                                                      <div className="flex justify-center gap-2">
-                                                        <button
-                                                          onClick={() =>
-                                                            setEditData(
-                                                              m
-                                                            )
-                                                          }
-                                                          className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
-                                                        >
-                                                          <Edit className="w-3 h-3" />{" "}
-                                                          Edit
-                                                        </button>
-
-                                                        <button
-                                                          onClick={() =>
-                                                            handleDeleteMember(
-                                                              project.id,
-                                                              m.id
-                                                            )
-                                                          }
-                                                          className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
-                                                        >
-                                                          <Trash className="w-3 h-3" />{" "}
-                                                          Hapus
-                                                        </button>
-                                                      </div>
-                                                    </td>
-                                                  </tr>
-                                                )
-                                              )
+                                                      <button
+                                                        onClick={() =>
+                                                          handleDeleteMember(project.id, m.id)
+                                                        }
+                                                        className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
+                                                      >
+                                                        <Trash className="w-3 h-3" /> Hapus
+                                                      </button>
+                                                    </div>
+                                                  </td>
+                                                </tr>
+                                              ))
                                             ) : (
                                               <tr>
                                                 <td
                                                   colSpan={7}
                                                   className="text-center py-3 text-gray-500 italic border border-gray-300"
                                                 >
-                                                  Belum ada
-                                                  Mahasiswa
-                                                  untuk
-                                                  project
-                                                  ini.
+                                                  Belum ada Mahasiswa untuk project ini.
                                                 </td>
                                               </tr>
                                             )}
@@ -994,10 +689,7 @@ export default function TeamAdmin() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="text-center py-10 text-gray-500 italic border border-gray-300"
-                    >
+                    <td colSpan={4} className="text-center py-10 text-gray-500 italic border border-gray-300">
                       Tidak ada project ditemukan.
                     </td>
                   </tr>
@@ -1010,19 +702,14 @@ export default function TeamAdmin() {
               <div className="flex items-center gap-2">
                 {(() => {
                   const safeTotalPages = Math.max(totalPages, 1);
-                  const safeCurrentPageFixed = Math.min(
-                    safeCurrentPage,
-                    safeTotalPages
-                  );
+                  const safeCurrentPageFixed = Math.min(safeCurrentPage, safeTotalPages);
 
                   return (
                     <>
                       {/* Prev */}
                       <button
                         disabled={safeCurrentPageFixed === 1}
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(prev - 1, 1))
-                        }
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                         className={`w-10 h-10 rounded-md border flex items-center justify-center ${
                           safeCurrentPageFixed === 1
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -1032,11 +719,8 @@ export default function TeamAdmin() {
                         {"<"}
                       </button>
 
-                      {/* Numbers */}
-                      {Array.from(
-                        { length: safeTotalPages },
-                        (_, i) => i + 1
-                      ).map((page) => (
+                      {/* Number Buttons */}
+                      {Array.from({ length: safeTotalPages }, (_, i) => i + 1).map((page) => (
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
@@ -1052,13 +736,9 @@ export default function TeamAdmin() {
 
                       {/* Next */}
                       <button
-                        disabled={
-                          safeCurrentPageFixed === safeTotalPages
-                        }
+                        disabled={safeCurrentPageFixed === safeTotalPages}
                         onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, safeTotalPages)
-                          )
+                          setCurrentPage((prev) => Math.min(prev + 1, safeTotalPages))
                         }
                         className={`w-10 h-10 rounded-md border flex items-center justify-center ${
                           safeCurrentPageFixed === safeTotalPages
@@ -1084,9 +764,7 @@ export default function TeamAdmin() {
                 setPresetRole("");
               }}
               onAdd={handleAdd}
-              onAddMember={(projId: number, member: TeamPerson) =>
-                handleAddMember(projId, member)
-              }
+              onAddMember={(projId: number, member: TeamPerson) => handleAddMember(projId, member)}
               forProjectId={addForProject?.id}
               projectTitle={addForProject?.title}
               presetRole={presetRole}

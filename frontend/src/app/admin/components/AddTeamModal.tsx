@@ -145,7 +145,7 @@ export default function AddTeamModal({
     setMahasiswa((p) => p.filter((_, idx) => idx !== i));
 
   const handleSubmit = () => {
-    // MODE: add member only
+    // MODE TAMBAH SATU ANGGOTA
     if (isAddMemberMode && presetRole) {
       if (presetRole === "dosen") {
         const member = { ...dosen[0] };
@@ -176,7 +176,7 @@ export default function AddTeamModal({
       }
     }
 
-    // MODE: add project + all members
+    // MODE TAMBAH PROJECT + ANGGOTA
     if (!teamTitle.trim()) {
       return alert("Masukkan nama project terlebih dahulu!");
     }
@@ -201,9 +201,10 @@ export default function AddTeamModal({
       return alert("Nama tidak boleh kosong.");
     }
 
+    // 🔥 FIX: ganti members → teamMembers
     onAdd?.({
       teamTitle,
-      members: allMembers,
+      teamMembers: allMembers,
     });
 
     onClose();
@@ -316,12 +317,7 @@ export default function AddTeamModal({
                       value={d.name}
                       placeholder="Nama lengkap"
                       onChange={(e) =>
-                        handleChange(
-                          i,
-                          "dosen",
-                          "name",
-                          e.target.value
-                        )
+                        handleChange(i, "dosen", "name", e.target.value)
                       }
                     />
                   </div>
@@ -336,12 +332,7 @@ export default function AddTeamModal({
                       value={d.email}
                       placeholder="email@example.com"
                       onChange={(e) =>
-                        handleChange(
-                          i,
-                          "dosen",
-                          "email",
-                          e.target.value
-                        )
+                        handleChange(i, "dosen", "email", e.target.value)
                       }
                     />
                   </div>
@@ -508,12 +499,7 @@ export default function AddTeamModal({
                       value={m.name}
                       placeholder="Nama lengkap"
                       onChange={(e) =>
-                        handleChange(
-                          i,
-                          "mahasiswa",
-                          "name",
-                          e.target.value
-                        )
+                        handleChange(i, "mahasiswa", "name", e.target.value)
                       }
                     />
                   </div>
@@ -528,12 +514,7 @@ export default function AddTeamModal({
                       value={m.email}
                       placeholder="email@example.com"
                       onChange={(e) =>
-                        handleChange(
-                          i,
-                          "mahasiswa",
-                          "email",
-                          e.target.value
-                        )
+                        handleChange(i, "mahasiswa", "email", e.target.value)
                       }
                     />
                   </div>

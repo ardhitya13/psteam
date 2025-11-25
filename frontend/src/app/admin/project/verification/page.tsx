@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText } from "lucide-react";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminSidebar from "../../components/AdminSidebar";
@@ -10,59 +10,99 @@ export default function VerifikasiProyekPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Data proyek yang sedang dilihat
-  const [selectedData, setSelectedData] = useState<{
-    no: number;
-    email: string;
-    telp: string;
-    judul: string;
-    tipe: string;
-    deskripsi: string;
-    status: string;
-  } | null>(null);
+  const [selectedData, setSelectedData] = useState<any>(null);
+  const [data, setData] = useState<any[]>([]);
 
-  // Data proyek menunggu verifikasi
-  const [data, setData] = useState([
-    {
-      no: 1,
-      email: "mahasiswa1@polibatam.ac.id",
-      telp: "081234567890",
-      judul: "Sistem Pemesanan Online Coffee Shop",
-      tipe: "Website",
-      deskripsi: "Sistem untuk memesan kopi secara online.",
-      status: "Menunggu Verifikasi",
-    },
-    {
-      no: 2,
-      email: "mahasiswa2@polibatam.ac.id",
-      telp: "081267854321",
-      judul: "Aplikasi Mobile Bimbingan Belajar",
-      tipe: "Mobile",
-      deskripsi: "Aplikasi untuk membantu siswa belajar daring.",
-      status: "Menunggu Verifikasi",
-    },
-  ]);
+  // ================================
+  // 🔥 FETCH DATA DARI BACKEND
+  // ================================
+  const loadData = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/submissions/pending");
 
-  // Terima proyek
-  const handleTerima = (item: any) => {
-    const existingProjects = JSON.parse(localStorage.getItem("proyekAktif") || "[]");
+      if (!res.ok) {
+        console.error("Fetch error:", await res.text());
+        return;
+      }
 
-    const updatedProjects = [...existingProjects, { ...item, status: "Diterima" }];
+      const json = await res.json();
+      console.log("DEBUG RESPONSE:", json);
 
-    localStorage.setItem("proyekAktif", JSON.stringify(updatedProjects));
+      const list = Array.isArray(json) ? json : json.data || [];
 
-    setData((prev) => prev.filter((p) => p.no !== item.no));
+      const mapped = list.map((item: any, index: number) => ({
+        no: index + 1,
+        id: item.id,
+        email: item.email,
+        telp: item.phoneNumber,
+        judul: item.projectTitle,
+        tipe: "Website", // sementara
+        deskripsi: item.projectDescription,
+        status: item.status,
+      }));
 
-    alert(`✅ Proyek "${item.judul}" berhasil diterima dan masuk ke Daftar Proyek Aktif.`);
-  };
-
-  // Tolak proyek
-  const handleTolak = (item: any) => {
-    if (confirm(`Apakah kamu yakin ingin menolak proyek "${item.judul}"?`)) {
-      setData((prev) => prev.filter((p) => p.no !== item.no));
-      alert(`❌ Proyek "${item.judul}" telah ditolak.`);
+      setData(mapped);
+    } catch (error) {
+      console.error("loadData error:", error);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // ==========================================
+  // 🔥 TERIMA PROYEK 
+  // ==========================================
+  const handleTerima = async (item: any) => {
+  const yes = confirm(`Terima proyek "${item.judul}"?`);
+  if (!yes) return;
+
+  try {
+    const res = await fetch(`http://localhost:4000/api/submissions/${item.id}/approve`, {
+      method: "PATCH",
+    });
+
+    if (!res.ok) {
+      console.error("Approve failed:", await res.text());
+      alert("Gagal menyetujui proyek!");
+      return;
+    }
+
+    alert(`Proyek "${item.judul}" telah disetujui.`);
+    loadData(); // reload data pending agar hilang dari list
+  } catch (error) {
+    console.error(error);
+    alert("Terjadi kesalahan saat mengupdate status!");
+  }
+};
+
+
+  // ==========================================
+  // 🔥 TOLAK PROYEK 
+  // ==========================================
+  const handleTolak = async (item: any) => {
+  const yes = confirm(`Tolak proyek "${item.judul}"?`);
+  if (!yes) return;
+
+  try {
+    const res = await fetch(`http://localhost:4000/api/submissions/${item.id}/reject`, {
+      method: "PATCH",
+    });
+
+    if (!res.ok) {
+      console.error("Reject failed:", await res.text());
+      alert("Gagal menolak proyek!");
+      return;
+    }
+
+    alert(`Proyek "${item.judul}" telah ditolak.`);
+    loadData(); // reload pending supaya hilang dari tabel
+  } catch (error) {
+    console.error(error);
+    alert("Terjadi kesalahan saat mengupdate status!");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
@@ -70,8 +110,9 @@ export default function VerifikasiProyekPage() {
       <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
-        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          } mt-[85px]`}
+        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
+          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+        }`}
       >
         {/* TITLE */}
         <div className="text-center mb-8">
@@ -106,6 +147,7 @@ export default function VerifikasiProyekPage() {
                     <td className="border border-gray-200 px-4 py-2">{item.telp}</td>
                     <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
                     <td className="border border-gray-200 px-4 py-2 text-center">{item.tipe}</td>
+
                     <td className="border border-gray-200 px-4 py-2 text-center">
                       <button
                         onClick={() => {
@@ -117,6 +159,7 @@ export default function VerifikasiProyekPage() {
                         <FileText size={14} /> Detail
                       </button>
                     </td>
+
                     <td className="border border-gray-200 px-4 py-2 text-center">
                       <div className="inline-flex gap-2">
                         <button
