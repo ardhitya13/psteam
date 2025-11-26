@@ -11,14 +11,37 @@ export default function DetailProductModal({
   data: ProductItem;
   onClose: () => void;
 }) {
+  /* ============================================================
+     FIX IMAGE URL (AMAN UNTUK EMPTY, RELATIVE, ABSOLUTE)
+  ============================================================ */
+  const imageUrl =
+    !data.image || data.image.trim() === ""
+      ? "/placeholder.png" // fallback aman
+      : data.image.startsWith("http")
+        ? data.image
+        : `http://localhost:4000${data.image.startsWith("/") ? "" : "/"}${data.image
+        }`;
+
+  /* ============================================================
+     FIX TANGGAL (BIAR GAK Z → 2025-11-20)
+  ============================================================ */
+  const formattedDate = data.publishDate
+    ? new Date(data.publishDate).toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
+    : "-";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      {/* Background */}
+      {/* BACKDROP */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
+      {/* MODAL BOX */}
       <div className="relative bg-white w-full max-w-3xl p-6 rounded-lg shadow-lg max-h-[90vh] overflow-auto text-black">
 
-        {/* Close Button */}
+        {/* CLOSE BUTTON */}
         <button
           className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full"
           onClick={onClose}
@@ -26,19 +49,21 @@ export default function DetailProductModal({
           <X />
         </button>
 
-        <h2 className="text-2xl font-bold mb-5 text-blue-900">Detail Produk</h2>
+        <h2 className="text-2xl font-bold mb-5 text-blue-900">
+          Detail Produk
+        </h2>
 
-        {/* Thumbnail */}
-        <div className="w-full h-56 rounded-lg overflow-hidden bg-gray-200 border">
+        {/* THUMBNAIL */}
+        <div className="w-full h-80 bg-white border rounded-lg flex items-center justify-center overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={data.image}
+            src={imageUrl}
             alt={data.title}
-            className="object-cover w-full h-full"
+            className="object-contain w-full h-full"
           />
         </div>
 
-        {/* Informasi Utama */}
+        {/* INFO GRID */}
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
 
           <div>
@@ -48,7 +73,9 @@ export default function DetailProductModal({
 
           <div>
             <p className="text-sm text-gray-500">Kategori</p>
-            <p className="text-base font-semibold capitalize">{data.category}</p>
+            <p className="text-base font-semibold capitalize">
+              {data.category}
+            </p>
           </div>
 
           <div>
@@ -63,11 +90,7 @@ export default function DetailProductModal({
 
           <div>
             <p className="text-sm text-gray-500">Tanggal Publish</p>
-            <p className="text-base font-semibold">
-              {data.publishDate
-                ? new Date(data.publishDate).toLocaleDateString("id-ID")
-                : "-"}
-            </p>
+            <p className="text-base font-semibold">{formattedDate}</p>
           </div>
 
           <div>
@@ -76,6 +99,7 @@ export default function DetailProductModal({
               <a
                 href={data.link}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="text-blue-600 underline flex items-center gap-1"
               >
                 Kunjungi Website <ExternalLink size={16} />
@@ -84,10 +108,9 @@ export default function DetailProductModal({
               <p className="text-gray-600 italic">Tidak ada link</p>
             )}
           </div>
-
         </div>
 
-        {/* Deskripsi */}
+        {/* DESKRIPSI */}
         <div className="mt-6">
           <p className="text-sm text-gray-500">Deskripsi</p>
           <p className="text-base mt-1 leading-relaxed">
@@ -95,7 +118,7 @@ export default function DetailProductModal({
           </p>
         </div>
 
-        {/* Close Button */}
+        {/* CLOSE BUTTON */}
         <div className="flex justify-end mt-6">
           <button
             onClick={onClose}

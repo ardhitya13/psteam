@@ -1,7 +1,7 @@
 PSTEAM Fullstack Project
 
-Website resmi PSTEAM yang dikembangkan menggunakan Next.js (Frontend) dan Node.js + Express + Prisma (Backend).
-Proyek ini merupakan bagian dari tugas mata kuliah Pemrograman Web – IF MALAM 3A
+Website resmi PSTEAM yang dikembangkan menggunakan Next.js (Frontend) serta Node.js + Express + Prisma (Backend).
+Proyek ini merupakan bagian dari tugas mata kuliah Pemrograman Web – IF Malam 3A
 Program Studi: D3 Teknik Informatika – Politeknik Negeri Batam
 
 👥 Team Members
@@ -33,36 +33,38 @@ TypeScript
 
 📁 Folder Structure
 psteam/
-│── backend/     → REST API + Prisma + Controllers
-│── frontend/    → Next.js website
+│── backend/      → REST API + Prisma + Controllers
+│── frontend/     → Next.js website
 └── README.md
 
-🔧 1. Backend Installation
+🔧 Backend Installation
 
 Masuk ke folder backend:
 
 cd backend
 
-Install dependencies
+
+Install dependencies:
+
 npm install
 
-Setup environment
+1. Setup Environment
 
 Buat file:
 
 backend/.env
 
 
-Isi:
+Isi dengan:
 
 DATABASE_URL="mysql://root:@localhost:3306/nama_database"
 PORT=3001
 
-Prisma migration
+2. Prisma Migration
 npx prisma migrate dev
 npx prisma generate
 
-Jalankan backend
+3. Jalankan Backend
 npm run dev
 
 
@@ -70,27 +72,29 @@ Backend berjalan di:
 
 http://localhost:3001
 
-🌐 2. Frontend Installation
+🌐 Frontend Installation
 
 Masuk ke folder frontend:
 
 cd frontend
 
-Install dependencies
+
+Install dependencies:
+
 npm install
 
-Setup Environment
+1. Setup Environment
 
 Buat file:
 
 frontend/.env.local
 
 
-Isi:
+Isi dengan:
 
 NEXT_PUBLIC_API_URL=http://localhost:3001
 
-Jalankan frontend
+2. Jalankan Frontend
 npm run dev
 
 
@@ -100,12 +104,12 @@ http://localhost:3000
 
 ▶️ Development Notes
 
-Kamu dapat mulai mengubah tampilan halaman utama di:
+Untuk memulai editing halaman utama:
 
 frontend/src/app/page.tsx
 
 
-Next.js akan otomatis melakukan hot reload ketika file diubah.
+Next.js akan otomatis melakukan hot reload setiap ada perubahan.
 
 📚 Learn More (Referensi)
 
@@ -117,7 +121,8 @@ Repository Resmi Next.js di GitHub
 
 🚀 Deploy on Vercel
 
-Cara paling mudah untuk deploy frontend adalah menggunakan Vercel, platform resmi pembuat Next.js.
+Cara termudah untuk deploy frontend adalah menggunakan Vercel, platform resmi dari pembuat Next.js.
 
-Dokumentasi deploy:
-https: vercel.com/docs (hapus spasi setelah paste)
+Dokumentasi:
+
+https://vercel.com/docs

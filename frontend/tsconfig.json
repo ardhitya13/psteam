@@ -14,17 +14,28 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": ".",         
+
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],          
-      "@data/*": ["./app/data/*"]   
+      "@/*": ["*"],                 // BISA IMPORT '@/lib/...'
+      "@app/*": ["app/*"],          // Optional
+      "@lib/*": ["lib/*"],          // Optional
+      "@components/*": ["components/*"] // Optional
     },
+
     "plugins": [
       {
         "name": "next"
       }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/dosen/kelola/AjukanPenelian"],
+
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+
   "exclude": ["node_modules"]
 }

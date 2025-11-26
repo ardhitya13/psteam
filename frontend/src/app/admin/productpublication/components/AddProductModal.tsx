@@ -7,11 +7,9 @@ import { ProductItem } from "./ProductManager";
 export default function AddProductModal({
   onClose,
   onSubmit,
-  existingProducts = [],
 }: {
   onClose: () => void;
   onSubmit: (p: ProductItem) => void;
-  existingProducts?: ProductItem[];
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -20,7 +18,6 @@ export default function AddProductModal({
     title: "",
     category: "Web",
     academicYear: "2024/2025",
-    code: "",
     description: "",
     link: "",
     publishDate: "",
@@ -37,47 +34,15 @@ export default function AddProductModal({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  // -------------------------------
-  // AUTO-GENERATE KODE PRODUK
-  // -------------------------------
-  useEffect(() => {
-    const prefix = form.category.toUpperCase();
-
-    const filtered = existingProducts.filter(
-      (p) => p.category.toLowerCase() === form.category.toLowerCase()
-    );
-
-    const lastCode = filtered
-      .map((p) => {
-        const regex = new RegExp(`${prefix}(\\d+)`);
-        const match = p.code.match(regex);
-        return match ? parseInt(match[1]) : 0;
-      })
-      .sort((a, b) => b - a)[0] || 0;
-
-    const next = (lastCode + 1).toString().padStart(2, "0");
-    const finalCode = `PSTEAM-${prefix}${next}`;
-
-    if (form.code !== finalCode) {
-      setForm((prev) => ({ ...prev, code: finalCode }));
-    }
-  }, [form.category, existingProducts]);
-
-  // -------------------------------
-  // GENERATE TAHUN AJARAN DINAMIS
-  // -------------------------------
+  // GENERATE TAHUN AJARAN
   const generateAcademicYears = () => {
     const years = [];
-    for (let y = 2010; y <= 2035; y++) {
-      years.push(`${y}/${y + 1}`);
-    }
+    for (let y = 2010; y <= 2035; y++) years.push(`${y}/${y + 1}`);
     return years;
   };
 
-  // -------------------------------
-  // SUBMIT
-  // -------------------------------
-  const handleSubmit = (e: React.FormEvent) => {
+  // SUBMIT (SEND TO BACKEND)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!file) {
@@ -85,19 +50,38 @@ export default function AddProductModal({
       return;
     }
 
-    const newProduct: ProductItem = {
-      id: Date.now(),
-      image: preview || "",
-      title: form.title,
-      category: form.category,
-      academicYear: form.academicYear,
-      code: form.code,
-      description: form.description,
-      link: form.link,
-      publishDate: form.publishDate,
-    };
+    const fd = new FormData();
 
-    onSubmit(newProduct);
+    // ⚡ FIX UTAMA — backend pakai req.file dengan field "image"
+    fd.append("image", file);
+
+    fd.append("title", form.title);
+    fd.append("category", form.category);
+    fd.append("academicYear", form.academicYear);
+    fd.append("description", form.description);
+    fd.append("link", form.link);
+    fd.append("publishDate", form.publishDate);
+
+    const res = await fetch("http://localhost:4000/api/products", {
+      method: "POST",
+      body: fd,
+    });
+
+    const json = await res.json();
+
+    // ⚡ Backend return product langsung, bukan { data: ... }
+    onSubmit({
+      id: json.id,
+      image: json.image ?? "/placeholder.png",
+      title: json.title,
+      category: json.category,
+      academicYear: json.academicYear,
+      code: json.code,
+      description: json.description,
+      link: json.link,
+      publishDate: json.publishDate,
+    });
+
     onClose();
   };
 
@@ -124,9 +108,12 @@ export default function AddProductModal({
               className="mb-2 text-sm"
             />
 
-            <div className="w-full h-40 bg-gray-200 border rounded flex items-center justify-center overflow-hidden">
+            <div className="w-full h-64 bg-white border rounded-lg flex items-center justify-center overflow-hidden">
               {preview ? (
-                <img src={preview} className="object-cover w-full h-full" />
+                <img
+                  src={preview}
+                  className="object-contain w-full h-full"
+                />
               ) : (
                 <div className="text-sm text-gray-500">Tidak ada preview</div>
               )}
@@ -155,30 +142,19 @@ export default function AddProductModal({
             />
           </div>
 
-          {/* CATEGORY + CODE */}
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="text-sm font-semibold">Tipe</label>
-              <select
-                value={form.category}
-                onChange={(e) => update("category", e.target.value)}
-                className="w-full border rounded px-3 py-2 mt-1"
-              >
-                <option>Web</option>
-                <option>Mobile</option>
-                <option>IoT</option>
-                <option>AI</option>
-              </select>
-            </div>
-
-            <div className="w-40">
-              <label className="text-sm font-semibold">Kode</label>
-              <input
-                value={form.code}
-                className="w-full border rounded px-3 py-2 mt-1 text-gray-600 bg-gray-100"
-                disabled
-              />
-            </div>
+          {/* CATEGORY */}
+          <div>
+            <label className="text-sm font-semibold">Tipe</label>
+            <select
+              value={form.category}
+              onChange={(e) => update("category", e.target.value)}
+              className="w-full border rounded px-3 py-2 mt-1"
+            >
+              <option>Web</option>
+              <option>Mobile</option>
+              <option>IoT</option>
+              <option>AI</option>
+            </select>
           </div>
 
           {/* TAHUN AKADEMIK */}
@@ -227,7 +203,10 @@ export default function AddProductModal({
               Batal
             </button>
 
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
               Simpan Produk
             </button>
           </div>

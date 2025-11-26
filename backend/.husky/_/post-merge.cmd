@@ -1,0 +1,3 @@
+@echo off
+echo ✓ Auto migrating Prisma...
+npx prisma migrate deploy

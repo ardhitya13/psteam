@@ -29,7 +29,7 @@ import {
   updateMember,
   deleteMember,
   deleteProject,
-} from "@/lib/apiTeam";
+} from "../../../lib/apiTeam";
 
 type TeamPerson = {
   id?: number;

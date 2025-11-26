@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { ProductItem } from "./ProductManager";
 
+const API_URL = "http://localhost:4000";
+
 export default function EditProductModal({
   data,
   onClose,
@@ -12,74 +14,109 @@ export default function EditProductModal({
 }: {
   data: ProductItem;
   onClose: () => void;
-  onSubmit: (p: ProductItem) => void;
+  onSubmit: (p: ProductItem, file?: File | null) => void;
   existingProducts?: ProductItem[];
 }) {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(data.image);
 
-  const [form, setForm] = useState<ProductItem>(data);
+  /* ---------------------------------------------------------
+     FIX BACKEND PATH → gambar awal selalu valid
+  --------------------------------------------------------- */
+  const initialImage =
+    data.image?.startsWith("http") || data.image?.startsWith("https")
+      ? data.image
+      : data.image
+        ? `${API_URL}${data.image}`
+        : "/placeholder.png";
+
+  const [preview, setPreview] = useState<string>(initialImage);
+
+  /* ---------------------------------------------------------
+     FORM STATE
+  --------------------------------------------------------- */
+  const [form, setForm] = useState<ProductItem>({
+    ...data,
+    image: initialImage,
+  });
 
   const update = (key: keyof ProductItem, value: any) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  // PREVIEW GAMBAR BARU
+  /* ---------------------------------------------------------
+     PREVIEW GAMBAR BARU
+  --------------------------------------------------------- */
   useEffect(() => {
     if (!file) return;
+
     const url = URL.createObjectURL(file);
     setPreview(url);
+
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  // AUTO SET KODE SAAT CATEGORY DIGANTI
+  /* ---------------------------------------------------------
+     AUTO-GENERATE CODE (ANTI ERROR)
+  --------------------------------------------------------- */
   useEffect(() => {
+    if (!form.category) return;
+
     const prefix = form.category.toUpperCase();
 
-    const filtered = existingProducts.filter(
-      (p) =>
+    const sameCat = (existingProducts || []).filter((p) => {
+      if (!p || !p.category) return false;
+      return (
         p.category.toLowerCase() === form.category.toLowerCase() &&
         p.id !== form.id
-    );
+      );
+    });
 
-    const lastCode = filtered
-      .map((p) => {
-        const regex = new RegExp(`${prefix}(\\d+)`);
-        const match = p.code.match(regex);
-        return match ? parseInt(match[1]) : 0;
-      })
-      .sort((a, b) => b - a)[0] || 0;
+    const lastNumber =
+      sameCat
+        .map((p) => {
+          if (!p.code) return 0;
+          const regex = new RegExp(`${prefix}(\\d+)`);
+          const match = p.code.match(regex);
+          return match ? parseInt(match[1]) : 0;
+        })
+        .sort((a, b) => b - a)[0] || 0;
 
-    const next = (lastCode + 1).toString().padStart(2, "0");
-    const finalCode = `PSTEAM-${prefix}${next}`;
+    const nextCode = (lastNumber + 1).toString().padStart(2, "0");
+    const finalCode = `PSTEAM-${prefix}${nextCode}`;
 
     if (form.code !== finalCode) {
       setForm((prev) => ({ ...prev, code: finalCode }));
     }
   }, [form.category, existingProducts]);
 
-  // GENERATE TAHUN AKADEMIK
+  /* ---------------------------------------------------------
+     TAHUN AKADEMIK
+  --------------------------------------------------------- */
   const generateAcademicYears = () => {
-    const years = [];
-    for (let y = 2010; y <= 2035; y++) {
-      years.push(`${y}/${y + 1}`);
-    }
+    const years: string[] = [];
+    for (let y = 2010; y <= 2035; y++) years.push(`${y}/${y + 1}`);
     return years;
   };
 
-  // SUBMIT
+  /* ---------------------------------------------------------
+     SUBMIT
+  --------------------------------------------------------- */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalImage = file ? preview || "" : form.image;
-
-    onSubmit({
-      ...form,
-      image: finalImage,
-    });
+    onSubmit(
+      {
+        ...form,
+        image: form.image,
+      },
+      file
+    );
 
     onClose();
   };
 
+  /* ---------------------------------------------------------
+     UI RENDER
+  --------------------------------------------------------- */
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
@@ -105,9 +142,10 @@ export default function EditProductModal({
               className="mb-2 text-sm"
             />
 
-            <div className="w-full h-40 bg-gray-200 border rounded flex items-center justify-center overflow-hidden">
+            <div className="w-full h-80 bg-white border rounded flex items-center justify-center overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               {preview ? (
-                <img src={preview} className="object-cover w-full h-full" />
+                <img src={preview} className="object-contain w-full h-full" />
               ) : (
                 <div className="text-sm text-gray-500">Tidak ada preview</div>
               )}
@@ -134,7 +172,7 @@ export default function EditProductModal({
             />
           </div>
 
-          {/* TIPE + KODE */}
+          {/* CATEGORY + KODE */}
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="text-sm font-semibold">Tipe</label>
@@ -150,13 +188,12 @@ export default function EditProductModal({
               </select>
             </div>
 
-            {/* KODE AUTO */}
             <div className="w-40">
               <label className="text-sm font-semibold">Kode</label>
               <input
                 value={form.code}
-                className="w-full border bg-gray-100 text-gray-600 rounded px-3 py-2 mt-1"
                 disabled
+                className="w-full border bg-gray-100 text-gray-600 rounded px-3 py-2 mt-1"
               />
             </div>
           </div>
@@ -175,7 +212,7 @@ export default function EditProductModal({
             </select>
           </div>
 
-          {/* TANGGAL PUBLISH */}
+          {/* TANGGAL */}
           <div>
             <label className="text-sm font-semibold">Tanggal Publish</label>
             <input
@@ -186,7 +223,7 @@ export default function EditProductModal({
             />
           </div>
 
-          {/* WEBSITE */}
+          {/* LINK */}
           <div>
             <label className="text-sm font-semibold">Link Website</label>
             <input
@@ -197,12 +234,11 @@ export default function EditProductModal({
             />
           </div>
 
-          {/* BUTTONS */}
+          {/* BUTTON */}
           <div className="flex justify-end gap-3 pt-3">
             <button type="button" onClick={onClose} className="px-4 py-2 border rounded">
               Batal
             </button>
-
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
               Simpan Perubahan
             </button>

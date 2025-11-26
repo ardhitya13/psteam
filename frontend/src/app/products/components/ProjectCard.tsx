@@ -4,63 +4,79 @@ import Image from "next/image";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-export default function ProjectCard({ project }: { project: any }) {
+export type ProductCardItem = {
+  id: number;
+  image: string;
+  title: string;
+  category: string;
+  academicYear: string;
+  code: string;
+  description: string;
+  link: string;
+  publishDate: string;
+};
+
+type Props = { project: ProductCardItem };
+
+export default function ProjectCard({ project }: Props) {
+  let imgSrc = project.image;
+
+  // 1. jika null/undefined → fallback
+  if (!imgSrc || imgSrc.trim() === "") {
+    imgSrc = "/placeholder.png";
+  }
+
+  // 2. kalau image berasal dari backend (mulai /uploads)
+  if (imgSrc.startsWith("/uploads")) {
+    imgSrc = `${process.env.NEXT_PUBLIC_API_URL}${imgSrc}`;
+  }
+
+  // 3. kalau masih tanpa http/https → jadikan absolute URL
+  if (!imgSrc.startsWith("http://") && !imgSrc.startsWith("https://")) {
+    imgSrc = `${process.env.NEXT_PUBLIC_API_URL}/${imgSrc.replace(/^\//, "")}`;
+  }
+
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="bg-white shadow-md rounded-xl overflow-hidden flex flex-col hover:shadow-xl transition-all duration-300"
+      transition={{ duration: 0.3 }}
+      className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col"
     >
-      {/* Gambar */}
-      <div className="relative w-full h-40 overflow-hidden">
-        <motion.div
-          whileHover={{ scale: 1.08 }}
-          transition={{ duration: 0.4 }}
-          className="w-full h-full"
-        >
-          <Image
-            src={project.image}
-            alt={project.title}
-            fill
-            className="object-cover"
-          />
-        </motion.div>
-        <span className="absolute top-2 right-2 bg-blue-700 text-white text-xs px-2 py-1 rounded-md shadow">
-          {project.category}
-        </span>
+      <div className="relative w-full h-80 bg-black flex items-center justify-center">
+        <Image
+          src={imgSrc}
+          alt={project.title}
+          fill
+          className="object-cover"
+          sizes="100vw"
+        />
       </div>
 
-      {/* Konten */}
-      <div className="flex flex-col flex-grow p-4">
-        <h3 className="font-bold text-gray-800 text-lg line-clamp-2">
-          {project.title}
-        </h3>
+      <div className="p-4 text-black">
+        <h3 className="font-semibold text-lg">{project.title}</h3>
 
-        <div className="flex items-center text-sm text-gray-500 mt-2 space-x-3">
+        <div className="text-sm text-gray-500 mt-2 space-x-3">
           <span>📅 {project.academicYear}</span>
           <span>👥 {project.code}</span>
         </div>
 
-        <p className="text-gray-600 text-sm mt-2 line-clamp-3 flex-grow">
-          {project.description}
-        </p>
+        <div className="text-xs mt-1 text-gray-500 italic">
+          🕒 Dipublish:{" "}
+          {project.publishDate
+            ? project.publishDate.split("T")[0]
+            : "Tidak ada tanggal"}
+        </div>
 
-        {/* Tombol di bawah selalu sejajar */}
-        <div className="mt-auto pt-4">
-          <motion.a
+        <p className="text-gray-600 text-sm mt-2">{project.description}</p>
+
+        <div className="mt-4">
+          <a
             href={project.link}
             target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.03 }}
-            className="w-full inline-flex items-center justify-center 
-                       bg-gradient-to-r from-blue-700 to-blue-500 
-                       text-white font-medium py-2 rounded-lg 
-                       hover:from-blue-600 hover:to-blue-400 
-                       transition-all duration-300 shadow-sm"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md"
           >
-            <FaExternalLinkAlt className="mr-2" />
-            Lihat Website
-          </motion.a>
+            <FaExternalLinkAlt /> Lihat Website
+          </a>
         </div>
       </div>
     </motion.div>

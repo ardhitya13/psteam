@@ -1,5 +1,5 @@
 // lib/apiTeam.ts
-const API_URL = "http://localhost:4000/team";
+const API_URL = "http://localhost:4000/api/team";
 
 async function handleResponse(res: Response) {
   const type = res.headers.get("content-type") || "";
