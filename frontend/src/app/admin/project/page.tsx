@@ -16,8 +16,9 @@ export default function DaftarProyekPage() {
   const [selectedDetail, setSelectedDetail] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
   const [filterType, setFilterType] = useState("Semua");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,12 +26,12 @@ export default function DaftarProyekPage() {
 
   const itemsPerPage = 8;
 
-  // --------------------
-  // FETCH DATA FROM BACKEND
-  // --------------------
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ==================================================================
+  // FETCH DATA
+  // ==================================================================
   useEffect(() => {
     async function loadData() {
       try {
@@ -42,7 +43,6 @@ export default function DaftarProyekPage() {
           return;
         }
 
-        // Mapping ke tampilan tabel
         const mapped = json.map((item: any, index: number) => ({
           no: index + 1,
           email: item.email,
@@ -51,7 +51,7 @@ export default function DaftarProyekPage() {
           tipe: item.projectType,
           status: item.status === "approved" ? "Sedang Diproses" : item.status,
           deskripsi: item.projectDescription,
-          raw: item, // simpan data asli untuk modal
+          raw: item,
         }));
 
         setData(mapped);
@@ -65,13 +65,14 @@ export default function DaftarProyekPage() {
     loadData();
   }, []);
 
+  // FILTERING
   const filteredData = useMemo(() => {
     return data.filter(
       (item) =>
         (filterType === "Semua" || item.tipe === filterType) &&
-        item.judul.toLowerCase().includes(searchQuery.toLowerCase())
+        item.judul.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [data, filterType, searchQuery]);
+  }, [data, filterType, searchTerm]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const visibleData = filteredData.slice(
@@ -84,6 +85,9 @@ export default function DaftarProyekPage() {
     setIsEditModalOpen(true);
   };
 
+  // ==================================================================
+  // UI RENDER
+  // ==================================================================
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -93,13 +97,17 @@ export default function DaftarProyekPage() {
       />
 
       <main
-        className={`pt-0 px-8 pb-10 transition-all duration-300 ${
+        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
           isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
         } mt-[85px]`}
       >
-        <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-          DAFTAR PROYEK
-        </h1>
+        {/* TITLE */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-black uppercase">Daftar Proyek</h1>
+          <p className="text-gray-600 text-sm">
+            Kelola semua proyek produksi PSTeam.
+          </p>
+        </div>
 
         {/* Loading State */}
         {loading && (
@@ -108,16 +116,52 @@ export default function DaftarProyekPage() {
 
         {!loading && (
           <>
-            {/* TOP CONTROL */}
-            <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
-              <div className="relative inline-block">
+            {/* ===========================================================
+                          SEARCH & FILTER (mengikuti verifikasi)
+            ============================================================ */}
+            <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
+
+              {/* Search */}
+              <div className="relative flex items-center h-10">
+                {!isSearchOpen && (
+                  <button
+                    onClick={() => {
+                      setIsSearchOpen(true);
+                      setTimeout(() => {
+                        document.getElementById("searchProject")?.focus();
+                      }, 50);
+                    }}
+                    className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-md absolute left-0"
+                  >
+                    <Search size={18} />
+                  </button>
+                )}
+
+                <input
+                  id="searchProject"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onBlur={() => {
+                    if (searchTerm.trim() === "") setIsSearchOpen(false);
+                  }}
+                  placeholder="Cari proyek..."
+                  className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${
+                    isSearchOpen
+                      ? "w-56 pl-10 pr-3 opacity-100"
+                      : "w-10 opacity-0 pointer-events-none"
+                  }`}
+                />
+              </div>
+
+              {/* Filter Type */}
+              <div className="relative">
                 <select
                   value={filterType}
                   onChange={(e) => {
                     setFilterType(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="appearance-none border border-gray-300 rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-700 cursor-pointer"
+                  className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
                 >
                   <option value="Semua">Semua Tipe</option>
                   <option value="Website">Website</option>
@@ -126,51 +170,27 @@ export default function DaftarProyekPage() {
                   <option value="IoT">IoT</option>
                 </select>
 
-                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                  <ChevronDown size={18} className="text-gray-500" />
-                </div>
-              </div>
-
-              <div
-                className={`flex items-center border border-gray-300 rounded-lg bg-white shadow-sm transition-all duration-300 overflow-hidden ${
-                  searchOpen ? "w-64" : "w-11"
-                }`}
-              >
-                {searchOpen && (
-                  <input
-                    type="text"
-                    placeholder="Cari Judul Proyek?"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-grow px-3 py-2.5 focus:outline-none text-sm"
-                  />
-                )}
-
-                <button
-                  onClick={() => setSearchOpen((prev) => !prev)}
-                  className="bg-blue-600 text-white px-3 py-3 hover:bg-blue-700 transition-all"
-                >
-                  <Search size={16} />
-                </button>
+                <ChevronDown
+                  size={16}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
+                />
               </div>
             </div>
 
-            {/* TABLE */}
+            {/* ===========================================================
+                                  TABLE (TIDAK DIUBAH)
+            ============================================================ */}
             <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-300">
               <table className="w-full text-sm text-gray-700 border-collapse">
                 <thead className="bg-gray-300 text-gray-800">
                   <tr>
                     <th className="border border-gray-300 px-4 py-2">NO</th>
                     <th className="border border-gray-300 px-4 py-2">EMAIL</th>
-                    <th className="border border-gray-300 px-4 py-2">
-                      NO TELEPON
-                    </th>
+                    <th className="border border-gray-300 px-4 py-2">NO TELEPON</th>
                     <th className="border border-gray-300 px-4 py-2">JUDUL</th>
                     <th className="border border-gray-300 px-4 py-2">TIPE</th>
                     <th className="border border-gray-300 px-4 py-2">STATUS</th>
-                    <th className="border border-gray-300 px-4 py-2 text-center">
-                      AKSI
-                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-center">AKSI</th>
                   </tr>
                 </thead>
 
@@ -180,15 +200,9 @@ export default function DaftarProyekPage() {
                       <td className="border border-gray-300 px-4 py-2 text-center">
                         {item.no}
                       </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {item.email}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {item.telp}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {item.judul}
-                      </td>
+                      <td className="border border-gray-300 px-4 py-2">{item.email}</td>
+                      <td className="border border-gray-300 px-4 py-2">{item.telp}</td>
+                      <td className="border border-gray-300 px-4 py-2">{item.judul}</td>
                       <td className="border border-gray-300 px-4 py-2 text-center">
                         {item.tipe}
                       </td>
@@ -235,7 +249,7 @@ export default function DaftarProyekPage() {
                 </tbody>
               </table>
 
-              {/* Pagination */}
+              {/* Pagination – tidak disentuh */}
               <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
                 <button
                   onClick={() => {
@@ -277,9 +291,7 @@ export default function DaftarProyekPage() {
                   onClick={() => {
                     if (currentPage < totalPages) {
                       const newGroup = Math.floor(currentPage / 3);
-                      setCurrentPage((prev) =>
-                        Math.min(prev + 1, totalPages)
-                      );
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
                       setPageGroup(newGroup);
                     }
                   }}

@@ -1,13 +1,13 @@
-// admin/components/CommunityServiceTable.tsx
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
   Search,
   Plus,
   Users,
+  ChevronLeft,
+  ChevronRight,
   Edit,
   Trash2,
 } from "lucide-react";
@@ -17,9 +17,9 @@ import AdminSidebar from "./AdminSidebar";
 import AddCommunityServiceCard from "./AddCommunityServiceCard";
 import EditCommunityServiceCard from "./EditCommunityServiceCard";
 
-/* =========================
+/* ---------------------------
    Types
-   ========================= */
+----------------------------*/
 type CommunityServiceItem = {
   id: number;
   title: string;
@@ -38,13 +38,21 @@ type Lecturer = {
   communityService: CommunityServiceItem[];
 };
 
-/* =========================
+/* ---------------------------
+   Button Style Constants
+----------------------------*/
+const BTN =
+  "inline-flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium shadow-sm";
+const BTN_PRIMARY = BTN + " bg-blue-600 hover:bg-blue-700 text-white";
+const BTN_OUTLINE =
+  BTN + " border bg-white border-gray-300 hover:bg-gray-100 text-gray-700";
+
+/* ---------------------------
    Component
-   ========================= */
+----------------------------*/
 export default function CommunityServiceTable() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // === sample data
   const [lecturers, setLecturers] = useState<Lecturer[]>([
     {
       id: 1,
@@ -56,11 +64,26 @@ export default function CommunityServiceTable() {
       specialization: "Software Development",
       imageUrl: "/dosen/swono_sibagariang.png",
       communityService: [
-        { id: 1, title: "Pembangunan dan Penerapan Aplikasi POS Berbasis Website Pada UMKM Angkringan OmahMU Batam Center", year: 2025 },
-        { id: 2, title: "Pengembangan Media Microlearning berbasis mobile di SMAIT Ulil Albab Batam", year: 2024 },
-        { id: 3, title: "Website Promosi Kelompok Nelayan Batu Besar Batam", year: 2023 },
+        {
+          id: 1,
+          title:
+            "Pembangunan dan Penerapan Aplikasi POS Berbasis Website Pada UMKM Angkringan OmahMU Batam Center",
+          year: 2025,
+        },
+        {
+          id: 2,
+          title:
+            "Pengembangan Media Microlearning berbasis mobile di SMAIT Ulil Albab Batam",
+          year: 2024,
+        },
+        {
+          id: 3,
+          title: "Website Promosi Kelompok Nelayan Batu Besar Batam",
+          year: 2023,
+        },
       ],
     },
+
     {
       id: 2,
       name: "Dr. Ari Wibowo, S.T., M.T.",
@@ -71,121 +94,161 @@ export default function CommunityServiceTable() {
       specialization: "AI, Computer Vision, Autonomous System",
       imageUrl: "/dosen/ari_wibowo.png",
       communityService: [
-        { id: 1, title: "Peningkatan Pelaporan Kerusakan Fasilitas Publik Aplikasi BALAP-IN Kota Batam", year: 2025 },
-        { id: 2, title: "Rancang Bangun Kerangka Tanaman Hidroponik Polibatam", year: 2021 },
+        {
+          id: 1,
+          title:
+            "Peningkatan Pelaporan Kerusakan Fasilitas Publik Aplikasi BALAP-IN Kota Batam",
+          year: 2025,
+        },
+        {
+          id: 2,
+          title: "Rancang Bangun Kerangka Tanaman Hidroponik Polibatam",
+          year: 2021,
+        },
       ],
     },
   ]);
 
-  /* UI states */
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [perPage, setPerPage] = useState<number>(10);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  /* ---------------------------
+     UI STATE
+  ----------------------------*/
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  // modal states
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [perPage, setPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Modals
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [addInitialLecturerName, setAddInitialLecturerName] = useState<string | undefined>(undefined);
+  const [initialLecturer, setInitialLecturer] = useState<string | null>(null);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editPayload, setEditPayload] = useState<{ lecId: number; item: CommunityServiceItem; lecturer_name: string } | null>(null);
+  const [editPayload, setEditPayload] =
+    useState<{ lecId: number; item: CommunityServiceItem; lecturer_name: string } | null>(
+      null
+    );
 
-  /* === suggestions for search (dosen) */
-  const suggestions = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [];
-    return lecturers.filter((l) => l.name.toLowerCase().includes(q) || l.program.toLowerCase().includes(q));
-  }, [lecturers, searchQuery]);
-
-  /* === filtered lecturers based on global search */
+  /* ---------------------------
+     FILTER LECTURER
+  ----------------------------*/
   const filteredLecturers = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return lecturers;
-    return lecturers.filter((l) => l.name.toLowerCase().includes(q) || l.program.toLowerCase().includes(q));
-  }, [lecturers, searchQuery]);
+    if (!searchQuery.trim()) return lecturers;
+
+    const q = searchQuery.toLowerCase();
+    return lecturers.filter(
+      (l) =>
+        l.name.toLowerCase().includes(q) ||
+        l.program.toLowerCase().includes(q)
+    );
+  }, [searchQuery, lecturers]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLecturers.length / perPage));
-
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(1);
   }, [totalPages, currentPage]);
 
-  const paginated = filteredLecturers.slice((currentPage - 1) * perPage, currentPage * perPage);
+  const paginated = filteredLecturers.slice(
+    (currentPage - 1) * perPage,
+    currentPage * perPage
+  );
 
-  function toggleExpand(id: number) {
-    setExpandedId((prev) => (prev === id ? null : id));
-  }
-
-  /* =====================
-     CRUD Handlers
-     ===================== */
-  function addCommunityServiceToLecturer(lecturerName: string, newItem: Omit<CommunityServiceItem, "id">) {
+  /* ---------------------------
+     ADD / UPDATE / DELETE
+  ----------------------------*/
+  function addCommunity(name: string, item: Omit<CommunityServiceItem, "id">) {
     setLecturers((prev) =>
-      prev.map((l) =>
-        l.name === lecturerName
+      prev.map((lec) =>
+        lec.name === name
           ? {
-              ...l,
+              ...lec,
               communityService: [
-                { id: (l.communityService.length ? Math.max(...l.communityService.map((p) => p.id)) : 0) + 1, ...newItem },
-                ...l.communityService,
+                {
+                  id: lec.communityService.length
+                    ? Math.max(...lec.communityService.map((s) => s.id)) + 1
+                    : 1,
+                  ...item,
+                },
+                ...lec.communityService,
               ],
             }
-          : l
+          : lec
       )
     );
   }
 
-  function updateCommunityService(lecId: number, updated: CommunityServiceItem) {
+  function updateCommunity(lecId: number, item: CommunityServiceItem) {
     setLecturers((prev) =>
-      prev.map((l) =>
-        l.id === lecId
-          ? { ...l, communityService: l.communityService.map((p) => (p.id === updated.id ? updated : p)) }
-          : l
+      prev.map((lec) =>
+        lec.id === lecId
+          ? {
+              ...lec,
+              communityService: lec.communityService.map((r) =>
+                r.id === item.id ? item : r
+              ),
+            }
+          : lec
       )
     );
   }
 
-  function deleteCommunityService(lecId: number, id: number) {
-    if (!confirm("Yakin ingin menghapus data pengabdian ini?")) return;
+  function deleteCommunity(lecId: number, cid: number) {
+    if (!confirm("Hapus pengabdian ini?")) return;
+
     setLecturers((prev) =>
-      prev.map((l) =>
-        l.id === lecId ? { ...l, communityService: l.communityService.filter((p) => p.id !== id) } : l
+      prev.map((lec) =>
+        lec.id === lecId
+          ? {
+              ...lec,
+              communityService: lec.communityService.filter((s) => s.id !== cid),
+            }
+          : lec
       )
     );
   }
 
-  /* =====================
-     Subcomponent: Community list
-     ===================== */
+  /* ---------------------------
+     Lecturer Community List
+  ----------------------------*/
   function LecturerCommunityList({ lecturer }: { lecturer: Lecturer }) {
     const [filterYear, setFilterYear] = useState<string>("");
     const [page, setPage] = useState(1);
+
     const per = 10;
 
-    const years = [...new Set(lecturer.communityService.map((s) => s.year))].sort((a, b) => b - a);
+    const yearOptions = useMemo(
+      () => [...new Set(lecturer.communityService.map((s) => s.year))].sort((a, b) => b - a),
+      [lecturer]
+    );
 
-    const filtered = filterYear
-      ? lecturer.communityService.filter((s) => s.year === Number(filterYear))
-      : lecturer.communityService;
+    const filtered = useMemo(() => {
+      if (!filterYear) return lecturer.communityService;
+      return lecturer.communityService.filter((s) => s.year === Number(filterYear));
+    }, [filterYear, lecturer]);
 
-    const total = Math.max(1, Math.ceil(filtered.length / per));
     const visible = filtered.slice((page - 1) * per, page * per);
+    const totalPage = Math.max(1, Math.ceil(filtered.length / per));
 
     useEffect(() => setPage(1), [filterYear, lecturer.id]);
 
     return (
       <div className="mt-4">
-        <div className="flex items-start justify-between">
-          <h4 className="text-lg font-semibold">Publikasi Pengabdian ({lecturer.communityService.length})</h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-semibold text-gray-800">
+            Daftar Pengabdian ({filtered.length})
+          </h4>
 
           <select
             value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-            className="px-3 py-2 rounded border bg-white text-sm"
+            onChange={(e) => {
+              setFilterYear(e.target.value);
+              setPage(1);
+            }}
+            className="px-6 py-2 border border-[#DDE1E5] rounded bg-white text-sm"
           >
             <option value="">Semua Tahun</option>
-            {years.map((y) => (
+            {yearOptions.map((y) => (
               <option key={y} value={String(y)}>
                 {y}
               </option>
@@ -193,35 +256,45 @@ export default function CommunityServiceTable() {
           </select>
         </div>
 
-        {/* TABEL LIST PENGABDIAN */}
-        <div className="overflow-x-auto bg-white rounded-md border border-[#DDE1E5] mt-3">
-          <table className="w-full text-sm border-collapse">
+        <div className="overflow-x-auto bg-white rounded-md border border-[#DDE1E5]">
+          <table className="w-full text-sm border-collapse border border-[#DDE1E5]">
             <thead className="bg-blue-50">
               <tr>
                 <th className="px-4 py-3 border border-[#DDE1E5]">No</th>
                 <th className="px-4 py-3 border border-[#DDE1E5]">Judul</th>
-                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-24">Tahun</th>
-                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-36">Aksi</th>
+                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-24">
+                  Tahun
+                </th>
+                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-36">
+                  Aksi
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {visible.length ? (
-                visible.map((it, idx) => (
-                  <tr key={it.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 border border-[#DDE1E5] text-center">
+                visible.map((s, idx) => (
+                  <tr key={s.id} className="hover:bg-gray-50">
+                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
                       {(page - 1) * per + idx + 1}
                     </td>
-                    <td className="px-4 py-3 border border-[#DDE1E5]">{it.title}</td>
-                    <td className="px-4 py-3 border border-[#DDE1E5] text-center">{it.year}</td>
-                    <td className="px-4 py-3 border border-[#DDE1E5] text-center">
-                      <div className="flex items-center justify-center gap-2">
+
+                    <td className="border border-[#DDE1E5] px-4 py-3">
+                      {s.title}
+                    </td>
+
+                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
+                      {s.year}
+                    </td>
+
+                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
+                      <div className="flex justify-center gap-2">
                         <button
-                          className="inline-flex items-center gap-2 px-3 py-1 rounded bg-yellow-400 text-white text-sm"
+                          className="bg-yellow-400 text-white px-3 py-1 rounded text-sm inline-flex items-center gap-2"
                           onClick={() => {
                             setEditPayload({
                               lecId: lecturer.id,
-                              item: it,
+                              item: s,
                               lecturer_name: lecturer.name,
                             });
                             setIsEditOpen(true);
@@ -231,8 +304,8 @@ export default function CommunityServiceTable() {
                         </button>
 
                         <button
-                          className="inline-flex items-center gap-2 px-3 py-1 rounded bg-red-500 text-white text-sm"
-                          onClick={() => deleteCommunityService(lecturer.id, it.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm inline-flex items-center gap-2"
+                          onClick={() => deleteCommunity(lecturer.id, s.id)}
                         >
                           <Trash2 size={14} /> Hapus
                         </button>
@@ -242,8 +315,11 @@ export default function CommunityServiceTable() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="p-6 text-center text-gray-500">
-                    Belum ada pengabdian.
+                  <td
+                    colSpan={4}
+                    className="text-center py-6 text-gray-500 border border-[#DDE1E5]"
+                  >
+                    Tidak ada pengabdian.
                   </td>
                 </tr>
               )}
@@ -251,24 +327,23 @@ export default function CommunityServiceTable() {
           </table>
         </div>
 
-        {/* pagination */}
-        <div className="flex items-center justify-end gap-2 mt-3">
+        <div className="flex items-center justify-end gap-2 mt-2">
           <button
             disabled={page === 1}
+            className="px-3 py-1 border border-[#DDE1E5] rounded bg-white hover:bg-gray-100"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="px-3 py-1 rounded border border-[#DDE1E5] bg-white hover:bg-gray-50"
           >
             <ChevronLeft size={16} />
           </button>
 
-          <div className="text-sm px-2">
-            Halaman {page} / {total}
-          </div>
+          <span className="text-sm">
+            Halaman {page} / {totalPage}
+          </span>
 
           <button
-            disabled={page === total}
-            onClick={() => setPage((p) => Math.min(total, p + 1))}
-            className="px-3 py-1 rounded border border-[#DDE1E5] bg-white hover:bg-gray-50"
+            disabled={page === totalPage}
+            className="px-3 py-1 border border-[#DDE1E5] rounded bg-white hover:bg-gray-100"
+            onClick={() => setPage((p) => Math.min(totalPage, p + 1))}
           >
             <ChevronRight size={16} />
           </button>
@@ -277,278 +352,363 @@ export default function CommunityServiceTable() {
     );
   }
 
-  /* =====================
-     MAIN TABLE
-     ===================== */
+  /* ---------------------------
+     MAIN RENDER
+  ----------------------------*/
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f5f7fb]">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <main
-        className={`transition-all duration-300 pt-6 px-8 pb-10 ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[85px]`}
-      >
-        <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-          DAFTAR PENGABDIAN MASYARAKAT
-        </h1>
+      <div className="flex flex-1">
+        <AdminSidebar
+          isOpen={isSidebarOpen}
+          toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
 
-        {/* controls */}
-        <div className="flex items-center justify-end gap-3 mb-4 flex-wrap">
-          <button
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white"
-            onClick={() => {
-              setAddInitialLecturerName(undefined);
-              setIsAddOpen(true);
-            }}
-          >
-            <Plus size={16} /> Tambah Pengabdian
-          </button>
+        <main
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
+            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          }`}
+        >
+          {/* TITLE */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-black uppercase">
+              Daftar Pengabdian Masyarakat
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Kelola daftar publikasi pengabdian masyarakat dosen PSTeam.
+            </p>
+          </div>
 
-          <select
-            value={perPage}
-            onChange={(e) => {
-              setPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="px-6 py-2 border border-[#DDE1E5] rounded-lg bg-white text-black"
-          >
-            {[10, 20, 30, 40, 50].map((n) => (
-              <option key={n} value={n}>
-                {n} Halaman
-              </option>
-            ))}
-          </select>
+          {/* SEARCH & FILTER */}
+          <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
+            {/* Search */}
+            <div className="relative flex items-center h-10">
+              {!searchOpen && (
+                <button
+                  onClick={() => {
+                    setSearchOpen(true);
+                    setTimeout(() => {
+                      document.getElementById("searchInput")?.focus();
+                    }, 50);
+                  }}
+                  className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-md absolute left-0"
+                >
+                  <Search size={18} />
+                </button>
+              )}
 
-          {/* Search Bar */}
-          <div
-            className={`relative flex items-center border border-[#DDE1E5] rounded-lg bg-white shadow-sm transition-all duration-300 overflow-hidden ${
-              searchOpen ? "w-72" : "w-11"
-            }`}
-          >
-            {searchOpen && (
               <input
+                id="searchInput"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="flex-grow px-3 py-2 text-sm text-gray-900"
-                placeholder="Cari nama dosen / prodi..."
+                onBlur={() => {
+                  if (searchQuery.trim() === "") setSearchOpen(false);
+                }}
+                placeholder="Cari nama / prodi..."
+                className={`transition-all duration-300 border border-[#DDE1E5] bg-white 
+                  rounded-md shadow-sm text-sm h-10
+                  ${
+                    searchOpen
+                      ? "w-56 pl-10 pr-3 opacity-100"
+                      : "w-10 opacity-0 pointer-events-none"
+                  }`}
               />
-            )}
+            </div>
 
-            <button
-              onClick={() => setSearchOpen((s) => !s)}
-              className="bg-blue-600 text-white px-3 py-3"
-            >
-              <Search size={16} />
-            </button>
-
-            {/* suggestions */}
-            {searchOpen && suggestions.length > 0 && searchQuery.trim() && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-[#DDE1E5] rounded shadow z-50 max-h-56 overflow-auto">
-                {suggestions.map((s) => (
-                  <div
-                    key={s.id}
-                    onClick={() => {
-                      setSearchQuery(s.name);
-                      setCurrentPage(1);
-                    }}
-                    className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  >
-                    <div className="font-medium text-gray-900">{s.name}</div>
-                    <div className="text-xs text-gray-500">— {s.program}</div>
-                  </div>
+            {/* ITEMS PER PAGE */}
+            <div className="relative">
+              <select
+                value={perPage}
+                onChange={(e) => {
+                  setPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-[#DDE1E5] bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
+              >
+                {[5, 10, 20, 30].map((n) => (
+                  <option key={n} value={n}>
+                    {n} Halaman
+                  </option>
                 ))}
-              </div>
-            )}
+              </select>
+
+              <ChevronDown
+                size={16}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
+              />
+            </div>
+
+            {/* ADD COMMUNITY */}
+            <button
+              onClick={() => {
+                setInitialLecturer(null);
+                setIsAddOpen(true);
+              }}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 shadow"
+            >
+              <Plus size={18} /> Tambah Pengabdian
+            </button>
           </div>
-        </div>
 
-        {/* ==========================
-            TABLE UTAMA DOSEN
-        ========================== */}
-        <div className="bg-white shadow-md rounded-lg border border-[#DDE1E5] overflow-visible">
-          <table className="w-full text-sm text-gray-800 border-collapse border border-[#DDE1E5]">
-            <thead className="bg-blue-50 text-gray-800">
-              <tr>
-                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-14">NO</th>
-                <th className="px-4 py-3 border border-[#DDE1E5]">NAMA DOSEN</th>
-                <th className="px-4 py-3 border border-[#DDE1E5]">PROGRAM STUDI</th>
-                <th className="px-4 py-3 border border-[#DDE1E5]">PENDIDIKAN</th>
-                <th className="px-4 py-3 border border-[#DDE1E5]">EMAIL</th>
-                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-48">AKSI</th>
-              </tr>
-            </thead>
+          {/* TABLE (LECTURER LIST) */}
+          <div className="bg-white border border-[#DDE1E5] rounded-lg shadow">
+            <table className="w-full border-collapse text-sm text-gray-700 border border-[#DDE1E5]">
+              <thead className="bg-blue-50">
+                <tr>
+                  <th className="border border-[#DDE1E5] px-4 py-3 text-center w-14">
+                    No
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">
+                    Nama Dosen
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">
+                    Program Studi
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">
+                    Pendidikan
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">
+                    Email
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3 text-center w-48">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {paginated.map((lec, idx) => (
-                <React.Fragment key={lec.id}>
-                  <tr className="hover:bg-gray-50">
-                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
-                      {(currentPage - 1) * perPage + idx + 1}
-                    </td>
+              <tbody>
+                {paginated.map((lec, idx) => (
+                  <React.Fragment key={lec.id}>
+                    <tr className="hover:bg-gray-50">
+                      <td className="border border-[#DDE1E5] px-4 py-3 text-center">
+                        {(currentPage - 1) * perPage + idx + 1}
+                      </td>
 
-                    <td className="border border-[#DDE1E5] px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={lec.imageUrl}
-                          alt={lec.name}
-                          className="w-10 h-10 rounded-full border border-[#DDE1E5] object-cover"
-                        />
-                        <div>
-                          <div className="font-semibold text-gray-900">{lec.name}</div>
-                          <div className="text-xs text-gray-500">{lec.position}</div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="border border-[#DDE1E5] px-4 py-3">{lec.program}</td>
-                    <td className="border border-[#DDE1E5] px-4 py-3">{lec.educationLevel}</td>
-                    <td className="border border-[#DDE1E5] px-4 py-3">{lec.email}</td>
-
-                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          className="inline-flex items-center gap-2 px-3 py-1 rounded bg-sky-100 text-sky-700"
-                          onClick={() => toggleExpand(lec.id)}
-                        >
-                          <Users size={14} /> {expandedId === lec.id ? "Tutup" : "Detail"}
-                        </button>
-
-                        <button
-                          className="inline-flex items-center gap-2 px-3 py-1 rounded bg-blue-600 text-white"
-                          onClick={() => {
-                            setAddInitialLecturerName(lec.name);
-                            setIsAddOpen(true);
-                          }}
-                        >
-                          <Plus size={14} /> Tambah Pengabdian
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {/* ======== DETAIL ROW ========= */}
-                  {expandedId === lec.id && (
-                    <tr>
-                      <td colSpan={6} className="border border-[#DDE1E5] bg-gray-50 p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {/* Profile */}
-                          <div className="flex items-start gap-4">
-                            <img
-                              src={lec.imageUrl}
-                              alt={lec.name}
-                              className="w-36 h-36 rounded-full border-4 border-blue-100 object-cover"
-                            />
-
-                            <div>
-                              <h3 className="text-xl font-semibold text-gray-800">{lec.name}</h3>
-                              <p className="text-sm text-gray-600">{lec.position}</p>
-
-                              <div className="text-sm text-gray-700 mt-3 space-y-1">
-                                <p><b>Program Studi:</b> {lec.program}</p>
-                                <p><b>Pendidikan Terakhir:</b> {lec.educationLevel}</p>
-                                <p><b>Email:</b> {lec.email}</p>
-                                <p><b>Bidang Spesialis:</b> {lec.specialization}</p>
-                              </div>
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={lec.imageUrl}
+                            alt={lec.name}
+                            className="w-10 h-10 rounded-full border border-[#DDE1E5] object-cover"
+                          />
+                          <div>
+                            <div className="font-semibold">{lec.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {lec.position}
                             </div>
-                          </div>
-
-                          {/* Right side — list */}
-                          <div className="md:col-span-2">
-                            <LecturerCommunityList lecturer={lec} />
                           </div>
                         </div>
                       </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
 
-          {/* footer */}
-          <div className="py-3 px-4 flex items-center justify-between text-sm text-gray-600">
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        {lec.program}
+                      </td>
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        {lec.educationLevel}
+                      </td>
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        {lec.email}
+                      </td>
+
+                      <td className="border border-[#DDE1E5] px-4 py-3 text-center">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            className={
+                              BTN_OUTLINE +
+                              " bg-sky-100 text-sky-700"
+                            }
+                            onClick={() =>
+                              setExpandedId(
+                                expandedId === lec.id ? null : lec.id
+                              )
+                            }
+                          >
+                            <Users size={14} />{" "}
+                            {expandedId === lec.id ? "Tutup" : "Detail"}{" "}
+                            <ChevronDown
+                              size={14}
+                              className={
+                                expandedId === lec.id ? "rotate-180" : ""
+                              }
+                            />
+                          </button>
+
+                          <button
+                            className={BTN_PRIMARY}
+                            onClick={() => {
+                              setInitialLecturer(lec.name);
+                              setIsAddOpen(true);
+                            }}
+                          >
+                            <Plus size={14} /> Tambah Pengabdian
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {expandedId === lec.id && (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="border border-[#DDE1E5] bg-gray-50 p-6"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* PROFILE */}
+                            <div className="flex items-start gap-4">
+                              <img
+                                src={lec.imageUrl}
+                                alt={lec.name}
+                                className="w-36 h-36 rounded-full border-4 border-blue-100 object-cover"
+                              />
+                              <div>
+                                <h3 className="text-xl font-semibold">
+                                  {lec.name}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {lec.position}
+                                </p>
+
+                                <div className="text-sm text-gray-700 mt-2 space-y-1">
+                                  <p>
+                                    <b>Program Studi:</b> {lec.program}
+                                  </p>
+                                  <p>
+                                    <b>Pendidikan Terakhir:</b>{" "}
+                                    {lec.educationLevel}
+                                  </p>
+                                  <p>
+                                    <b>Email:</b>{" "}
+                                    <span className="text-gray-800">
+                                      {lec.email}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <b>Spesialis:</b> {lec.specialization}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* COMMUNITY SERVICE LIST */}
+                            <div className="md:col-span-2">
+                              <LecturerCommunityList lecturer={lec} />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* PAGINATION BAWAH */}
+          <div className="flex justify-between items-center mt-4 text-sm text-gray-700">
             <div>
               Menampilkan{" "}
-              {filteredLecturers.length === 0 ? 0 : (currentPage - 1) * perPage + 1} -{" "}
-              {Math.min(currentPage * perPage, filteredLecturers.length)} dari{" "}
-              {filteredLecturers.length}
+              {filteredLecturers.length === 0
+                ? 0
+                : (currentPage - 1) * perPage + 1}{" "}
+              -{" "}
+              {Math.min(
+                currentPage * perPage,
+                filteredLecturers.length
+              )}{" "}
+              dari {filteredLecturers.length}
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-2 border border-[#DDE1E5] rounded bg-white hover:bg-gray-50"
+                onClick={() =>
+                  setCurrentPage((p) => Math.max(1, p - 1))
+                }
+                className="px-3 py-2 border border-[#DDE1E5] rounded bg-white"
               >
                 &lt;
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setCurrentPage(p)}
-                  className={`px-3 py-2 rounded border border-[#DDE1E5] ${
-                    currentPage === p ? "bg-blue-600 text-white" : "bg-white"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (p) => (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`px-3 py-2 rounded border border-[#DDE1E5] ${
+                      currentPage === p
+                        ? "bg-blue-600 text-white"
+                        : "bg-white"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
 
               <button
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-2 rounded border border-[#DDE1E5] bg-white hover:bg-gray-50"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                className="px-3 py-2 border border-[#DDE1E5] rounded bg-white"
               >
                 &gt;
               </button>
             </div>
           </div>
-        </div>
+        </main>
+      </div>
 
-        {/* Modals */}
-        <AddCommunityServiceCard
-          isOpen={isAddOpen}
-          onClose={() => {
-            setIsAddOpen(false);
-            setAddInitialLecturerName(undefined);
-          }}
-          initialLecturerName={addInitialLecturerName}
-          lecturers={lecturers}
-          onSubmit={(payload: { lecturer_name: string; title: string; year: number }) => {
-            const found = lecturers.find((l) => l.name === payload.lecturer_name);
-            if (!found) {
-              alert("Nama dosen tidak ditemukan.");
-              return;
-            }
-            addCommunityServiceToLecturer(payload.lecturer_name, {
-              title: payload.title,
-              year: payload.year,
-            });
-          }}
-        />
+      {/* MODALS */}
+      <AddCommunityServiceCard
+        isOpen={isAddOpen}
+        onClose={() => {
+          setIsAddOpen(false);
+          setInitialLecturer(null);
+        }}
+        lecturers={lecturers}
+        initialLecturerName={initialLecturer || undefined}
+        onSubmit={(payload: {
+          lecturer_name: string;
+          title: string;
+          year: number;
+        }) => {
+          const found = lecturers.find(
+            (l) => l.name === payload.lecturer_name
+          );
+          if (!found) {
+            alert("Nama dosen tidak ditemukan.");
+            return;
+          }
+          addCommunity(payload.lecturer_name, {
+            title: payload.title,
+            year: payload.year,
+          });
+          setIsAddOpen(false);
+        }}
+      />
 
-        <EditCommunityServiceCard
-          isOpen={isEditOpen}
-          onClose={() => {
-            setIsEditOpen(false);
-            setEditPayload(null);
-          }}
-          defaultData={editPayload}
-          onSubmit={(payload: { lecId: number; item: CommunityServiceItem }) => {
-            if (!payload || !payload.item) {
-              alert("Data tidak valid.");
-              return;
-            }
-            updateCommunityService(payload.lecId, payload.item);
-          }}
-        />
-      </main>
+      <EditCommunityServiceCard
+        isOpen={isEditOpen}
+        onClose={() => {
+          setIsEditOpen(false);
+          setEditPayload(null);
+        }}
+        defaultData={editPayload}
+        onSubmit={(payload: {
+          lecId: number;
+          item: CommunityServiceItem;
+        }) => {
+          if (!payload) return;
+          updateCommunity(payload.lecId, payload.item);
+          setIsEditOpen(false);
+          setEditPayload(null);
+        }}
+      />
     </div>
   );
 }

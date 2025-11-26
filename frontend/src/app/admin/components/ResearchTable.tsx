@@ -1,4 +1,3 @@
-// admin/components/ResearchTable.tsx
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
@@ -40,14 +39,13 @@ type Lecturer = {
 };
 
 /* ---------------------------
-   Button style constants
+   Button Style Constants
 ----------------------------*/
 const BTN =
   "inline-flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium shadow-sm";
 const BTN_PRIMARY = BTN + " bg-blue-600 hover:bg-blue-700 text-white";
 const BTN_OUTLINE =
   BTN + " border bg-white border-gray-300 hover:bg-gray-100 text-gray-700";
-const BTN_DANGER = BTN + " bg-red-500 hover:bg-red-600 text-white";
 
 /* ---------------------------
    Component
@@ -55,7 +53,7 @@ const BTN_DANGER = BTN + " bg-red-500 hover:bg-red-600 text-white";
 export default function ResearchTable() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // DATA LECTURER (dari user)
+  // Dummy data
   const [lecturers, setLecturers] = useState<Lecturer[]>([
     {
       id: 1,
@@ -85,24 +83,6 @@ export default function ResearchTable() {
             "Rancang Bangun Aplikasi Pembukuan Laporan Keuangan Menggunakan Teknologi Web Service",
           year: 2023,
         },
-        {
-          id: 4,
-          title:
-            "Rancang Bangun Aplikasi SIOMAH (Sistem Informasi Organisasi Mahasiswa) Politeknik Negeri Batam",
-          year: 2021,
-        },
-        {
-          id: 5,
-          title:
-            "Usability Testing Situs Web Politeknik Negeri Batam Menggunakan Metode Eye Tracking",
-          year: 2020,
-        },
-        {
-          id: 6,
-          title:
-            "SISTEM INFORMASI PENGGAJIAN DOSEN HONORER BERBASIS DEKSTOP DI UNIVERSITAS SARI MUTIARA INDONESIA",
-          year: 2019,
-        },
       ],
     },
 
@@ -123,18 +103,6 @@ export default function ResearchTable() {
             "Pengembangan Sistem Otonomi dengan Menggunakan Kecerdasan Artificial untuk Trem",
           year: 2023,
         },
-        {
-          id: 3,
-          title:
-            "Interactive Visualization Approach to Support Exploratory Data Analysis: Illustration in Research Topic Distribution",
-          year: 2017,
-        },
-        {
-          id: 4,
-          title:
-            "Pengembangan Program untuk Menyelesaikan Problem Gaussian Elimination Menggunakan Posix Thread Openmp dan Itel Tbb",
-          year: 2013,
-        },
       ],
     },
   ]);
@@ -149,7 +117,7 @@ export default function ResearchTable() {
   const [perPage, setPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // MODALS
+  // Modal states
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [initialLecturer, setInitialLecturer] = useState<string | null>(null);
 
@@ -168,7 +136,8 @@ export default function ResearchTable() {
     const q = searchQuery.toLowerCase();
     return lecturers.filter(
       (l) =>
-        l.name.toLowerCase().includes(q) || l.program.toLowerCase().includes(q)
+        l.name.toLowerCase().includes(q) ||
+        l.program.toLowerCase().includes(q)
     );
   }, [searchQuery, lecturers]);
 
@@ -183,7 +152,7 @@ export default function ResearchTable() {
   );
 
   /* ---------------------------
-     EDIT/DELETE HANDLERS
+     EDIT / DELETE LOGIC
   ----------------------------*/
   function addResearchToLecturer(name: string, item: Omit<ResearchItem, "id">) {
     setLecturers((prev) =>
@@ -212,7 +181,9 @@ export default function ResearchTable() {
         lec.id === lecId
           ? {
               ...lec,
-              research: lec.research.map((r) => (r.id === item.id ? item : r)),
+              research: lec.research.map((r) =>
+                r.id === item.id ? item : r
+              ),
             }
           : lec
       )
@@ -224,22 +195,29 @@ export default function ResearchTable() {
 
     setLecturers((prev) =>
       prev.map((lec) =>
-        lec.id === lecId ? { ...lec, research: lec.research.filter((r) => r.id !== rid) } : lec
+        lec.id === lecId
+          ? {
+              ...lec,
+              research: lec.research.filter((r) => r.id !== rid),
+            }
+          : lec
       )
     );
   }
 
   /* ---------------------------
-     Lecturer Research List (subcomponent)
+     Lecturer Research List
   ----------------------------*/
   function LecturerResearchList({ lecturer }: { lecturer: Lecturer }) {
     const [filterYear, setFilterYear] = useState<string>("");
     const [page, setPage] = useState(1);
+
     const per = 10;
 
-    const yearOptions = useMemo(() => {
-      return [...new Set(lecturer.research.map((r) => r.year))].sort((a, b) => b - a);
-    }, [lecturer]);
+    const yearOptions = useMemo(
+      () => [...new Set(lecturer.research.map((r) => r.year))].sort((a, b) => b - a),
+      [lecturer]
+    );
 
     const filtered = useMemo(() => {
       if (!filterYear) return lecturer.research;
@@ -253,7 +231,6 @@ export default function ResearchTable() {
 
     return (
       <div className="mt-4">
-        {/* HEADER + FILTER TAHUN */}
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-lg font-semibold text-gray-800">
             Daftar Penelitian ({filtered.length})
@@ -276,15 +253,18 @@ export default function ResearchTable() {
           </select>
         </div>
 
-        {/* TABLE */}
         <div className="overflow-x-auto bg-white rounded-md border border-[#DDE1E5]">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-sm border-collapse border border-[#DDE1E5]">
             <thead className="bg-blue-50">
               <tr>
                 <th className="px-4 py-3 border border-[#DDE1E5]">No</th>
                 <th className="px-4 py-3 border border-[#DDE1E5]">Judul</th>
-                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-24">Tahun</th>
-                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-36">Aksi</th>
+                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-24">
+                  Tahun
+                </th>
+                <th className="px-4 py-3 border border-[#DDE1E5] text-center w-36">
+                  Aksi
+                </th>
               </tr>
             </thead>
 
@@ -296,17 +276,25 @@ export default function ResearchTable() {
                       {(page - 1) * per + idx + 1}
                     </td>
 
-                    <td className="border border-[#DDE1E5] px-4 py-3">{r.title}</td>
+                    <td className="border border-[#DDE1E5] px-4 py-3">
+                      {r.title}
+                    </td>
 
-                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">{r.year}</td>
+                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
+                      {r.year}
+                    </td>
 
                     <td className="border border-[#DDE1E5] px-4 py-3 text-center">
                       <div className="flex justify-center gap-2">
                         <button
                           className="bg-yellow-400 text-white px-3 py-1 rounded text-sm inline-flex items-center gap-2"
                           onClick={() => {
-                            setEditPayload({ lecId: lecturer.id, item: r, lecturer_name: lecturer.name });
-                            setIsEditOpen(true); // penting: buka modal edit
+                            setEditPayload({
+                              lecId: lecturer.id,
+                              item: r,
+                              lecturer_name: lecturer.name,
+                            });
+                            setIsEditOpen(true);
                           }}
                         >
                           <Edit size={14} /> Edit
@@ -324,7 +312,10 @@ export default function ResearchTable() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="text-center py-6 text-gray-500 border border-[#DDE1E5]">
+                  <td
+                    colSpan={4}
+                    className="text-center py-6 text-gray-500 border border-[#DDE1E5]"
+                  >
                     Tidak ada karya ilmiah.
                   </td>
                 </tr>
@@ -333,7 +324,6 @@ export default function ResearchTable() {
           </table>
         </div>
 
-        {/* PAGINATION */}
         <div className="flex items-center justify-end gap-2 mt-2">
           <button
             disabled={page === 1}
@@ -343,7 +333,9 @@ export default function ResearchTable() {
             <ChevronLeft size={16} />
           </button>
 
-          <span className="text-sm">Halaman {page} / {totalPage}</span>
+          <span className="text-sm">
+            Halaman {page} / {totalPage}
+          </span>
 
           <button
             disabled={page === totalPage}
@@ -362,168 +354,313 @@ export default function ResearchTable() {
   ----------------------------*/
   return (
     <div className="min-h-screen bg-[#f5f7fb]">
-      <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminNavbar
+        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
 
-      <main className={`transition-all pt-6 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"}`}>
-        <h1 className=" text-4xl font-extrabold text-center mb-8 text-black mt-[95px] tracking-wide">DAFTAR PENELITIAN DOSEN</h1>
+      <div className="flex flex-1">
+        <AdminSidebar
+          isOpen={isSidebarOpen}
+          toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
 
-        {/* controls */}
-        <div className="flex items-center justify-end gap-3 mb-4">
-          <button
-            className={BTN_PRIMARY}
-            onClick={() => {
-              setInitialLecturer(null);
-              setIsAddOpen(true);
-            }}
-          >
-            <Plus size={16} /> Tambah Penelitian
-          </button>
+        <main
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
+            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          }`}
+        >
+          {/* TITLE */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-black uppercase">
+              Daftar Penelitian Dosen
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Kelola daftar publikasi ilmiah dosen PSTeam.
+            </p>
+          </div>
 
-          {/* per-page select */}
-          <select
-            value={perPage}
-            onChange={(e) => {
-              setPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="px-5 py-2 border border-[#DDE1E5] rounded-lg bg-white text-black"
-          >
-            {[5, 10, 20, 30].map((n) => (
-              <option key={n} value={n}>
-                {n} Halaman
-              </option>
-            ))}
-          </select>
+          {/* SEARCH & FILTER */}
+          <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
+            {/* Search */}
+            <div className="relative flex items-center h-10">
+              {!searchOpen && (
+                <button
+                  onClick={() => {
+                    setSearchOpen(true);
+                    setTimeout(() => {
+                      document.getElementById("searchInput")?.focus();
+                    }, 50);
+                  }}
+                  className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-md absolute left-0"
+                >
+                  <Search size={18} />
+                </button>
+              )}
 
-          {/* search */}
-          <div className={`relative flex border border-gray-300 rounded-lg bg-white overflow-hidden shadow-sm transition-all duration-300 ${searchOpen ? "w-72" : "w-11"}`}>
-            {searchOpen && (
               <input
+                id="searchInput"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="flex-grow px-3 py-2 text-sm"
+                onBlur={() => {
+                  if (searchQuery.trim() === "") setSearchOpen(false);
+                }}
                 placeholder="Cari nama / prodi..."
+                className={`transition-all duration-300 border border-[#DDE1E5] bg-white 
+                  rounded-md shadow-sm text-sm h-10
+                  ${
+                    searchOpen
+                      ? "w-56 pl-10 pr-3 opacity-100"
+                      : "w-10 opacity-0 pointer-events-none"
+                  }`}
               />
-            )}
+            </div>
 
-            <button onClick={() => setSearchOpen((p) => !p)} className="px-3 py-3 bg-blue-600 text-white">
-              <Search size={16} />
+            {/* ITEMS PER PAGE */}
+            <div className="relative">
+              <select
+                value={perPage}
+                onChange={(e) => {
+                  setPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-[#DDE1E5] bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
+              >
+                {[5, 10, 20, 30].map((n) => (
+                  <option key={n} value={n}>
+                    {n} Halaman
+                  </option>
+                ))}
+              </select>
+
+              <ChevronDown
+                size={16}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
+              />
+            </div>
+
+            {/* ADD RESEARCH */}
+            <button
+              onClick={() => {
+                setInitialLecturer(null);
+                setIsAddOpen(true);
+              }}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 shadow"
+            >
+              <Plus size={18} /> Tambah Penelitian
             </button>
           </div>
-        </div>
 
-        {/* Table Lecturer */}
-        <div className="bg-white border border-[#DDE1E5] rounded-lg shadow">
-          <table className="w-full border-collapse text-sm text-gray-700">
-            <thead className="bg-blue-50">
-              <tr>
-                <th className="border border-[#DDE1E5] px-4 py-3 text-center w-14">No</th>
-                <th className="border border-[#DDE1E5] px-4 py-3">Nama Dosen</th>
-                <th className="border border-[#DDE1E5] px-4 py-3">Program Studi</th>
-                <th className="border border-[#DDE1E5] px-4 py-3">Pendidikan</th>
-                <th className="border border-[#DDE1E5] px-4 py-3">Email</th>
-                <th className="border border-[#DDE1E5] px-4 py-3 text-center w-48">Aksi</th>
-              </tr>
-            </thead>
+          {/* TABLE (LECTURER LIST) */}
+          <div className="bg-white border border-[#DDE1E5] rounded-lg shadow">
+            <table className="w-full border-collapse text-sm text-gray-700 border border-[#DDE1E5]">
+              <thead className="bg-blue-50">
+                <tr>
+                  <th className="border border-[#DDE1E5] px-4 py-3 text-center w-14">
+                    No
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">
+                    Nama Dosen
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">
+                    Program Studi
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">
+                    Pendidikan
+                  </th>
+                  <th className="border border-[#DDE1E5] px-4 py-3">Email</th>
+                  <th className="border border-[#DDE1E5] px-4 py-3 text-center w-48">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {paginated.map((lec, idx) => (
-                <React.Fragment key={lec.id}>
-                  <tr className="hover:bg-gray-50">
-                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
-                      {(currentPage - 1) * perPage + idx + 1}
-                    </td>
+              <tbody>
+                {paginated.map((lec, idx) => (
+                  <React.Fragment key={lec.id}>
+                    <tr className="hover:bg-gray-50">
+                      <td className="border border-[#DDE1E5] px-4 py-3 text-center">
+                        {(currentPage - 1) * perPage + idx + 1}
+                      </td>
 
-                    <td className="border border-[#DDE1E5] px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <img src={lec.imageUrl} alt={lec.name} className="w-10 h-10 rounded-full border border-[#DDE1E5] object-cover" />
-                        <div>
-                          <div className="font-semibold">{lec.name}</div>
-                          <div className="text-xs text-gray-500">{lec.position}</div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="border border-[#DDE1E5] px-4 py-3">{lec.program}</td>
-                    <td className="border border-[#DDE1E5] px-4 py-3">{lec.educationLevel}</td>
-                    <td className="border border-[#DDE1E5] px-4 py-3">{lec.email}</td>
-
-                    <td className="border border-[#DDE1E5] px-4 py-3 text-center">
-                      <div className="flex justify-center gap-2">
-                        <button className={BTN_OUTLINE + " bg-sky-100 text-sky-700"} onClick={() => setExpandedId((p) => (p === lec.id ? null : lec.id))}>
-                          <Users size={14} /> {expandedId === lec.id ? "Tutup" : "Detail"} <ChevronDown size={14} className={expandedId === lec.id ? "rotate-180" : ""} />
-                        </button>
-
-                        <button className={BTN_PRIMARY} onClick={() => { setInitialLecturer(lec.name); setIsAddOpen(true); }}>
-                          <Plus size={14} /> Tambah Penelitian
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {expandedId === lec.id && (
-                    <tr>
-                      <td colSpan={6} className="border border-[#DDE1E5] bg-gray-50 p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {/* profile */}
-                          <div className="flex items-start gap-4">
-                            <img src={lec.imageUrl} alt={lec.name} className="w-36 h-36 rounded-full border-4 border-blue-100 object-cover" />
-                            <div>
-                              <h3 className="text-xl font-semibold">{lec.name}</h3>
-                              <p className="text-sm text-gray-600">{lec.position}</p>
-
-                              <div className="text-sm text-gray-700 mt-2 space-y-1">
-                                <p><b>Program Studi:</b> {lec.program}</p>
-                                <p><b>Pendidikan Terakhir:</b> {lec.educationLevel}</p>
-                                <p><b>Email:</b> <span className="text-gray-800">{lec.email}</span></p>
-                                <p><b>Spesialis:</b> {lec.specialization}</p>
-                              </div>
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={lec.imageUrl}
+                            alt={lec.name}
+                            className="w-10 h-10 rounded-full border border-[#DDE1E5] object-cover"
+                          />
+                          <div>
+                            <div className="font-semibold">{lec.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {lec.position}
                             </div>
-                          </div>
-
-                          {/* research list */}
-                          <div className="md:col-span-2">
-                            <LecturerResearchList lecturer={lec} />
                           </div>
                         </div>
                       </td>
+
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        {lec.program}
+                      </td>
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        {lec.educationLevel}
+                      </td>
+                      <td className="border border-[#DDE1E5] px-4 py-3">
+                        {lec.email}
+                      </td>
+
+                      <td className="border border-[#DDE1E5] px-4 py-3 text-center">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            className={
+                              BTN_OUTLINE +
+                              " bg-sky-100 text-sky-700"
+                            }
+                            onClick={() =>
+                              setExpandedId(
+                                expandedId === lec.id ? null : lec.id
+                              )
+                            }
+                          >
+                            <Users size={14} />{" "}
+                            {expandedId === lec.id ? "Tutup" : "Detail"}{" "}
+                            <ChevronDown
+                              size={14}
+                              className={
+                                expandedId === lec.id
+                                  ? "rotate-180"
+                                  : ""
+                              }
+                            />
+                          </button>
+
+                          <button
+                            className={BTN_PRIMARY}
+                            onClick={() => {
+                              setInitialLecturer(lec.name);
+                              setIsAddOpen(true);
+                            }}
+                          >
+                            <Plus size={14} /> Tambah Penelitian
+                          </button>
+                        </div>
+                      </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
 
-        {/* pagination bawah */}
-        <div className="flex justify-between items-center mt-4 text-sm text-gray-700">
-          <div>
-            Menampilkan{" "}
-            {filteredLecturers.length === 0 ? 0 : (currentPage - 1) * perPage + 1} -{" "}
-            {Math.min(currentPage * perPage, filteredLecturers.length)} dari {filteredLecturers.length}
+                    {expandedId === lec.id && (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="border border-[#DDE1E5] bg-gray-50 p-6"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* PROFILE */}
+                            <div className="flex items-start gap-4">
+                              <img
+                                src={lec.imageUrl}
+                                alt={lec.name}
+                                className="w-36 h-36 rounded-full border-4 border-blue-100 object-cover"
+                              />
+                              <div>
+                                <h3 className="text-xl font-semibold">
+                                  {lec.name}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {lec.position}
+                                </p>
+
+                                <div className="text-sm text-gray-700 mt-2 space-y-1">
+                                  <p>
+                                    <b>Program Studi:</b> {lec.program}
+                                  </p>
+                                  <p>
+                                    <b>Pendidikan Terakhir:</b>{" "}
+                                    {lec.educationLevel}
+                                  </p>
+                                  <p>
+                                    <b>Email:</b>{" "}
+                                    <span className="text-gray-800">
+                                      {lec.email}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <b>Spesialis:</b> {lec.specialization}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* RESEARCH LIST */}
+                            <div className="md:col-span-2">
+                              <LecturerResearchList lecturer={lec} />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} className="px-3 py-2 border border-[#DDE1E5] rounded bg-white">
-              &lt;
-            </button>
+          {/* PAGINATION BAWAH */}
+          <div className="flex justify-between items-center mt-4 text-sm text-gray-700">
+            <div>
+              Menampilkan{" "}
+              {filteredLecturers.length === 0
+                ? 0
+                : (currentPage - 1) * perPage + 1}{" "}
+              -{" "}
+              {Math.min(
+                currentPage * perPage,
+                filteredLecturers.length
+              )}{" "}
+              dari {filteredLecturers.length}
+            </div>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button key={p} onClick={() => setCurrentPage(p)} className={`px-3 py-2 rounded border border-[#DDE1E5] ${currentPage === p ? "bg-blue-600 text-white" : "bg-white"}`}>
-                {p}
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() =>
+                  setCurrentPage((p) => Math.max(1, p - 1))
+                }
+                className="px-3 py-2 border border-[#DDE1E5] rounded bg-white"
+              >
+                &lt;
               </button>
-            ))}
 
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} className="px-3 py-2 border border-[#DDE1E5] rounded bg-white">
-              &gt;
-            </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (p) => (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`px-3 py-2 rounded border border-[#DDE1E5] ${
+                      currentPage === p
+                        ? "bg-blue-600 text-white"
+                        : "bg-white"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                className="px-3 py-2 border border-[#DDE1E5] rounded bg-white"
+              >
+                &gt;
+              </button>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       {/* MODALS */}
       <AddResearchCard
@@ -534,8 +671,14 @@ export default function ResearchTable() {
         }}
         lecturers={lecturers}
         initialLecturerName={initialLecturer || undefined}
-        onSubmit={(payload: { lecturer_name: string; title: string; year: number }) => {
-          const found = lecturers.find((l) => l.name === payload.lecturer_name);
+        onSubmit={(payload: {
+          lecturer_name: string;
+          title: string;
+          year: number;
+        }) => {
+          const found = lecturers.find(
+            (l) => l.name === payload.lecturer_name
+          );
           if (!found) {
             alert("Nama dosen tidak ditemukan.");
             return;
@@ -555,12 +698,11 @@ export default function ResearchTable() {
           setEditPayload(null);
         }}
         defaultData={editPayload}
-        onSubmit={(payload: { lecId: number; item: ResearchItem }) => {
-          // validate payload just in case
-          if (!payload || typeof payload.lecId !== "number" || !payload.item) {
-            alert("Data tidak valid.");
-            return;
-          }
+        onSubmit={(payload: {
+          lecId: number;
+          item: ResearchItem;
+        }) => {
+          if (!payload) return;
           updateResearch(payload.lecId, payload.item);
           setIsEditOpen(false);
           setEditPayload(null);

@@ -19,22 +19,31 @@ export type ProductCardItem = {
 type Props = { project: ProductCardItem };
 
 export default function ProjectCard({ project }: Props) {
-  let imgSrc = project.image;
+  const API = process.env.NEXT_PUBLIC_API_URL || "";
 
-  // 1. jika null/undefined → fallback
-  if (!imgSrc || imgSrc.trim() === "") {
+  let imgSrc = project.image?.trim() || "";
+
+  // =============== FIX 1: fallback default ===============
+  if (!imgSrc) {
     imgSrc = "/placeholder.png";
   }
 
-  // 2. kalau image berasal dari backend (mulai /uploads)
+  // =============== FIX 2: kalau backend kirim `/uploads/...`
   if (imgSrc.startsWith("/uploads")) {
-    imgSrc = `${process.env.NEXT_PUBLIC_API_URL}${imgSrc}`;
+    imgSrc = `${API}${imgSrc}`;
   }
 
-  // 3. kalau masih tanpa http/https → jadikan absolute URL
-  if (!imgSrc.startsWith("http://") && !imgSrc.startsWith("https://")) {
-    imgSrc = `${process.env.NEXT_PUBLIC_API_URL}/${imgSrc.replace(/^\//, "")}`;
+  // =============== FIX 3: jika URL relatif seperti "uploads/xxx.jpg"
+  if (
+    !imgSrc.startsWith("http://") &&
+    !imgSrc.startsWith("https://") &&
+    !imgSrc.startsWith("/")
+  ) {
+    imgSrc = `${API}/${imgSrc}`;
   }
+
+  // =============== FIX 4: sanitize (hapus double slash) ===============
+  imgSrc = imgSrc.replace(/([^:]\/)\/+/g, "$1");
 
   return (
     <motion.div
@@ -42,7 +51,7 @@ export default function ProjectCard({ project }: Props) {
       transition={{ duration: 0.3 }}
       className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col"
     >
-      <div className="relative w-full h-80 bg-black flex items-center justify-center">
+      <div className="relative w-full h-80 bg-black">
         <Image
           src={imgSrc}
           alt={project.title}
@@ -69,15 +78,17 @@ export default function ProjectCard({ project }: Props) {
 
         <p className="text-gray-600 text-sm mt-2">{project.description}</p>
 
-        <div className="mt-4">
-          <a
-            href={project.link}
-            target="_blank"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md"
-          >
-            <FaExternalLinkAlt /> Lihat Website
-          </a>
-        </div>
+        {project.link && (
+          <div className="mt-4">
+            <a
+              href={project.link}
+              target="_blank"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+            >
+              <FaExternalLinkAlt /> Lihat Website
+            </a>
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-    Search,
-    ChevronDown,
-} from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
@@ -30,6 +27,7 @@ export default function TrainingParticipantsAdmin() {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
 
+    const [pageGroup, setPageGroup] = useState(0); // 🔥 DITAMBAHKAN sesuai contoh
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     useEffect(() => {
@@ -41,23 +39,34 @@ export default function TrainingParticipantsAdmin() {
             });
     }, []);
 
+    // =============================================
+    // FILTER
+    // =============================================
     const filtered = participants.filter((p) => {
         const matchSearch =
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchType =
-            selectedType === "all" ? true : p.type === selectedType;
+        const matchType = selectedType === "all" ? true : p.type === selectedType;
         return matchSearch && matchType;
     });
 
+    // =============================================
+    // PAGINATION (Mengikuti Contoh)
+    // =============================================
     const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-    const safeCurrentPage = Math.min(currentPage, totalPages);
-    const startIndex = (safeCurrentPage - 1) * itemsPerPage;
-    const pageItems = filtered.slice(
-        startIndex,
-        startIndex + itemsPerPage
-    );
+    const safePage = Math.min(currentPage, totalPages);
+    const startIndex = (safePage - 1) * itemsPerPage;
+    const pageItems = filtered.slice(startIndex, startIndex + itemsPerPage);
 
+    // Reset pagination saat filter/search berubah
+    useEffect(() => {
+        setCurrentPage(1);
+        setPageGroup(0);
+    }, [searchTerm, selectedType, itemsPerPage]);
+
+    // =============================================
+    // UI
+    // =============================================
     return (
         <div className="min-h-screen w-full bg-[#f5f7fb] flex flex-col">
             <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -69,8 +78,9 @@ export default function TrainingParticipantsAdmin() {
                 />
 
                 <main
-                    className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-                        }`}
+                    className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
+                        isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+                    }`}
                 >
                     {/* TITLE */}
                     <div className="text-center mb-8">
@@ -78,7 +88,7 @@ export default function TrainingParticipantsAdmin() {
                             Daftar Peserta Pelatihan
                         </h1>
                         <p className="text-gray-600 text-sm">
-                            Data peserta yang telah diterima dalam pelatihan PSTeam.
+                            Data peserta yang telah diterima.
                         </p>
                     </div>
 
@@ -95,7 +105,8 @@ export default function TrainingParticipantsAdmin() {
                                             document.getElementById("searchInput")?.focus();
                                         }, 50);
                                     }}
-                                    className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-md absolute left-0">
+                                    className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-md absolute left-0"
+                                >
                                     <Search size={18} />
                                 </button>
                             )}
@@ -107,10 +118,13 @@ export default function TrainingParticipantsAdmin() {
                                 onBlur={() => {
                                     if (searchTerm.trim() === "") setIsSearchOpen(false);
                                 }}
-                                placeholder="Cari pelatihan..."
-                                className={` transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 *
-                                    ${isSearchOpen ? "w-56 pl-10 pr-3 opacity-100" : "w-10 opacity-0 pointer-events-none"}
-                                    `}
+                                placeholder="Cari peserta..."
+                                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10
+                                    ${
+                                        isSearchOpen
+                                            ? "w-56 pl-10 pr-3 opacity-100"
+                                            : "w-10 opacity-0 pointer-events-none"
+                                    }`}
                             />
                         </div>
 
@@ -127,13 +141,10 @@ export default function TrainingParticipantsAdmin() {
                                 <option value="iot">IoT</option>
                                 <option value="ai">AI</option>
                             </select>
-                            <ChevronDown
-                                size={16}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
-                            />
+                            <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600" />
                         </div>
 
-                        {/* FILTER PAGE */}
+                        {/* ITEMS PER PAGE */}
                         <div className="relative">
                             <select
                                 value={itemsPerPage}
@@ -149,13 +160,14 @@ export default function TrainingParticipantsAdmin() {
 
                             <ChevronDown
                                 size={16}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
                             />
                         </div>
                     </div>
 
                     {/* TABLE */}
-                    <div className="bg-white rounded-lg shadow-md border border-gray-300">
+                    <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-x-auto">
+
                         <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
                             <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
                                 <tr>
@@ -182,53 +194,82 @@ export default function TrainingParticipantsAdmin() {
                                 ) : (
                                     pageItems.map((p, i) => (
                                         <tr key={p.id} className="hover:bg-blue-50 border">
-                                            <td className="border border-gray-300 px-4 py-2">{startIndex + i + 1}</td>
-                                            <td className="border border-gray-300 px-4 py-2 font-semibold">{p.name}</td>
-                                            <td className="border border-gray-300 px-4 py-2">{p.email}</td>
-                                            <td className="border border-gray-300 px-4 py-2">{p.phone}</td>
-                                            <td className="border border-gray-300 px-4 py-2">{p.trainingTitle}</td>
-                                            <td className="border border-gray-300 px-4 py-2 capitalize">{p.type}</td>
-                                            <td className="border border-gray-300 px-4 py-2">{p.batch}</td>
+                                            <td className="border px-4 py-2 border-gray-300">{startIndex + i + 1}</td>
+                                            <td className="border px-4 py-2 border-gray-300 font-semibold">{p.name}</td>
+                                            <td className="border px-4 py-2 border-gray-300">{p.email}</td>
+                                            <td className="border px-4 py-2 border-gray-300">{p.phone}</td>
+                                            <td className="border px-4 py-2 border-gray-300">{p.trainingTitle}</td>
+                                            <td className="border px-4 py-2 border-gray-300 capitalize">{p.type}</td>
+                                            <td className="border px-4 py-2 border-gray-300">{p.batch}</td>
                                         </tr>
                                     ))
                                 )}
                             </tbody>
                         </table>
 
-                        {/* PAGINATION */}
-                        <div className="flex justify-end items-center gap-2 px-4 py-4">
+                        {/* ===========================================
+                            PAGINATION (Mengikuti contoh 3 angka)
+                        ============================================ */}
+                        <div className="flex justify-end items-center py-3 px-4 gap-2 bg-gray-50 text-sm rounded-b-lg">
+
+                            {/* PREV */}
                             <button
-                                disabled={safeCurrentPage === 1}
-                                onClick={() =>
-                                    setCurrentPage((p) => Math.max(1, p - 1))
-                                }
-                                className="w-10 h-10 border rounded-md bg-white hover:bg-gray-100"
+                                onClick={() => {
+                                    if (currentPage > 1) {
+                                        const newGroup = Math.floor((currentPage - 2) / 3);
+                                        setCurrentPage((prev) => prev - 1);
+                                        setPageGroup(newGroup);
+                                    }
+                                }}
+                                disabled={currentPage === 1}
+                                className={`px-2 py-1 rounded border text-xs ${
+                                    currentPage === 1
+                                        ? "bg-gray-200 text-gray-400"
+                                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                                }`}
                             >
-                                {"<"}
+                                &lt;
                             </button>
 
-                            {Array.from({ length: totalPages }).map((_, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setCurrentPage(i + 1)}
-                                    className={`w-10 h-10 border rounded-md ${safeCurrentPage === i + 1
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white hover:bg-gray-100"
+                            {/* 3 PAGE NUMBERS */}
+                            {Array.from({ length: 3 }, (_, i) => {
+                                const pageNumber = pageGroup * 3 + (i + 1);
+                                if (pageNumber > totalPages) return null;
+
+                                return (
+                                    <button
+                                        key={pageNumber}
+                                        onClick={() => setCurrentPage(pageNumber)}
+                                        className={`px-2 py-1 rounded text-xs border ${
+                                            currentPage === pageNumber
+                                                ? "bg-blue-600 text-white"
+                                                : "bg-gray-100 hover:bg-gray-300 text-gray-800"
                                         }`}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
+                                    >
+                                        {pageNumber}
+                                    </button>
+                                );
+                            })}
 
+                            {/* NEXT */}
                             <button
-                                disabled={safeCurrentPage === totalPages}
-                                onClick={() =>
-                                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                                }
-                                className="w-10 h-10 border rounded-md bg-white hover:bg-gray-100"
+                                onClick={() => {
+                                    if (currentPage < totalPages) {
+                                        const newGroup = Math.floor(currentPage / 3);
+                                        setCurrentPage((prev) => prev + 1);
+                                        setPageGroup(newGroup);
+                                    }
+                                }}
+                                disabled={currentPage === totalPages}
+                                className={`px-2 py-1 rounded border text-xs ${
+                                    currentPage === totalPages
+                                        ? "bg-gray-200 text-gray-400"
+                                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                                }`}
                             >
-                                {">"}
+                                &gt;
                             </button>
+
                         </div>
                     </div>
                 </main>

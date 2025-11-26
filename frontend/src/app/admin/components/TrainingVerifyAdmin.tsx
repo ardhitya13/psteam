@@ -29,6 +29,7 @@ export default function TrainingVerificationAdmin() {
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageGroup, setPageGroup] = useState(0); // 🔥 DITAMBAHKAN
 
   const [detailData, setDetailData] = useState<Registration | null>(null);
   const [statusData, setStatusData] = useState<{
@@ -38,7 +39,7 @@ export default function TrainingVerificationAdmin() {
 
   // LOAD DATA
   const loadRegistrations = async () => {
-    const res = await fetch("http://localhost:4000/api/trainings");
+    const res = await fetch("http://localhost:4000/api/trainings", { cache: "no-store" });
     const json = await res.json();
     setRegistrations(json);
   };
@@ -61,16 +62,20 @@ export default function TrainingVerificationAdmin() {
 
   // FILTERING
   const filtered = registrations.filter((r) =>
-    `${r.name} ${r.email} ${r.trainingTitle}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
+    `${r.name} ${r.email} ${r.trainingTitle}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-
-  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  // PAGINATION
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * itemsPerPage;
   const pageItems = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+  // RESET PAGE & GROUP
+  useEffect(() => {
+    setCurrentPage(1);
+    setPageGroup(0);
+  }, [searchTerm, itemsPerPage]);
 
   return (
     <div className="min-h-screen w-full bg-[#f5f7fb] flex flex-col">
@@ -125,15 +130,15 @@ export default function TrainingVerificationAdmin() {
                 placeholder="Cari peserta..."
                 className={`transition-all duration-300 border border-gray-300 bg-white 
                   rounded-md shadow-sm text-sm h-10
-                  ${
-                    isSearchOpen
-                      ? "w-56 pl-10 pr-3 opacity-100"
-                      : "w-10 opacity-0 pointer-events-none"
-                  }`}
+                ${
+                  isSearchOpen
+                    ? "w-56 pl-10 pr-3 opacity-100"
+                    : "w-10 opacity-0 pointer-events-none"
+                }`}
               />
             </div>
 
-            {/* FILTER PAGE */}
+            {/* ITEMS PER PAGE */}
             <div className="relative">
               <select
                 value={itemsPerPage}
@@ -148,7 +153,7 @@ export default function TrainingVerificationAdmin() {
               </select>
               <ChevronDown
                 size={16}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
               />
             </div>
           </div>
@@ -173,25 +178,14 @@ export default function TrainingVerificationAdmin() {
               <tbody>
                 {pageItems.map((r, i) => (
                   <tr key={r.id} className="hover:bg-blue-50 border">
-                    <td className="border border-gray-300 px-4 py-2">
-                      {startIndex + i + 1}
-                    </td>
+                    <td className="border px-4 py-2 border-gray-300">{startIndex + i + 1}</td>
+                    <td className="border px-4 py-2 border-gray-300 font-semibold">{r.name}</td>
+                    <td className="border px-4 py-2 border-gray-300">{r.email}</td>
+                    <td className="border px-4 py-2 border-gray-300">{r.phone}</td>
+                    <td className="border px-4 py-2 border-gray-300">{r.trainingTitle}</td>
+                    <td className="border px-4 py-2 border-gray-300 capitalize">{r.trainingType}</td>
 
-                    <td className="border border-gray-300 px-4 py-2 font-semibold">
-                      {r.name}
-                    </td>
-
-                    <td className="border border-gray-300 px-4 py-2">{r.email}</td>
-                    <td className="border border-gray-300 px-4 py-2">{r.phone}</td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {r.trainingTitle}
-                    </td>
-
-                    <td className="border border-gray-300 px-4 py-2 capitalize">
-                      {r.trainingType}
-                    </td>
-
-                    <td className="border border-gray-300 px-4 py-2">
+                    <td className="border px-4 py-2 border-gray-300">
                       {r.status === "pending" && (
                         <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-md text-xs">
                           Pending
@@ -209,31 +203,27 @@ export default function TrainingVerificationAdmin() {
                       )}
                     </td>
 
-                    <td className="border border-gray-300 px-4 py-2">
+                    <td className="border px-4 py-2 border-gray-300">
                       <button
                         onClick={() => setDetailData(r)}
-                        className="bg-green-500 text-white px-3 py-1 rounded-md flex items-center gap-1 hover:bg-green-600"
+                        className="bg-green-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
                       >
                         <Eye size={14} /> Detail
                       </button>
                     </td>
 
-                    <td className="border border-gray-300 px-4 py-2">
+                    <td className="border px-4 py-2 border-gray-300">
                       <div className="flex gap-2 justify-center">
                         <button
-                          onClick={() =>
-                            setStatusData({ data: r, action: "approved" })
-                          }
-                          className="bg-blue-600 text-white px-3 py-1 rounded-md flex items-center gap-1 hover:bg-blue-700"
+                          onClick={() => setStatusData({ data: r, action: "approved" })}
+                          className="bg-blue-600 text-white px-3 py-1 rounded-md flex items-center gap-1"
                         >
                           <Check size={14} /> Terima
                         </button>
 
                         <button
-                          onClick={() =>
-                            setStatusData({ data: r, action: "rejected" })
-                          }
-                          className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1 hover:bg-red-600"
+                          onClick={() => setStatusData({ data: r, action: "rejected" })}
+                          className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
                         >
                           <X size={14} /> Tolak
                         </button>
@@ -244,37 +234,69 @@ export default function TrainingVerificationAdmin() {
               </tbody>
             </table>
 
-            {/* PAGINATION */}
-            <div className="flex justify-end items-center gap-2 px-4 py-4">
+            {/* ======================================================
+                PAGINATION (Model 3 Tombol per Grup)
+            ======================================================= */}
+            <div className="flex justify-end items-center py-3 px-4 gap-2 bg-gray-50 rounded-b-lg">
+
+              {/* PREV */}
               <button
-                disabled={safeCurrentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="w-10 h-10 border rounded-md bg-white hover:bg-gray-100 disabled:opacity-50"
+                onClick={() => {
+                  if (currentPage > 1) {
+                    const newGroup = Math.floor((currentPage - 2) / 3);
+                    setCurrentPage((prev) => prev - 1);
+                    setPageGroup(newGroup);
+                  }
+                }}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded border text-xs ${
+                  currentPage === 1
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                }`}
               >
-                {"<"}
+                &lt;
               </button>
 
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`w-10 h-10 border rounded-md ${
-                    safeCurrentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-white hover:bg-gray-100"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+              {/* 3 PAGE BUTTONS ONLY */}
+              {Array.from({ length: 3 }, (_, i) => {
+                const pageNumber = pageGroup * 3 + (i + 1);
+                if (pageNumber > totalPages) return null;
 
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => setCurrentPage(pageNumber)}
+                    className={`px-3 py-1 rounded text-xs border ${
+                      currentPage === pageNumber
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+
+              {/* NEXT */}
               <button
-                disabled={safeCurrentPage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="w-10 h-10 border rounded-md bg-white hover:bg-gray-100 disabled:opacity-50"
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    const newGroup = Math.floor(currentPage / 3);
+                    setCurrentPage((prev) => prev + 1);
+                    setPageGroup(newGroup);
+                  }
+                }}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded border text-xs ${
+                  currentPage === totalPages
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                }`}
               >
-                {">"}
+                &gt;
               </button>
+
             </div>
           </div>
 
@@ -290,12 +312,11 @@ export default function TrainingVerificationAdmin() {
             <TrainingVerificationStatusModal
               data={statusData.data}
               action={statusData.action}
-              onConfirm={() =>
-                updateStatus(statusData.data.id!, statusData.action)
-              }
+              onConfirm={() => updateStatus(statusData.data.id!, statusData.action)}
               onClose={() => setStatusData(null)}
             />
           )}
+
         </main>
       </div>
     </div>
