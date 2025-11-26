@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import AdminNavbar from "../components/AdminNavbar";
-import AdminSidebar from "..//components/AdminSidebar";
+import AdminSidebar from "../components/AdminSidebar";
 import ProductManager from "./components/ProductManager";
 
 export default function Page() {
