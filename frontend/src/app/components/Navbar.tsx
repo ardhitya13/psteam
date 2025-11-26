@@ -18,13 +18,14 @@ export default function NavBar() {
   const [serviceOpen, setServiceOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   const pathname = usePathname();
   const router = useRouter();
 
-  // ⛔ FIX 1 — variabel aman untuk SSR
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
-
+  /* ===========================================
+     FIX SSR: Tentukan perangkat setelah render
+  ============================================ */
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
 
@@ -34,7 +35,9 @@ export default function NavBar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ⛔ FIX 2 — jangan jalankan scroll handler sebelum isMobile terisi
+  /* ===========================================
+     NAVBAR AUTO HIDE ON SCROLL
+  ============================================ */
   useEffect(() => {
     if (isMobile === null) return;
 
@@ -42,9 +45,11 @@ export default function NavBar() {
       const currentY = window.scrollY;
       setScrolled(currentY > 10);
 
-      if (currentY < lastScrollY) setHidden(false);
-      else if (currentY > lastScrollY && currentY > 100 && !menuOpen)
+      if (currentY < lastScrollY) {
+        setHidden(false);
+      } else if (currentY > lastScrollY && currentY > 100 && !menuOpen) {
         setHidden(true);
+      }
 
       setLastScrollY(currentY);
     };
@@ -53,6 +58,9 @@ export default function NavBar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, menuOpen, isMobile]);
 
+  /* ===========================================
+     CATEGORY SELECT HANDLER
+  ============================================ */
   const handleSelectCategory = (category: string) => {
     const formattedCategory =
       category === "Semua Pelatihan & Sertifikasi" ? "Semua" : category;
@@ -69,12 +77,15 @@ export default function NavBar() {
     setMenuOpen(false);
   };
 
+  /* ===========================================
+     CATEGORY DATA
+  ============================================ */
   const categories = [
-    { icon: <FaLayerGroup size={24} />, title: "Semua Pelatihan & Sertifikasi" },
-    { icon: <FaGlobe size={24} />, title: "Web Development" },
-    { icon: <FaMobileAlt size={24} />, title: "Mobile Development" },
-    { icon: <FaMicrochip size={24} />, title: "Internet of Things (IoT)" },
-    { icon: <FaRobot size={24} />, title: "Artificial Intelligence" },
+    { icon: <FaLayerGroup size={28} />, title: "Semua Pelatihan & Sertifikasi" },
+    { icon: <FaGlobe size={28} />, title: "Web Development" },
+    { icon: <FaMobileAlt size={28} />, title: "Mobile Development" },
+    { icon: <FaMicrochip size={28} />, title: "Internet of Things (IoT)" },
+    { icon: <FaRobot size={28} />, title: "Artificial Intelligence" },
   ];
 
   const menuItems = [
@@ -85,12 +96,11 @@ export default function NavBar() {
     { name: "Produk", path: "/products" },
   ];
 
-  // ⛔ FIX 3 — kalau SSR masih rendering, jangan render apa-apa dulu
-  // supaya tidak terjadi mismatch server-client
-  if (isMobile === null) {
-    return <nav className="h-20"></nav>;
-  }
+  if (isMobile === null) return <nav className="h-20"></nav>;
 
+  /* ===========================================
+     RENDER
+  ============================================ */
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500
@@ -99,10 +109,10 @@ export default function NavBar() {
         scrolled
           ? "backdrop-blur-lg bg-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
           : "bg-transparent"
-      }
-    `}
+      }`}
     >
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4 font-inter text-white">
+        
         {/* LOGO */}
         <Link href="/" className="flex items-center space-x-3 group">
           <Image
@@ -115,7 +125,7 @@ export default function NavBar() {
           />
         </Link>
 
-        {/* BUTTON MOBILE */}
+        {/* LOGIN + MOBILE MENU BUTTON */}
         <div className="flex items-center space-x-4 md:order-2">
           <Link
             href="/login"
@@ -132,7 +142,7 @@ export default function NavBar() {
           </button>
         </div>
 
-        {/* MENU */}
+        {/* NAVIGATION MENU */}
         <div
           className={`w-full md:flex md:w-auto md:order-1 transition-all duration-300 ${
             menuOpen
@@ -141,6 +151,8 @@ export default function NavBar() {
           }`}
         >
           <ul className="flex flex-col md:flex-row md:space-x-10 text-center">
+
+            {/* MENU ITEMS */}
             {menuItems.map((item) => (
               <li key={item.name}>
                 <Link
@@ -157,7 +169,9 @@ export default function NavBar() {
               </li>
             ))}
 
-            {/* LAYANAN */}
+            {/* ===========================
+                LAYANAN DROPDOWN
+            ============================ */}
             <li
               className="relative"
               onMouseEnter={() => !isMobile && setServiceOpen(true)}
@@ -177,7 +191,7 @@ export default function NavBar() {
                 </span>
               </button>
 
-              {/* DROPDOWN MOBILE */}
+              {/* MOBILE DROPDOWN */}
               {isMobile && serviceOpen && (
                 <div className="md:hidden mt-2 bg-[#0A1436]/90 p-4 rounded-xl">
                   <div className="text-center mb-3">
@@ -194,7 +208,7 @@ export default function NavBar() {
                       <button
                         key={item.title}
                         onClick={() => handleSelectCategory(item.title)}
-                        className="p-3 rounded-lg bg-white/5 border text-gray-100"
+                        className="p-3 rounded-lg bg-white/5 border text-gray-100 flex flex-col items-center"
                       >
                         {item.icon}
                         <p className="text-xs mt-1">{item.title}</p>
@@ -204,7 +218,7 @@ export default function NavBar() {
                 </div>
               )}
 
-              {/* DROPDOWN DESKTOP */}
+              {/* DESKTOP DROPDOWN */}
               {!isMobile && (
                 <div
                   className={`fixed left-1/2 -translate-x-1/2 w-[80vw] mt-2 transition-all duration-300 ${
@@ -214,6 +228,8 @@ export default function NavBar() {
                   } bg-[#0a1440]/90 border border-white/10 rounded-2xl shadow-2xl p-10`}
                 >
                   <div className="flex gap-10 text-white">
+                    
+                    {/* LEFT SIDE */}
                     <div className="w-1/3">
                       <h3 className="text-lg text-[#60A5FA]">
                         💡 Pengajuan Proyek
@@ -228,29 +244,33 @@ export default function NavBar() {
                       </Link>
                     </div>
 
+                    {/* RIGHT SIDE — TRAINING CATEGORIES */}
                     <div className="w-2/3">
                       <h3 className="text-lg text-[#60A5FA] mb-4">
                         🎓 Pelatihan & Sertifikasi
                       </h3>
-                      <div className="grid grid-cols-5 gap-6">
+
+                      <div className="grid grid-cols-5 gap-6 items-start">
                         {categories.map((item) => (
                           <button
                             key={item.title}
                             onClick={() => handleSelectCategory(item.title)}
-                            className="p-6 rounded-xl bg-white/5 text-white hover:bg-[#60A5FA]/10 transition"
+                            className="p-6 h-40 flex flex-col items-center justify-start rounded-xl bg-white/5 text-white hover:bg-[#60A5FA]/10 transition"
                           >
-                            <div className="text-[#60A5FA] mb-3">
-                              {item.icon}
-                            </div>
-                            <span className="text-sm">{item.title}</span>
+                            <div className="text-[#60A5FA] mb-3">{item.icon}</div>
+                            <span className="text-sm text-center">
+                              {item.title}
+                            </span>
                           </button>
                         ))}
                       </div>
                     </div>
+
                   </div>
                 </div>
               )}
             </li>
+
           </ul>
         </div>
       </div>
