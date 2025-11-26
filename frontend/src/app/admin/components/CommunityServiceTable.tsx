@@ -45,7 +45,8 @@ const BTN =
   "inline-flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium shadow-sm";
 const BTN_PRIMARY = BTN + " bg-blue-600 hover:bg-blue-700 text-white";
 const BTN_OUTLINE =
-  BTN + " border bg-white border-gray-300 hover:bg-gray-100 text-gray-700";
+  BTN +
+  " border bg-white border-gray-300 hover:bg-gray-100 text-gray-700";
 
 /* ---------------------------
    Component
@@ -53,6 +54,7 @@ const BTN_OUTLINE =
 export default function CommunityServiceTable() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  /* Dummy data */
   const [lecturers, setLecturers] = useState<Lecturer[]>([
     {
       id: 1,
@@ -125,10 +127,11 @@ export default function CommunityServiceTable() {
   const [initialLecturer, setInitialLecturer] = useState<string | null>(null);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editPayload, setEditPayload] =
-    useState<{ lecId: number; item: CommunityServiceItem; lecturer_name: string } | null>(
-      null
-    );
+  const [editPayload, setEditPayload] = useState<{
+    lecId: number;
+    item: CommunityServiceItem;
+    lecturer_name: string;
+  } | null>(null);
 
   /* ---------------------------
      FILTER LECTURER
@@ -144,7 +147,11 @@ export default function CommunityServiceTable() {
     );
   }, [searchQuery, lecturers]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredLecturers.length / perPage));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredLecturers.length / perPage)
+  );
+
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(1);
   }, [totalPages, currentPage]);
@@ -155,9 +162,12 @@ export default function CommunityServiceTable() {
   );
 
   /* ---------------------------
-     ADD / UPDATE / DELETE
+     CRUD
   ----------------------------*/
-  function addCommunity(name: string, item: Omit<CommunityServiceItem, "id">) {
+  function addCommunity(
+    name: string,
+    item: Omit<CommunityServiceItem, "id">
+  ) {
     setLecturers((prev) =>
       prev.map((lec) =>
         lec.name === name
@@ -166,7 +176,9 @@ export default function CommunityServiceTable() {
               communityService: [
                 {
                   id: lec.communityService.length
-                    ? Math.max(...lec.communityService.map((s) => s.id)) + 1
+                    ? Math.max(
+                        ...lec.communityService.map((s) => s.id)
+                      ) + 1
                     : 1,
                   ...item,
                 },
@@ -178,14 +190,17 @@ export default function CommunityServiceTable() {
     );
   }
 
-  function updateCommunity(lecId: number, item: CommunityServiceItem) {
+  function updateCommunity(
+    lecId: number,
+    item: CommunityServiceItem
+  ) {
     setLecturers((prev) =>
       prev.map((lec) =>
         lec.id === lecId
           ? {
               ...lec,
-              communityService: lec.communityService.map((r) =>
-                r.id === item.id ? item : r
+              communityService: lec.communityService.map((s) =>
+                s.id === item.id ? item : s
               ),
             }
           : lec
@@ -201,7 +216,9 @@ export default function CommunityServiceTable() {
         lec.id === lecId
           ? {
               ...lec,
-              communityService: lec.communityService.filter((s) => s.id !== cid),
+              communityService: lec.communityService.filter(
+                (s) => s.id !== cid
+              ),
             }
           : lec
       )
@@ -209,7 +226,7 @@ export default function CommunityServiceTable() {
   }
 
   /* ---------------------------
-     Lecturer Community List
+     Community List (Detail)
   ----------------------------*/
   function LecturerCommunityList({ lecturer }: { lecturer: Lecturer }) {
     const [filterYear, setFilterYear] = useState<string>("");
@@ -218,17 +235,25 @@ export default function CommunityServiceTable() {
     const per = 10;
 
     const yearOptions = useMemo(
-      () => [...new Set(lecturer.communityService.map((s) => s.year))].sort((a, b) => b - a),
+      () =>
+        [...new Set(lecturer.communityService.map((s) => s.year))].sort(
+          (a, b) => b - a
+        ),
       [lecturer]
     );
 
     const filtered = useMemo(() => {
       if (!filterYear) return lecturer.communityService;
-      return lecturer.communityService.filter((s) => s.year === Number(filterYear));
+      return lecturer.communityService.filter(
+        (s) => s.year === Number(filterYear)
+      );
     }, [filterYear, lecturer]);
 
     const visible = filtered.slice((page - 1) * per, page * per);
-    const totalPage = Math.max(1, Math.ceil(filtered.length / per));
+    const totalPage = Math.max(
+      1,
+      Math.ceil(filtered.length / per)
+    );
 
     useEffect(() => setPage(1), [filterYear, lecturer.id]);
 
@@ -289,12 +314,17 @@ export default function CommunityServiceTable() {
 
                     <td className="border border-[#DDE1E5] px-4 py-3 text-center">
                       <div className="flex justify-center gap-2">
+                        {/* EDIT FIXED */}
                         <button
                           className="bg-yellow-400 text-white px-3 py-1 rounded text-sm inline-flex items-center gap-2"
                           onClick={() => {
                             setEditPayload({
                               lecId: lecturer.id,
-                              item: s,
+                              item: {
+                                id: s.id,
+                                title: s.title,
+                                year: s.year,
+                              }, // ✅ FIX: create clean object
                               lecturer_name: lecturer.name,
                             });
                             setIsEditOpen(true);
@@ -305,7 +335,9 @@ export default function CommunityServiceTable() {
 
                         <button
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm inline-flex items-center gap-2"
-                          onClick={() => deleteCommunity(lecturer.id, s.id)}
+                          onClick={() =>
+                            deleteCommunity(lecturer.id, s.id)
+                          }
                         >
                           <Trash2 size={14} /> Hapus
                         </button>
@@ -389,7 +421,9 @@ export default function CommunityServiceTable() {
                   onClick={() => {
                     setSearchOpen(true);
                     setTimeout(() => {
-                      document.getElementById("searchInput")?.focus();
+                      document.getElementById(
+                        "searchInput"
+                      )?.focus();
                     }, 50);
                   }}
                   className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-md absolute left-0"
@@ -406,7 +440,8 @@ export default function CommunityServiceTable() {
                   setCurrentPage(1);
                 }}
                 onBlur={() => {
-                  if (searchQuery.trim() === "") setSearchOpen(false);
+                  if (searchQuery.trim() === "")
+                    setSearchOpen(false);
                 }}
                 placeholder="Cari nama / prodi..."
                 className={`transition-all duration-300 border border-[#DDE1E5] bg-white 
@@ -517,10 +552,7 @@ export default function CommunityServiceTable() {
                       <td className="border border-[#DDE1E5] px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
                           <button
-                            className={
-                              BTN_OUTLINE +
-                              " bg-sky-100 text-sky-700"
-                            }
+                            className={BTN_OUTLINE + " bg-sky-100 text-sky-700"}
                             onClick={() =>
                               setExpandedId(
                                 expandedId === lec.id ? null : lec.id
@@ -532,7 +564,9 @@ export default function CommunityServiceTable() {
                             <ChevronDown
                               size={14}
                               className={
-                                expandedId === lec.id ? "rotate-180" : ""
+                                expandedId === lec.id
+                                  ? "rotate-180"
+                                  : ""
                               }
                             />
                           </button>
@@ -550,6 +584,7 @@ export default function CommunityServiceTable() {
                       </td>
                     </tr>
 
+                    {/* EXPANDED DETAIL */}
                     {expandedId === lec.id && (
                       <tr>
                         <td
@@ -564,6 +599,7 @@ export default function CommunityServiceTable() {
                                 alt={lec.name}
                                 className="w-36 h-36 rounded-full border-4 border-blue-100 object-cover"
                               />
+
                               <div>
                                 <h3 className="text-xl font-semibold">
                                   {lec.name}
@@ -581,10 +617,7 @@ export default function CommunityServiceTable() {
                                     {lec.educationLevel}
                                   </p>
                                   <p>
-                                    <b>Email:</b>{" "}
-                                    <span className="text-gray-800">
-                                      {lec.email}
-                                    </span>
+                                    <b>Email:</b> {lec.email}
                                   </p>
                                   <p>
                                     <b>Spesialis:</b> {lec.specialization}
@@ -593,7 +626,7 @@ export default function CommunityServiceTable() {
                               </div>
                             </div>
 
-                            {/* COMMUNITY SERVICE LIST */}
+                            {/* COMMUNITY LIST */}
                             <div className="md:col-span-2">
                               <LecturerCommunityList lecturer={lec} />
                             </div>
@@ -607,7 +640,7 @@ export default function CommunityServiceTable() {
             </table>
           </div>
 
-          {/* PAGINATION BAWAH */}
+          {/* PAGINATION */}
           <div className="flex justify-between items-center mt-4 text-sm text-gray-700">
             <div>
               Menampilkan{" "}
@@ -688,7 +721,6 @@ export default function CommunityServiceTable() {
             title: payload.title,
             year: payload.year,
           });
-          setIsAddOpen(false);
         }}
       />
 
