@@ -91,7 +91,7 @@ export default function DetailProjectModal({ isOpen, onClose, data }: DetailProj
           <textarea
             value={formData?.projectDescription || ""} 
             disabled
-            className="w-full h-28 px-3 py-2 border rounded-md bg-gray-100 text-gray-800 resize-none"
+            className="w-full h-50 px-3 py-2 border rounded-md bg-gray-100 text-gray-800 resize-none"
           />
         </div>
 

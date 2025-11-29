@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Search, Edit, Trash2 } from "lucide-react";
+import { ChevronDown, Search, Edit, Trash2, FileText } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
@@ -30,7 +30,7 @@ export default function DaftarProyekPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  
+
 
   // =====================================================
   // FETCH DATA
@@ -61,8 +61,8 @@ export default function DaftarProyekPage() {
             item.status === "approved"
               ? "Sedang Diproses"
               : item.status === "pending"
-              ? "Belum Diproses"
-              : item.status,
+                ? "Belum Diproses"
+                : item.status,
           deskripsi: item.projectDescription,
           raw: item,
         }));
@@ -112,10 +112,10 @@ export default function DaftarProyekPage() {
       const updatedData = data.map((item) =>
         item.id === id
           ? {
-              ...item,
-              status: newStatus,
-              raw: { ...item.raw, status: newStatus },
-            }
+            ...item,
+            status: newStatus,
+            raw: { ...item.raw, status: newStatus },
+          }
           : item
       );
 
@@ -139,7 +139,7 @@ export default function DaftarProyekPage() {
         item.tipe === filterType.toString().toLowerCase() ||
         (item.tipeLabel &&
           item.tipeLabel.toString().toLowerCase() ===
-            filterType.toString().toLowerCase());
+          filterType.toString().toLowerCase());
 
       const matchSearch = item.judul
         .toString()
@@ -157,19 +157,19 @@ export default function DaftarProyekPage() {
   );
 
   const openEdit = (item: any) => {
-  const mapped = {
-    id: item.raw.id,
-    email: item.raw.email,
-    phoneNumber: item.raw.phoneNumber,
-    projectTitle: item.raw.projectTitle,
-    projectType: item.raw.projectType,
-    projectDescription: item.raw.projectDescription,
-    status: item.raw.status, // ambil status asli (lebih akurat)
-  };
+    const mapped = {
+      id: item.raw.id,
+      email: item.raw.email,
+      phoneNumber: item.raw.phoneNumber,
+      projectTitle: item.raw.projectTitle,
+      projectType: item.raw.projectType,
+      projectDescription: item.raw.projectDescription,
+      status: item.raw.status, // ambil status asli (lebih akurat)
+    };
 
-  setSelectedData(mapped);
-  setIsEditModalOpen(true);
-};
+    setSelectedData(mapped);
+    setIsEditModalOpen(true);
+  };
 
 
   // =====================================================
@@ -184,9 +184,8 @@ export default function DaftarProyekPage() {
       />
 
       <main
-        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        }`}
+        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          }`}
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-black uppercase">
@@ -232,11 +231,10 @@ export default function DaftarProyekPage() {
                     if (searchTerm.trim() === "") setIsSearchOpen(false);
                   }}
                   placeholder="Cari proyek..."
-                  className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${
-                    isSearchOpen
-                      ? "w-56 pl-10 pr-3 opacity-100"
-                      : "w-10 opacity-0 pointer-events-none"
-                  }`}
+                  className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${isSearchOpen
+                    ? "w-56 pl-10 pr-3 opacity-100"
+                    : "w-10 opacity-0 pointer-events-none"
+                    }`}
                 />
               </div>
 
@@ -265,96 +263,90 @@ export default function DaftarProyekPage() {
             </div>
 
             {/* TABLE */}
-            <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-300">
-              <table className="w-full text-sm text-gray-700 border-collapse">
-                <thead className="bg-gray-300 text-gray-800">
+            <div className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full" }`}>
+              <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
+                <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
                   <tr>
-                    <th className="border border-gray-300 px-4 py-2">NO</th>
-                    <th className="border border-gray-300 px-4 py-2">EMAIL</th>
-                    <th className="border border-gray-300 px-4 py-2">NO TELEPON</th>
-                    <th className="border border-gray-300 px-4 py-2">JUDUL</th>
-                    <th className="border border-gray-300 px-4 py-2">TIPE</th>
-                    <th className="border border-gray-300 px-4 py-2">STATUS</th>
-                    <th className="border border-gray-300 px-4 py-2 text-center">
-                      AKSI
-                    </th>
+                    <th className="border border-gray-300 px-4 py-2 w-12">NO</th>
+                    <th className="border border-gray-300 px-4 py-2 w-56">EMAIL</th>
+                    <th className="border border-gray-300 px-4 py-2 w-40">NO TELEPON</th>
+                    <th className="border border-gray-300 px-4 py-2 w-56">JUDUL</th>
+                    <th className="border border-gray-300 px-4 py-2 w-48">TIPE</th>
+                    <th className="border border-gray-300 px-4 py-2 w-40">STATUS</th>
+                    <th className="border border-gray-300 px-4 py-2 text-center w-48">AKSI</th>
                   </tr>
                 </thead>
+
 
                 <tbody>
                   {visibleData.map((item) => (
                     <tr key={item.no} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-2 text-center">
+
+                      <td className="border border-gray-300 px-4 py-2 text-center w-12">
                         {item.no}
                       </td>
-                      <td className="border border-gray-300 px-4 py-2">
+
+                      <td className="border border-gray-300 px-4 py-2 w-56">
                         {item.email}
                       </td>
-                      <td className="border border-gray-300 px-4 py-2">
+
+                      <td className="border border-gray-300 px-4 py-2 w-40">
                         {item.phoneNumber}
                       </td>
-                      <td className="border border-gray-300 px-4 py-2">
+
+                      <td className="border border-gray-300 px-4 py-2 w-56">
                         {item.judul}
                       </td>
 
-                      {/* tampilkan label asli (tidak full capital) */}
-                      <td className="border border-gray-300 px-4 py-2 text-center">
+                      <td className="border border-gray-300 px-4 py-2 text-center w-48">
                         {item.tipeLabel || item.tipe}
                       </td>
 
-                      <td className="border border-gray-300 px-4 py-2 text-center">
+                      <td className="border border-gray-300 px-4 py-2 text-center w-40">
                         <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            item.status === "Selesai"
-                              ? "bg-green-100 text-green-700"
-                              : item.status === "Sedang Diproses"
+                          className={`px-2 py-1 rounded text-xs font-medium ${item.status === "Selesai"
+                            ? "bg-green-100 text-green-700"
+                            : item.status === "Sedang Diproses"
                               ? "bg-yellow-100 text-yellow-700"
                               : "bg-gray-100 text-gray-600"
-                          }`}
+                            }`}
                         >
                           {item.status}
                         </span>
                       </td>
 
-                      <td className="border border-gray-300 px-4 py-2 text-center">
+                      <td className="border border-gray-300 px-4 py-2 text-center w-48">
                         <div className="flex justify-center gap-2">
                           <button
                             onClick={() => {
                               setSelectedDetail(item.raw);
                               setIsDetailOpen(true);
                             }}
-                            className="bg-gray-500 hover:bg-gray-600 text-white rounded w-28 h-8 text-xs"
-                          >
-                            Lihat Detail
+                            className="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
+                            <FileText size={14} /> Detail
                           </button>
 
                           <button
                             onClick={() => openEdit(item)}
-                            className="bg-yellow-400 hover:bg-yellow-500 text-white rounded w-24 h-8 flex items-center justify-center gap-1 text-xs"
-                          >
+                            className="bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
                             <Edit size={14} /> Edit
                           </button>
 
-                          <button className="bg-red-500 hover:bg-red-600 text-white rounded w-24 h-8 flex items-center justify-center gap-1 text-xs">
+                          <button
+                            className="bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
                             <Trash2 size={14} /> Hapus
                           </button>
                         </div>
                       </td>
+
                     </tr>
                   ))}
-
-                  {visibleData.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="text-center py-6 text-gray-500">
-                        Tidak ada data.
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
+
               </table>
 
               {/* PAGINATION */}
-              <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
+              <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-white-50 rounded-b-lg">
                 <button
                   onClick={() => {
                     if (currentPage > 1) {
@@ -364,11 +356,10 @@ export default function DaftarProyekPage() {
                     }
                   }}
                   disabled={currentPage === 1}
-                  className={`px-2 py-1 rounded border text-xs ${
-                    currentPage === 1
-                      ? "bg-gray-200 text-gray-400"
-                      : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                  }`}
+                  className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                    }`}
                 >
                   &lt;
                 </button>
@@ -380,11 +371,10 @@ export default function DaftarProyekPage() {
                     <button
                       key={pageNumber}
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`px-2 py-1 rounded text-xs border ${
-                        currentPage === pageNumber
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                      }`}
+                      className={`px-2 py-1 rounded text-xs border ${currentPage === pageNumber
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                        }`}
                     >
                       {pageNumber}
                     </button>
@@ -400,11 +390,10 @@ export default function DaftarProyekPage() {
                     }
                   }}
                   disabled={currentPage === totalPages}
-                  className={`px-2 py-1 rounded border text-xs ${
-                    currentPage === totalPages
-                      ? "bg-gray-200 text-gray-400"
-                      : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                  }`}
+                  className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                    }`}
                 >
                   &gt;
                 </button>
