@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { FileText, Search, ChevronDown } from "lucide-react";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminSidebar from "../../components/AdminSidebar";
-import ProjectDetailModal from "../../components/DetailVerifyModal";
+import ProjectDetailModal from "../../components/DetailVerifyProjectModal";
 
 export default function VerifikasiProyekPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -35,7 +35,7 @@ export default function VerifikasiProyekPage() {
         no: i + 1,
         id: item.id,
         email: item.email,
-        telp: item.phoneNumber,
+        phoneNumber: item.phoneNumber,
         judul: item.projectTitle,
         tipe: "Website",
         deskripsi: item.projectDescription,
@@ -209,7 +209,7 @@ export default function VerifikasiProyekPage() {
                       {startIndex + idx + 1}
                     </td>
                     <td className="border px-4 py-2 border-gray-300">{item.email}</td>
-                    <td className="border px-4 py-2 border-gray-300">{item.telp}</td>
+                    <td className="border px-4 py-2 border-gray-300">{item.phoneNumber}</td>
                     <td className="border px-4 py-2 border-gray-300">{item.judul}</td>
                     <td className="border px-4 py-2 border-gray-300 text-center">{item.tipe}</td>
 

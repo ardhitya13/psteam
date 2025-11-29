@@ -6,7 +6,7 @@ import { prisma } from "../db";
 // ============================================================
 export const getRegistrations = async (req: Request, res: Response) => {
   try {
-    const regs = await prisma.trainingRegistration.findMany({
+    const regs = await prisma.trainingregistration.findMany({
       orderBy: { id: "desc" },
     });
 
@@ -22,7 +22,7 @@ export const getRegistrations = async (req: Request, res: Response) => {
 // ============================================================
 export const getPendingRegistrations = async (req: Request, res: Response) => {
   try {
-    const regs = await prisma.trainingRegistration.findMany({
+    const regs = await prisma.trainingregistration.findMany({
       where: { status: "pending" },
       orderBy: { id: "desc" },
     });
@@ -39,7 +39,7 @@ export const getPendingRegistrations = async (req: Request, res: Response) => {
 // ============================================================
 export const getApprovedRegistrations = async (req: Request, res: Response) => {
   try {
-    const regs = await prisma.trainingRegistration.findMany({
+    const regs = await prisma.trainingregistration.findMany({
       where: { status: "approved" },
       orderBy: { id: "desc" },
     });
@@ -58,7 +58,7 @@ export const createRegistration = async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
-    const reg = await prisma.trainingRegistration.create({
+    const reg = await prisma.trainingregistration.create({
       data: {
         name: data.name,
         email: data.email,
@@ -90,7 +90,7 @@ export const updateStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid status value" });
     }
 
-    const updated = await prisma.trainingRegistration.update({
+    const updated = await prisma.trainingregistration.update({
       where: { id },
       data: { status },
     });

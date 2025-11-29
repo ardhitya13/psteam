@@ -7,15 +7,15 @@ import { prisma } from "../db";
 // ==========================================
 export const getTeams = async (req: Request, res: Response) => {
   try {
-    const teams = await prisma.teamProject.findMany({
-      include: { teamMember: true },   // relasi asli dari Prisma schema
+    const teams = await prisma.teamproject.findMany({
+      include: { teammember: true },   // relasi asli dari Prisma schema
       orderBy: { id: "desc" },
     });
 
     // NORMALISASI -> agar dipakai frontend sebagai teamMembers
     const normalized = teams.map((t) => ({
       ...t,
-      teamMembers: t.teamMember, // FIX PENTING agar frontend membaca anggota
+      teamMembers: t.teammember, // FIX PENTING agar frontend membaca anggota
     }));
 
     return res.json(normalized);
@@ -32,12 +32,12 @@ export const createTeam = async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
-    const project = await prisma.teamProject.create({
+    const project = await prisma.teamproject.create({
       data: {
         teamTitle: data.teamTitle,
 
         // Frontend mengirim teamMembers (bukan members)
-        teamMember: {
+        teammember: {
           create: (data.teamMembers || []).map((m: any) => ({
             name: m.name,
             role: m.role,
@@ -55,12 +55,12 @@ export const createTeam = async (req: Request, res: Response) => {
           })),
         },
       },
-      include: { teamMember: true },
+      include: { teammember: true },
     });
 
     return res.json({
       ...project,
-      teamMembers: project.teamMember,
+      teammembers: project.teammember,
     });
   } catch (err) {
     console.error("createTeam error:", err);
@@ -80,7 +80,7 @@ export const addMember = async (req: Request, res: Response) => {
 
     const data = req.body;
 
-    const member = await prisma.teamMember.create({
+    const member = await prisma.teammember.create({
       data: {
         projectId,
         name: data.name,
@@ -118,7 +118,7 @@ export const updateMember = async (req: Request, res: Response) => {
 
     const data = req.body;
 
-    const updated = await prisma.teamMember.update({
+    const updated = await prisma.teammember.update({
       where: { id: memberId },
       data,
     });
@@ -140,7 +140,7 @@ export const deleteMember = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid member ID" });
     }
 
-    await prisma.teamMember.delete({ where: { id: memberId } });
+    await prisma.teammember.delete({ where: { id: memberId } });
 
     return res.json({ message: "Member deleted" });
   } catch (err) {
@@ -159,9 +159,9 @@ export const deleteProject = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid project ID" });
     }
 
-    await prisma.teamMember.deleteMany({ where: { projectId: id } });
+    await prisma.teammember.deleteMany({ where: { projectId: id } });
 
-    await prisma.teamProject.delete({ where: { id } });
+    await prisma.teamproject.delete({ where: { id } });
 
     return res.json({ message: "Project deleted" });
   } catch (err) {

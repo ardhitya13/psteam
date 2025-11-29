@@ -7,8 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model product {
+  id           Int      @id @default(autoincrement())
+  image        String
+  title        String
+  category     String
+  academicYear String
+  code         String   @unique(map: "Product_code_key")
+  description  String
+  link         String
+  publishDate  DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+}
 
-model teamMember { // modal untuk anggota team pengembang
+model projectsubmission {
+  id                 Int      @id @default(autoincrement())
+  fullName           String
+  email              String
+  phoneNumber        String
+  projectTitle       String
+  projectType        String
+  projectDescription String
+  status             String   @default("pending")
+  adminNote          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model teammember {
   id             Int         @id @default(autoincrement())
   name           String
   role           String
@@ -24,31 +51,18 @@ model teamMember { // modal untuk anggota team pengembang
   education      String?
   specialization String?
   projectId      Int
-  teamProject    teamProject @relation(fields: [projectId], references: [id], map: "TeamMember_projectId_fkey")
+  teamproject    teamproject @relation(fields: [projectId], references: [id], map: "TeamMember_projectId_fkey")
 
   @@index([projectId], map: "TeamMember_projectId_fkey")
 }
 
-model teamProject { // modal untuk team pengembang proyek
+model teamproject {
   id         Int          @id @default(autoincrement())
   teamTitle  String
-  teamMember teamMember[]
+  teammember teammember[]
 }
 
-model projectSubmission { //modal untuk proyek
-  id                 Int      @id @default(autoincrement())
-  fullName           String
-  email              String
-  phoneNumber        String
-  projectTitle       String
-  projectDescription String
-  status             String   @default("pending")
-  adminNote          String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-}
-
-model TrainingRegistration { // modal untuk pelatihan
+model trainingregistration {
   id            Int      @id @default(autoincrement())
   name          String
   email         String
@@ -57,21 +71,7 @@ model TrainingRegistration { // modal untuk pelatihan
   trainingType  String
   batch         String
   notes         String?
-  status        String   @default("pending") // pending | approved | rejected
+  status        String   @default("pending")
   createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model Product {
-  id            Int      @id @default(autoincrement())
-  image         String
-  title         String
-  category      String
-  academicYear  String
-  code          String   @unique
-  description   String
-  link          String
-  publishDate   DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  updatedAt     DateTime
 }

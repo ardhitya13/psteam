@@ -19,6 +19,7 @@ export default function DaftarProyekPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  // filter value stores the label shown in dropdown (e.g. "Website", "Mobile", "AI", "IoT")
   const [filterType, setFilterType] = useState("Semua");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,9 +30,11 @@ export default function DaftarProyekPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ==================================================================
+  
+
+  // =====================================================
   // FETCH DATA
-  // ==================================================================
+  // =====================================================
   useEffect(() => {
     async function loadData() {
       try {
@@ -43,13 +46,23 @@ export default function DaftarProyekPage() {
           return;
         }
 
+        // Map: keep both original label (tipeLabel) and normalized lowercase (tipe)
         const mapped = json.map((item: any, index: number) => ({
           no: index + 1,
+          id: item.id,
           email: item.email,
-          telp: item.phoneNumber,
+          phoneNumber: item.phoneNumber,
           judul: item.projectTitle,
-          tipe: item.projectType,
-          status: item.status === "approved" ? "Sedang Diproses" : item.status,
+          // tipeLabel = exactly what API returned (keperluan tampil & dropdown)
+          tipeLabel: item.projectType ?? "",
+          // tipe = normalized lowercase untuk perbandingan filter yang aman
+          tipe: (item.projectType ?? "").toString().toLowerCase(),
+          status:
+            item.status === "approved"
+              ? "Sedang Diproses"
+              : item.status === "pending"
+              ? "Belum Diproses"
+              : item.status,
           deskripsi: item.projectDescription,
           raw: item,
         }));
@@ -65,29 +78,103 @@ export default function DaftarProyekPage() {
     loadData();
   }, []);
 
-  // FILTERING
+  // =====================================================
+  // Generate unique dropdown options from fetched data
+  // =====================================================
+  const typeOptions = useMemo(() => {
+    const set = new Set<string>();
+    data.forEach((d) => {
+      const lbl = d.tipeLabel?.toString().trim();
+      const fallback = d.tipe?.toString().trim();
+      if (lbl) set.add(lbl);
+      else if (fallback) set.add(fallback);
+    });
+    // keep insertion order, add "Semua" at front
+    return ["Semua", ...Array.from(set)];
+  }, [data]);
+
+  // =====================================================
+  // UPDATE STATUS
+  // =====================================================
+  async function updateStatus(id: number, newStatus: string) {
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/submissions/${id}/update-status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal update status");
+
+      const updatedData = data.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              status: newStatus,
+              raw: { ...item.raw, status: newStatus },
+            }
+          : item
+      );
+
+      setData(updatedData);
+
+      alert("Status berhasil diperbarui!");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal update status!");
+    }
+  }
+
+  // =====================================================
+  // FILTERING (case-insensitive comparison, display uses label)
+  // =====================================================
   const filteredData = useMemo(() => {
-    return data.filter(
-      (item) =>
-        (filterType === "Semua" || item.tipe === filterType) &&
-        item.judul.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return data.filter((item) => {
+      // type match: true if "Semua" selected, otherwise compare normalized lowercase
+      const matchType =
+        filterType === "Semua" ||
+        item.tipe === filterType.toString().toLowerCase() ||
+        (item.tipeLabel &&
+          item.tipeLabel.toString().toLowerCase() ===
+            filterType.toString().toLowerCase());
+
+      const matchSearch = item.judul
+        .toString()
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase().trim());
+
+      return matchType && matchSearch;
+    });
   }, [data, filterType, searchTerm]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const visibleData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   const openEdit = (item: any) => {
-    setSelectedData(item.raw);
-    setIsEditModalOpen(true);
+  const mapped = {
+    id: item.raw.id,
+    email: item.raw.email,
+    phoneNumber: item.raw.phoneNumber,
+    projectTitle: item.raw.projectTitle,
+    projectType: item.raw.projectType,
+    projectDescription: item.raw.projectDescription,
+    status: item.raw.status, // ambil status asli (lebih akurat)
   };
 
-  // ==================================================================
-  // UI RENDER
-  // ==================================================================
+  setSelectedData(mapped);
+  setIsEditModalOpen(true);
+};
+
+
+  // =====================================================
+  // UI
+  // =====================================================
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -99,28 +186,25 @@ export default function DaftarProyekPage() {
       <main
         className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
           isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[85px]`}
+        }`}
       >
-        {/* TITLE */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black uppercase">Daftar Proyek</h1>
+          <h1 className="text-3xl font-bold text-black uppercase">
+            Daftar Proyek
+          </h1>
           <p className="text-gray-600 text-sm">
             Kelola semua proyek produksi PSTeam.
           </p>
         </div>
 
-        {/* Loading State */}
         {loading && (
           <p className="text-center text-gray-500 py-10">Loading data...</p>
         )}
 
         {!loading && (
           <>
-            {/* ===========================================================
-                          SEARCH & FILTER (mengikuti verifikasi)
-            ============================================================ */}
+            {/* SEARCH & FILTER */}
             <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
-
               {/* Search */}
               <div className="relative flex items-center h-10">
                 {!isSearchOpen && (
@@ -140,7 +224,10 @@ export default function DaftarProyekPage() {
                 <input
                   id="searchProject"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   onBlur={() => {
                     if (searchTerm.trim() === "") setIsSearchOpen(false);
                   }}
@@ -153,7 +240,7 @@ export default function DaftarProyekPage() {
                 />
               </div>
 
-              {/* Filter Type */}
+              {/* FILTER TIPE — dynamically generated from data */}
               <div className="relative">
                 <select
                   value={filterType}
@@ -163,11 +250,11 @@ export default function DaftarProyekPage() {
                   }}
                   className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
                 >
-                  <option value="Semua">Semua Tipe</option>
-                  <option value="Website">Website</option>
-                  <option value="Mobile">Mobile</option>
-                  <option value="AI">AI</option>
-                  <option value="IoT">IoT</option>
+                  {typeOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
                 </select>
 
                 <ChevronDown
@@ -177,9 +264,7 @@ export default function DaftarProyekPage() {
               </div>
             </div>
 
-            {/* ===========================================================
-                                  TABLE (TIDAK DIUBAH)
-            ============================================================ */}
+            {/* TABLE */}
             <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-300">
               <table className="w-full text-sm text-gray-700 border-collapse">
                 <thead className="bg-gray-300 text-gray-800">
@@ -190,7 +275,9 @@ export default function DaftarProyekPage() {
                     <th className="border border-gray-300 px-4 py-2">JUDUL</th>
                     <th className="border border-gray-300 px-4 py-2">TIPE</th>
                     <th className="border border-gray-300 px-4 py-2">STATUS</th>
-                    <th className="border border-gray-300 px-4 py-2 text-center">AKSI</th>
+                    <th className="border border-gray-300 px-4 py-2 text-center">
+                      AKSI
+                    </th>
                   </tr>
                 </thead>
 
@@ -200,12 +287,21 @@ export default function DaftarProyekPage() {
                       <td className="border border-gray-300 px-4 py-2 text-center">
                         {item.no}
                       </td>
-                      <td className="border border-gray-300 px-4 py-2">{item.email}</td>
-                      <td className="border border-gray-300 px-4 py-2">{item.telp}</td>
-                      <td className="border border-gray-300 px-4 py-2">{item.judul}</td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        {item.tipe}
+                      <td className="border border-gray-300 px-4 py-2">
+                        {item.email}
                       </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {item.phoneNumber}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        {item.judul}
+                      </td>
+
+                      {/* tampilkan label asli (tidak full capital) */}
+                      <td className="border border-gray-300 px-4 py-2 text-center">
+                        {item.tipeLabel || item.tipe}
+                      </td>
+
                       <td className="border border-gray-300 px-4 py-2 text-center">
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
@@ -246,10 +342,18 @@ export default function DaftarProyekPage() {
                       </td>
                     </tr>
                   ))}
+
+                  {visibleData.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-6 text-gray-500">
+                        Tidak ada data.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
 
-              {/* Pagination – tidak disentuh */}
+              {/* PAGINATION */}
               <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
                 <button
                   onClick={() => {
@@ -309,19 +413,18 @@ export default function DaftarProyekPage() {
           </>
         )}
 
-        {/* Modal Detail */}
         <DetailProjectModal
           isOpen={isDetailOpen}
           onClose={() => setIsDetailOpen(false)}
           data={selectedDetail}
         />
 
-        {/* Modal Edit */}
         <EditProjectModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           data={selectedData}
           mode="edit"
+          onUpdateStatus={updateStatus}
         />
       </main>
     </div>

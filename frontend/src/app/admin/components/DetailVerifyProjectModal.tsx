@@ -7,7 +7,7 @@ interface DetailProyekModalProps {
   onClose: () => void;
   data: {
     email?: string;
-    telepon?: string;
+    phoneNumber?: string;
     judul?: string;
     tipe?: string;
     deskripsi?: string;
@@ -26,7 +26,6 @@ export default function DetailProyekModal({
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      {/* Perlebar modal */}
       <div className="max-w-3xl mx-auto">
         <h2 className="text-center text-lg font-bold mb-6 text-[#000000]">
           DETAIL SPESIFIKASI PROYEK
@@ -34,7 +33,7 @@ export default function DetailProyekModal({
 
         <div className="space-y-4">
 
-          {/* Email dan Status */}
+          {/* Email & Status */}
           <div className="flex gap-4">
             <div className="w-1/2">
               <label className="block text-gray-600 mb-1 text-xs font-semibold">
@@ -59,12 +58,13 @@ export default function DetailProyekModal({
             </div>
           </div>
 
+          {/* Nomor HP */}
           <div className="w-full">
             <label className="block text-gray-600 mb-1 text-xs font-semibold">
               Nomor WhatsApp
             </label>
             <input
-              value={data.telepon || ""}
+              value={data.phoneNumber || ""}
               disabled
               className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-800"
             />

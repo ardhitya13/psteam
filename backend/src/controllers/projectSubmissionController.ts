@@ -10,7 +10,7 @@ export const createSubmission = async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
-    const submission = await prisma.projectSubmission.create({
+    const submission = await prisma.projectsubmission.create({
       data,
     });
 
@@ -26,8 +26,10 @@ export const createSubmission = async (req: Request, res: Response) => {
 // ==============================
 export const getApprovedSubmissions = async (req: Request, res: Response) => {
   try {
-    const submissions = await prisma.projectSubmission.findMany({
-      where: { status: "approved" },
+    const submissions = await prisma.projectsubmission.findMany({
+      where: {
+        status: { in: ["pending", "approved", "finished"] },
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -38,12 +40,13 @@ export const getApprovedSubmissions = async (req: Request, res: Response) => {
   }
 };
 
+
 // ==============================
 // GET PENDING SUBMISSIONS
 // ==============================
 export const getPendingSubmissions = async (req: Request, res: Response) => {
   try {
-    const submissions = await prisma.projectSubmission.findMany({
+    const submissions = await prisma.projectsubmission.findMany({
       where: { status: "pending" },
       orderBy: { createdAt: "desc" },
     });
@@ -62,7 +65,7 @@ export const approveSubmission = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
-    const updated = await prisma.projectSubmission.update({
+    const updated = await prisma.projectsubmission.update({
       where: { id },
       data: { status: "approved" },
     });
@@ -85,7 +88,7 @@ export const rejectSubmission = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const { adminNote } = req.body;
 
-    const updated = await prisma.projectSubmission.update({
+    const updated = await prisma.projectsubmission.update({
       where: { id },
       data: {
         status: "rejected",
@@ -100,5 +103,28 @@ export const rejectSubmission = async (req: Request, res: Response) => {
   } catch (err) {
     console.error("rejectSubmission error:", err);
     return res.status(500).json({ error: "Failed to reject submission" });
+  }
+};
+
+// ==============================
+// UPDATE STATUS (FITUR UNTUK EDIT STATUS ADMIN)
+// ==============================
+export const updateSubmissionStatus = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const { status } = req.body;
+
+    const updated = await prisma.projectsubmission.update({
+      where: { id },
+      data: { status },
+    });
+
+    return res.json({
+      message: "Status proyek berhasil diperbarui",
+      data: updated,
+    });
+  } catch (err) {
+    console.error("updateSubmissionStatus error:", err);
+    return res.status(500).json({ error: "Failed to update status" });
   }
 };

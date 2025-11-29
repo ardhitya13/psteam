@@ -27,11 +27,12 @@ export default function FormPengajuan() {
   };
 
   // ============================
-  // 🔥 KIRIM KE BACKEND
+  // SUBMIT FORM
   // ============================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validasi frontend
     if (
       !formData.name ||
       !formData.email ||
@@ -49,17 +50,21 @@ export default function FormPengajuan() {
     setError("");
 
     try {
+      // 🔥 FIX UTAMA: URL API SESUAI BACKEND
       const res = await fetch("http://localhost:4000/api/submissions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+
+        // 🔥 FIX UTAMA: KIRIM DATA SESUAI MODEL PRISMA
         body: JSON.stringify({
           fullName: formData.name,
           email: formData.email,
           phoneNumber: formData.phone,
           projectTitle: formData.title,
           projectDescription: formData.description,
+          projectType: formData.projectType, // optional — simpan jika backend mendukung
         }),
       });
 
@@ -68,6 +73,7 @@ export default function FormPengajuan() {
       }
 
       setSuccess(true);
+
     } catch (err) {
       console.error(err);
       setError("Gagal mengirim data ke server. Coba lagi.");
@@ -80,7 +86,6 @@ export default function FormPengajuan() {
 
   const generateWhatsAppMessage = () => {
     const pesan = `Halo PSTEAM! 👋\n\nSaya ingin mengajukan proyek dengan detail berikut:\n\n📌 Nama: ${formData.name}\n📧 Email: ${formData.email}\n📞 Telepon: ${formData.phone}\n💼 Tipe Proyek: ${formData.projectType}\n🧾 Judul: ${formData.title}\n📝 Deskripsi: ${formData.description}\n\nTerima kasih! 🙏`;
-
     return `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=${encodeURIComponent(
       pesan
     )}`;
@@ -100,9 +105,6 @@ export default function FormPengajuan() {
 
   return (
     <section className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 transition-all duration-300 hover:shadow-xl relative overflow-hidden">
-      <h3 className="text-2xl font-semibold text-gray-900 text-center mb-6">
-        Formulir Pengajuan Proyek
-      </h3>
 
       {/* UI Sukses */}
       {success && (
@@ -113,7 +115,7 @@ export default function FormPengajuan() {
               Pengajuan Berhasil Dikirim!
             </h4>
             <p className="text-gray-600 mt-1 mb-5">
-              Tim PSTEAM akan meninjau dan menghubungi kamu melalui email atau WhatsApp.
+              Tim PSTEAM akan menghubungi kamu melalui email atau WhatsApp.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -155,13 +157,8 @@ export default function FormPengajuan() {
       )}
 
       {/* FORM */}
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-5 text-gray-900 relative z-0"
-      >
-        <h4 className="text-lg font-semibold mb-2 border-b pb-2">
-          Data Diri
-        </h4>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-gray-900 relative z-0">
+        <h4 className="text-lg font-semibold mb-2 border-b pb-2">Data Diri</h4>
 
         <div className="grid md:grid-cols-2 gap-4">
           <input
@@ -172,6 +169,7 @@ export default function FormPengajuan() {
             onChange={handleChange}
             className="border p-3 rounded-lg"
           />
+
           <input
             type="email"
             name="email"
@@ -180,19 +178,18 @@ export default function FormPengajuan() {
             onChange={handleChange}
             className="border p-3 rounded-lg"
           />
+
           <input
             type="tel"
             name="phone"
-            placeholder="Nomor Telepon (WhatsApp)"
+            placeholder="Nomor Telepon"
             value={formData.phone}
             onChange={handleChange}
             className="border p-3 rounded-lg md:col-span-2"
           />
         </div>
 
-        <h4 className="text-lg font-semibold mt-4 mb-2 border-b pb-2">
-          Detail Proyek
-        </h4>
+        <h4 className="text-lg font-semibold mt-4 mb-2 border-b pb-2">Detail Proyek</h4>
 
         <div className="grid md:grid-cols-2 gap-4">
           <select
@@ -204,7 +201,7 @@ export default function FormPengajuan() {
             <option value="">Pilih Tipe Proyek</option>
             <option value="Web Development">Web Development</option>
             <option value="Mobile Development">Mobile Development</option>
-            <option value="Internet of Things (IoT)">Internet of Things (IoT)</option>
+            <option value="IoT (Internet of Things)">IoT</option>
             <option value="Artificial Intelligence">Artificial Intelligence</option>
           </select>
 
