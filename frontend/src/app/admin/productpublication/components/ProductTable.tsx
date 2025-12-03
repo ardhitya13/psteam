@@ -10,9 +10,11 @@ export default function ProductTable({
   onDetail,
   onEdit,
   onDelete,
+
   currentPage,
   totalPages,
   setCurrentPage,
+  itemsPerPage, // ⬅️ DITAMBAHKAN
 }: {
   products: ProductItem[];
   onDetail: (p: ProductItem) => void;
@@ -22,10 +24,13 @@ export default function ProductTable({
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
+  itemsPerPage: number; // ⬅️ DITAMBAHKAN
 }) {
+
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-300 mt-4 overflow-hidden">
 
+      {/* ======================== TABLE =========================== */}
       <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
         <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
           <tr>
@@ -42,7 +47,7 @@ export default function ProductTable({
         <tbody>
           {products.length === 0 ? (
             <tr>
-              <td colSpan={7} className="text-center py-10 italic text-gray-500">
+              <td colSpan={7} className="text-center py-6 italic text-gray-500">
                 Belum ada produk.
               </td>
             </tr>
@@ -54,13 +59,15 @@ export default function ProductTable({
 
               return (
                 <tr
-                  key={`${p.id}-${i}`}   // <-- FIX: GUARANTEED UNIQUE
+                  key={`${p.id}-${i}`}
                   className="hover:bg-blue-50 border border-gray-300 transition"
                 >
+                  {/* NOMOR */}
                   <td className="border border-gray-300 px-4 py-2">
-                    {(currentPage - 1) * products.length + (i + 1)}
+                    {(currentPage - 1) * itemsPerPage + (i + 1)}
                   </td>
 
+                  {/* GAMBAR */}
                   <td className="border border-gray-300 px-4 py-2">
                     <img
                       src={imageUrl}
@@ -69,22 +76,27 @@ export default function ProductTable({
                     />
                   </td>
 
+                  {/* JUDUL */}
                   <td className="border border-gray-300 px-4 py-2 font-semibold">
                     {p.title}
                   </td>
 
+                  {/* KATEGORI */}
                   <td className="border border-gray-300 px-4 py-2 capitalize">
                     {p.category}
                   </td>
 
+                  {/* TAHUN AJARAN */}
                   <td className="border border-gray-300 px-4 py-2">
                     {p.academicYear}
                   </td>
 
+                  {/* KODE */}
                   <td className="border border-gray-300 px-4 py-2 font-mono">
                     {p.code}
                   </td>
 
+                  {/* AKSI */}
                   <td className="border border-gray-300 px-4 py-2 text-center">
                     <div className="inline-flex items-center gap-2 whitespace-nowrap">
 
@@ -118,35 +130,48 @@ export default function ProductTable({
         </tbody>
       </table>
 
-      {/* PAGINATION */}
-      <div className="w-full flex justify-end items-center gap-3 py-4 pr-4 bg-white border-t border-gray-300">
+      {/* ======================== PAGINATION (SAMA DENGAN VERIFIKASI) =========================== */}
+      <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 border-t border-gray-300">
+
+        {/* PREV */}
         <button
+          onClick={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1);
+            }
+          }}
           disabled={currentPage === 1}
-          onClick={() => setCurrentPage(currentPage - 1)}
-          className={`w-10 h-10 flex items-center justify-center rounded-md border text-lg ${
+          className={`px-2 py-1 rounded border text-xs ${
             currentPage === 1
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-white hover:bg-gray-100 text-black"
+              : "bg-gray-100 hover:bg-gray-300 text-gray-800"
           }`}
         >
-          {"<"}
+          &lt;
         </button>
 
-        <button className="w-10 h-10 rounded-md bg-blue-600 text-white cursor-default">
+        {/* PAGE NUMBER */}
+        <button className="px-3 py-1 rounded text-xs border bg-blue-600 text-white">
           {currentPage}
         </button>
 
+        {/* NEXT */}
         <button
+          onClick={() => {
+            if (currentPage < totalPages) {
+              setCurrentPage(currentPage + 1);
+            }
+          }}
           disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage(currentPage + 1)}
-          className={`w-10 h-10 flex items-center justify-center rounded-md border text-lg ${
+          className={`px-2 py-1 rounded border text-xs ${
             currentPage === totalPages
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-white hover:bg-gray-100 text-black"
+              : "bg-gray-100 hover:bg-gray-300 text-gray-800"
           }`}
         >
-          {">"}
+          &gt;
         </button>
+
       </div>
     </div>
   );

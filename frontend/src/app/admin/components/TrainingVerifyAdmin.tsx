@@ -176,7 +176,17 @@ export default function TrainingVerificationAdmin() {
               </thead>
 
               <tbody>
-                {pageItems.map((r, i) => (
+                {pageItems.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="text-center py-6 italic text-gray-500"
+                    >
+                      Tidak ada pelatihan yang mau di verifikasi.
+                    </td>
+                  </tr>
+                ) : (
+                pageItems.map((r, i) => (
                   <tr key={r.id} className="hover:bg-blue-50 border">
                     <td className="border px-4 py-2 border-gray-300">{startIndex + i + 1}</td>
                     <td className="border px-4 py-2 border-gray-300 font-semibold">{r.name}</td>
@@ -230,7 +240,8 @@ export default function TrainingVerificationAdmin() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
               </tbody>
             </table>
 

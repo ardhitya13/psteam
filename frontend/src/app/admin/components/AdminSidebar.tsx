@@ -83,7 +83,7 @@ export default function SidebarAdmin({
       </div>
 
       {/* NAV */}
-      <nav className="mt-4">
+      <nav className="mt-4 h-[calc(100vh-120px)] overflow-y-auto overflow-x-hidden scrollbar-hide">
         <ul className="space-y-2">
           {/* BERANDA */}
           <li>
@@ -428,7 +428,7 @@ export default function SidebarAdmin({
                   {[
                     // Kelola Dosen ditempatkan paling atas sesuai permintaan
                     {
-                      name: "Kelola Dosen",
+                      name: "Riwayat Dosen",
                       href: "/admin/portofolio/lecturers",
                       icon: Users,
                     },
@@ -443,7 +443,7 @@ export default function SidebarAdmin({
                       icon: BookOpen,
                     },
                     {
-                      name: "Karya Ilmiah",
+                      name: "Publikasi Karya",
                       href: "/admin/portofolio/scientificwork",
                       icon: PenTool,
                     },

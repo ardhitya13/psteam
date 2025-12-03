@@ -689,7 +689,7 @@ export default function TeamAdmin() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center py-10 text-gray-500 italic border border-gray-300">
+                    <td colSpan={4} className="text-center py-6 text-gray-500 italic border border-gray-300">
                       Tidak ada project ditemukan.
                     </td>
                   </tr>

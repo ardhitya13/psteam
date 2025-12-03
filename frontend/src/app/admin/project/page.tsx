@@ -263,7 +263,7 @@ export default function DaftarProyekPage() {
             </div>
 
             {/* TABLE */}
-            <div className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full" }`}>
+            <div className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full"}`}>
               <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
                 <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
                   <tr>
@@ -279,68 +279,79 @@ export default function DaftarProyekPage() {
 
 
                 <tbody>
-                  {visibleData.map((item) => (
-                    <tr key={item.no} className="hover:bg-gray-50">
+                  {visibleData.length > 0 ? (
+                    visibleData.map((item) => (
+                      <tr key={item.no} className="hover:bg-gray-50">
 
-                      <td className="border border-gray-300 px-4 py-2 text-center w-12">
-                        {item.no}
+                        <td className="border border-gray-300 px-4 py-2 text-center w-12">
+                          {item.no}
+                        </td>
+
+                        <td className="border border-gray-300 px-4 py-2 w-56">
+                          {item.email}
+                        </td>
+
+                        <td className="border border-gray-300 px-4 py-2 w-40">
+                          {item.phoneNumber}
+                        </td>
+
+                        <td className="border border-gray-300 px-4 py-2 w-56">
+                          {item.judul}
+                        </td>
+
+                        <td className="border border-gray-300 px-4 py-2 text-center w-48">
+                          {item.tipeLabel || item.tipe}
+                        </td>
+
+                        <td className="border border-gray-300 px-4 py-2 text-center w-40">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${item.status === "Selesai"
+                              ? "bg-green-100 text-green-700"
+                              : item.status === "Sedang Diproses"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-gray-100 text-gray-600"
+                              }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
+
+                        <td className="border border-gray-300 px-4 py-2 text-center w-48">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedDetail(item.raw);
+                                setIsDetailOpen(true);
+                              }}
+                              className="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
+                              <FileText size={14} /> Detail
+                            </button>
+
+                            <button
+                              onClick={() => openEdit(item)}
+                              className="bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
+                              <Edit size={14} /> Edit
+                            </button>
+
+                            <button
+                              className="bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
+                              <Trash2 size={14} /> Hapus
+                            </button>
+                          </div>
+                        </td>
+
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="text-center py-6 text-gray-500 italic"
+                      >
+                        Tidak ada proyek yang sudah di verifikasi.
                       </td>
-
-                      <td className="border border-gray-300 px-4 py-2 w-56">
-                        {item.email}
-                      </td>
-
-                      <td className="border border-gray-300 px-4 py-2 w-40">
-                        {item.phoneNumber}
-                      </td>
-
-                      <td className="border border-gray-300 px-4 py-2 w-56">
-                        {item.judul}
-                      </td>
-
-                      <td className="border border-gray-300 px-4 py-2 text-center w-48">
-                        {item.tipeLabel || item.tipe}
-                      </td>
-
-                      <td className="border border-gray-300 px-4 py-2 text-center w-40">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${item.status === "Selesai"
-                            ? "bg-green-100 text-green-700"
-                            : item.status === "Sedang Diproses"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-600"
-                            }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-
-                      <td className="border border-gray-300 px-4 py-2 text-center w-48">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedDetail(item.raw);
-                              setIsDetailOpen(true);
-                            }}
-                            className="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
-                            <FileText size={14} /> Detail
-                          </button>
-
-                          <button
-                            onClick={() => openEdit(item)}
-                            className="bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
-                            <Edit size={14} /> Edit
-                          </button>
-
-                          <button
-                            className="bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
-                            <Trash2 size={14} /> Hapus
-                          </button>
-                        </div>
-                      </td>
-
                     </tr>
-                  ))}
+                  )}
                 </tbody>
 
               </table>

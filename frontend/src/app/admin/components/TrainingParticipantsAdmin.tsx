@@ -186,7 +186,7 @@ export default function TrainingParticipantsAdmin() {
                                     <tr>
                                         <td
                                             colSpan={7}
-                                            className="text-center py-10 italic text-gray-500"
+                                            className="text-center py-6 italic text-gray-500"
                                         >
                                             Belum ada peserta diterima.
                                         </td>

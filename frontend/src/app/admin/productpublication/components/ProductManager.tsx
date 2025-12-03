@@ -196,6 +196,7 @@ export default function ProductManager() {
         currentPage={safePage}
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
+        itemsPerPage={itemsPerPage}
         onDetail={(p) => setDetailData(p)}
         onEdit={(p) => setEditData(p)}
         onDelete={deleteProduct}

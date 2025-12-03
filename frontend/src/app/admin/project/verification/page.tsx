@@ -248,7 +248,7 @@ export default function VerifikasiProyekPage() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="text-center py-4 text-gray-500 italic"
+                    className="text-center py-6 text-gray-500 italic"
                   >
                     Tidak ada proyek yang menunggu verifikasi.
                   </td>
