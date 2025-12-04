@@ -15,8 +15,8 @@ import {
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
-import AddIntellectualPropertyCard from "./AddIntellectualPropertyCard";
-import EditIntellectualPropertyCard from "./EditIntellectualPropertyCard";
+import AddIntellectualPropertyCard from "./IntellectualPropertyAddCard";
+import EditIntellectualPropertyCard from "./IntellectualPropertyEditCard";
 
 /* ---------------------------
    Types

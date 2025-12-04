@@ -18,8 +18,8 @@ import {
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
-import AddTeamModal from "./AddTeamModal";
-import EditTeamModal from "./EditTeamModal";
+import AddTeamModal from "./TeamAddModal";
+import EditTeamModal from "./TeamEditModal";
 
 // === IMPORT API BACKEND ===
 import {

@@ -19,7 +19,7 @@ export default function TrainingVerificationStatusModal({
   const isApprove = action === "approved";
 
   return (
-    <ModalWrapper isOpen={true} onClose={onClose} width="400px">
+    <ModalWrapper isOpen={true} onClose={onClose} width="max-w-xl">
       <div className="p-4 text-center">
         {isApprove ? (
           <CheckCircle className="text-green-600 mx-auto" size={60} />

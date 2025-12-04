@@ -4,8 +4,8 @@ import { ChevronDown, Search, Edit, Trash2, FileText } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
-import EditProjectModal from "../components/EditProjectModal";
-import DetailProjectModal from "../components/DetailProjectModal";
+import EditProjectModal from "../components/ProjectEditModal";
+import DetailProjectModal from "../components/ProjectDetailModal";
 
 // ===============================
 // NORMALIZER UNTUK PROJECT TYPE

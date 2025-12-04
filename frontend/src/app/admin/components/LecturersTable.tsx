@@ -10,8 +10,8 @@ import {
   Users,
   Search,
 } from "lucide-react";
-import AddLecturerModal from "./AddLecturerModal";
-import EditLecturerModal from "./EditLecturerModal";
+import AddLecturerModal from "./LecturerAddModal";
+import EditLecturerModal from "./LecturerEditModal";
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
 

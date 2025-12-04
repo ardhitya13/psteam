@@ -14,8 +14,8 @@ import {
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
-import AddCommunityServiceCard from "./AddCommunityServiceCard";
-import EditCommunityServiceCard from "./EditCommunityServiceCard";
+import AddCommunityServiceCard from "./CommunityServiceAddCard";
+import EditCommunityServiceCard from "./CommunityServiceEditCard";
 
 /* ---------------------------
    Types

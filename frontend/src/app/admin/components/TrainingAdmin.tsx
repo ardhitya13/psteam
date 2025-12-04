@@ -13,9 +13,9 @@ import {
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
 
-import AddTrainingModal from "./AddTrainingModal";
-import EditTrainingModal from "./EditTrainingModal";
-import DetailTrainingModal from "./DetailTrainingModal";
+import AddTrainingModal from "./TrainingAddModal";
+import EditTrainingModal from "./TrainingEditModal";
+import DetailTrainingModal from "./TrainingDetailModal";
 
 export type Training = {
   id: number;

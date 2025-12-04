@@ -14,8 +14,8 @@ import {
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
-import AddResearchCard from "./AddResearchCard";
-import EditResearchCard from "./EditResearchCard";
+import AddResearchCard from "./ResearchAddCard";
+import EditResearchCard from "./ResearchEditCard";
 
 /* ---------------------------
    Types

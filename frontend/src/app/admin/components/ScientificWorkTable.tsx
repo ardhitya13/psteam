@@ -15,8 +15,8 @@ import {
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
-import AddScientificWorkCard from "./AddScientificWorkCard";
-import EditScientificWorkCard from "./EditScientificWorkCard";
+import AddScientificWorkCard from "./ScientificWorkAddCard";
+import EditScientificWorkCard from "./ScientificWorkEditCard";
 
 /* ---------------------------
    Types
