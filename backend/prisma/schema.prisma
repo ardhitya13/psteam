@@ -27,7 +27,13 @@ model projectsubmission {
   email              String
   phoneNumber        String
   projectTitle       String
-  projectType        String
+
+  // ❌ SEBELUMNYA: projectType String
+  // ❌ Error karena required tanpa default, sementara tabel sudah punya data
+
+  // ✅ SESUDAH FIX:
+  projectType        String   @default("web")
+
   projectDescription String   @db.LongText
   status             String   @default("pending")
   adminNote          String?
@@ -84,4 +90,3 @@ model lectureraccount {
   phone     String?
   createdAt DateTime @default(now())
 }
-
