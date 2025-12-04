@@ -46,6 +46,9 @@ export default function TrainingAdmin() {
   const [editData, setEditData] = useState<Training | null>(null);
   const [detailData, setDetailData] = useState<Training | null>(null);
 
+  // 🔴 MODAL DELETE
+  const [confirmDelete, setConfirmDelete] = useState<Training | null>(null);
+
   // Load LocalStorage
   useEffect(() => {
     const saved = localStorage.getItem("adminTrainings");
@@ -72,10 +75,10 @@ export default function TrainingAdmin() {
     setEditData(null);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm("Hapus pelatihan ini?")) {
-      setTrainings((prev) => prev.filter((t) => t.id !== id));
-    }
+  // HAPUS (dipanggil setelah modal "Ya, Hapus")
+  const deleteNow = (id: number) => {
+    setTrainings((prev) => prev.filter((t) => t.id !== id));
+    setConfirmDelete(null);
   };
 
   // Filtering
@@ -186,7 +189,9 @@ export default function TrainingAdmin() {
               <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
                 <tr>
                   <th className="py-3 px-4 border border-gray-300 w-16">No</th>
-                  <th className="py-3 px-4 border border-gray-300">Thumbnail</th>
+                  <th className="py-3 px-4 border border-gray-300">
+                    Thumbnail
+                  </th>
                   <th className="py-3 px-4 border border-gray-300">Judul</th>
                   <th className="py-3 px-4 border border-gray-300">Tipe</th>
                   <th className="py-3 px-4 border border-gray-300">Harga</th>
@@ -254,7 +259,7 @@ export default function TrainingAdmin() {
                           </button>
 
                           <button
-                            onClick={() => handleDelete(t.id)}
+                            onClick={() => setConfirmDelete(t)}
                             className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
                           >
                             <Trash size={14} /> Hapus
@@ -267,7 +272,7 @@ export default function TrainingAdmin() {
               </tbody>
             </table>
 
-            {/* PAGINATION (SAMA FORMAT PROYEK) */}
+            {/* PAGINATION */}
             <div className="flex justify-end items-center gap-2 px-4 py-4">
               <button
                 disabled={safeCurrentPage === 1}
@@ -329,6 +334,37 @@ export default function TrainingAdmin() {
           )}
         </main>
       </div>
+
+      {/* 🔴 MODAL KONFIRMASI HAPUS */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold mb-3 text-red-600">
+              Konfirmasi Hapus
+            </h3>
+
+            <p className="text-sm text-gray-700 mb-6">
+              Hapus pelatihan <b>{confirmDelete.title}</b>?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="px-4 py-2 bg-gray-300 rounded text-sm"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={() => deleteNow(confirmDelete.id)}
+                className="px-4 py-2 bg-red-600 text-white rounded text-sm"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

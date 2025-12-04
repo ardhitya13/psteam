@@ -4,6 +4,8 @@ import React from "react";
 import { X, ExternalLink } from "lucide-react";
 import { ProductItem } from "./ProductManager";
 
+const BASE_URL = "http://localhost:4000";
+
 export default function DetailProductModal({
   data,
   onClose,
@@ -12,25 +14,29 @@ export default function DetailProductModal({
   onClose: () => void;
 }) {
   /* ============================================================
-     FIX IMAGE URL (AMAN UNTUK EMPTY, RELATIVE, ABSOLUTE)
+     FIX IMAGE URL (AUTO HANDLE PATH RELATIVE / ABSOLUTE)
   ============================================================ */
-  const imageUrl =
-    !data.image || data.image.trim() === ""
-      ? "/placeholder.png" // fallback aman
-      : data.image.startsWith("http")
-        ? data.image
-        : `http://localhost:4000${data.image.startsWith("/") ? "" : "/"}${data.image
-        }`;
+  const fixImageUrl = (img?: string) => {
+    if (!img || img.trim() === "") return "/placeholder.png";
+
+    // Jika sudah URL lengkap
+    if (img.startsWith("http")) return img;
+
+    // Jika path backend (/uploads/....)
+    return `${BASE_URL}${img.startsWith("/") ? "" : "/"}${img}`;
+  };
+
+  const imageUrl = fixImageUrl(data.image);
 
   /* ============================================================
-     FIX TANGGAL (BIAR GAK Z → 2025-11-20)
+     FORMAT TANGGAL INDONESIA
   ============================================================ */
   const formattedDate = data.publishDate
     ? new Date(data.publishDate).toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    })
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
     : "-";
 
   return (
@@ -40,7 +46,6 @@ export default function DetailProductModal({
 
       {/* MODAL BOX */}
       <div className="relative bg-white w-full max-w-3xl p-6 rounded-lg shadow-lg max-h-[90vh] overflow-auto text-black">
-
         {/* CLOSE BUTTON */}
         <button
           className="absolute top-4 right-4 p-1 hover:bg-gray-200 rounded-full"
@@ -55,7 +60,6 @@ export default function DetailProductModal({
 
         {/* THUMBNAIL */}
         <div className="w-full h-80 bg-white border rounded-lg flex items-center justify-center overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imageUrl}
             alt={data.title}
@@ -65,7 +69,6 @@ export default function DetailProductModal({
 
         {/* INFO GRID */}
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
-
           <div>
             <p className="text-sm text-gray-500">Judul Produk</p>
             <p className="text-base font-semibold">{data.title}</p>

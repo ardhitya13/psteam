@@ -11,8 +11,14 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": false,
-    "types": ["node"],
-    "allowSyntheticDefaultImports": true
+
+    // FIX PALING PENTING
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ],
+
+    "types": ["node"]
   },
   "include": ["src"],
   "exclude": ["node_modules"]

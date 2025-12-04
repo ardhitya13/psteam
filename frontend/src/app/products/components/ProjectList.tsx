@@ -5,6 +5,8 @@ import ProjectCard, { ProductCardItem } from "./ProjectCard";
 import CategoryFilter from "./CategoryFilter";
 import { getAllProducts } from "../../../lib/apiProducts";
 
+const BASE_URL = "http://localhost:4000"; // FIX PENTING
+
 export default function ProjectList() {
   const [projects, setProjects] = useState<ProductCardItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,9 @@ export default function ProjectList() {
 
         const normalized: ProductCardItem[] = items.map((p: any) => ({
           id: p.id,
-          image: p.image ?? "/placeholder.png",
+          image: p.image
+            ? `${BASE_URL}${p.image}` // 🔥 FIX WAJIB
+            : "/placeholder.png",
           title: p.title,
           category: p.category,
           academicYear: p.academicYear,
@@ -48,7 +52,7 @@ export default function ProjectList() {
   }, []);
 
   /* ================================
-        RESET PAGE SAAT KATEGORI GANTI
+        RESET SAAT GANTI KATEGORI
   ================================ */
   useEffect(() => {
     setCurrentPage(1);
@@ -66,7 +70,6 @@ export default function ProjectList() {
         PAGINATION
   ================================ */
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const pageItems = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
@@ -74,7 +77,6 @@ export default function ProjectList() {
 
   return (
     <div className="w-full max-w-6xl mx-auto">
-
       {/* FILTER CATEGORY */}
       <CategoryFilter
         categories={categories}
@@ -104,7 +106,6 @@ export default function ProjectList() {
 
           {/* PAGINATION */}
           <div className="flex justify-center items-center gap-3 mt-8">
-            {/* PREV */}
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
@@ -117,7 +118,6 @@ export default function ProjectList() {
               {"<"}
             </button>
 
-            {/* NUMBERS */}
             {[...Array(totalPages)].map((_, i) => (
               <button
                 key={i}
@@ -132,7 +132,6 @@ export default function ProjectList() {
               </button>
             ))}
 
-            {/* NEXT */}
             <button
               onClick={() =>
                 setCurrentPage((p) => Math.min(totalPages, p + 1))
@@ -140,8 +139,8 @@ export default function ProjectList() {
               disabled={currentPage === totalPages}
               className={`px-3 py-2 rounded border ${
                 currentPage === totalPages
-                  ? "bg-gray-500 text-black hover:border-blue-400 hover:text-blue-700"
-                  : "hover:border-blue-400 hover:text-blue-700"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-100"
               }`}
             >
               {">"}

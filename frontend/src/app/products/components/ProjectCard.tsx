@@ -19,21 +19,21 @@ export type ProductCardItem = {
 type Props = { project: ProductCardItem };
 
 export default function ProjectCard({ project }: Props) {
-  const API = process.env.NEXT_PUBLIC_API_URL || "";
+  // BASE_URL fallback
+  const API =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   let imgSrc = project.image?.trim() || "";
 
-  // =============== FIX 1: fallback default ===============
-  if (!imgSrc) {
-    imgSrc = "/placeholder.png";
-  }
+  // FIX 1: fallback default
+  if (!imgSrc) imgSrc = "/placeholder.png";
 
-  // =============== FIX 2: kalau backend kirim `/uploads/...`
+  // FIX 2: jika backend kirim "/uploads/..."
   if (imgSrc.startsWith("/uploads")) {
     imgSrc = `${API}${imgSrc}`;
   }
 
-  // =============== FIX 3: jika URL relatif seperti "uploads/xxx.jpg"
+  // FIX 3: jika relative path "uploads/file.jpg"
   if (
     !imgSrc.startsWith("http://") &&
     !imgSrc.startsWith("https://") &&
@@ -42,14 +42,14 @@ export default function ProjectCard({ project }: Props) {
     imgSrc = `${API}/${imgSrc}`;
   }
 
-  // =============== FIX 4: sanitize (hapus double slash) ===============
+  // FIX 4: hapus double slash
   imgSrc = imgSrc.replace(/([^:]\/)\/+/g, "$1");
 
   return (
     <motion.div
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
-      className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col "
+      className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col"
     >
       <div className="relative w-full h-80 bg-black">
         <Image
@@ -71,9 +71,7 @@ export default function ProjectCard({ project }: Props) {
 
         <div className="text-xs mt-1 text-gray-500 italic">
           🕒 Dipublish:{" "}
-          {project.publishDate
-            ? project.publishDate.split("T")[0]
-            : "Tidak ada tanggal"}
+          {project.publishDate || "Tidak ada tanggal"}
         </div>
 
         <p className="text-gray-600 text-sm mt-2">{project.description}</p>

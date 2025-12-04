@@ -1,35 +1,26 @@
 "use client";
 
-import { ChevronDown, Search, Edit, Trash2, FileText } from "lucide-react";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Search, ChevronDown, FileText, Edit as IconEdit, Trash2 } from "lucide-react";
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
 import EditProjectModal from "../components/ProjectEditModal";
 import DetailProjectModal from "../components/ProjectDetailModal";
 
 // ===============================
-// NORMALIZER UNTUK PROJECT TYPE
+// NORMALIZER TIPE PROYEK
 // ===============================
 function normalizeType(str: string) {
   if (!str) return "";
-
   const s = str.toLowerCase().trim();
 
   if (s.includes("web")) return "web";
   if (s.includes("mobile")) return "mobile";
-  if (s.includes("iot") || s.includes("internet of things")) return "iot";
+  if (s.includes("iot") || s.includes("internet")) return "iot";
+  if (s.includes("ai") || s.includes("artificial") || s.includes("machine")) return "ai";
 
-  if (
-    s.includes("ai") ||
-    s.includes("artificial intelligence") ||
-    s.includes("machine learning")
-  )
-    return "ai";
-
-  return s;
+  return str;
 }
-
-
 
 export default function DaftarProyekPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -37,8 +28,11 @@ export default function DaftarProyekPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState<any>(null);
 
-  const [selectedDetail, setSelectedDetail] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState<any>(null);
+
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -50,132 +44,138 @@ export default function DaftarProyekPage() {
 
   const itemsPerPage = 8;
 
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // =====================================================
-  // FIXED — STATIC LIST OF FILTER OPTIONS
-  // =====================================================
-  const TYPE_OPTIONS = [
-    "Semua",
-    "Web Development",
-    "Mobile Development",
-    "IoT",
-    "AI",
-  ];
+  // ===========================
+  // TIPE UNTUK DROPDOWN
+  // ===========================
+  const TYPE_OPTIONS = ["Semua", "Web Development", "Mobile Development", "IoT", "AI"];
 
-  // MAP UNTUK DROPDOWN
   const TYPE_MAP: Record<string, string> = {
     "Web Development": "web",
     "Mobile Development": "mobile",
     "IoT": "iot",
     "AI": "ai",
-
   };
 
-  // =====================================================
-  // FETCH DATA
-  // =====================================================
+  // ===========================
+  // LOAD DATA
+  // ===========================
   useEffect(() => {
-  async function loadData() {
+    async function loadData() {
+      try {
+        const res = await fetch("http://localhost:4000/api/submissions/approved");
+        const json = await res.json();
+
+        const mapped = json.map((item: any, i: number) => ({
+          no: i + 1,
+          id: item.id,
+          email: item.email,
+          phoneNumber: item.phoneNumber,
+          judul: item.projectTitle,
+          tipeLabel: item.projectType,
+          tipe: normalizeType(item.projectType),
+          status: item.status,
+          raw: item,
+        }));
+
+        setData(mapped);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  // ===========================
+  // UPDATE STATUS (EDIT)
+  // ===========================
+  const handleUpdateStatus = async (id: number, newStatus: string) => {
     try {
-      const approvedRes = await fetch(
-        "http://localhost:4000/api/submissions/approved"
+      const res = await fetch(`http://localhost:4000/api/submissions/${id}/update-status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) throw new Error();
+
+      // update state table
+      setData((prev) =>
+        prev.map((d) =>
+          d.id === id ? { ...d, status: newStatus, raw: { ...d.raw, status: newStatus } } : d
+        )
       );
 
-      const combined = await approvedRes.json(); // berisi approved + finished
-
-      const mapped = combined.map((item: any, index: number) => ({
-        no: index + 1,
-        id: item.id,
-        email: item.email,
-        phoneNumber: item.phoneNumber,
-        judul: item.projectTitle,
-        tipeLabel: item.projectType ?? "",
-        tipe: normalizeType(item.projectType ?? ""),
-        status: item.status, // biarkan original
-        raw: item,
-      }));
-
-      setData(mapped);
+      setSuccessMessage("Status proyek berhasil diperbarui!");
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
+      setSuccessMessage("Gagal memperbarui status.");
     }
-  }
+  };
 
-  loadData();
-}, []);
-
-
-
-  // =====================================================
-  // UPDATE STATUS
-  // =====================================================
-  async function updateStatus(id: number, newStatus: string) {
+  // ===========================
+  // DELETE PROJECT
+  // ===========================
+  const confirmDeleteNow = async (id: number) => {
     try {
-      const res = await fetch(
-        `http://localhost:4000/api/submissions/${id}/update-status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
+      const res = await fetch(`http://localhost:4000/api/submissions/${id}`, {
+        method: "DELETE",
+      });
 
-      if (!res.ok) throw new Error("Gagal update status");
+      if (!res.ok) throw new Error();
 
-      const updatedData = data.map((item) =>
-        item.id === id
-          ? { ...item, status: newStatus, raw: { ...item.raw, status: newStatus } }
-          : item
-      );
-
-      setData(updatedData);
-
-      alert("Status berhasil diperbarui!");
+      setData((prev) => prev.filter((d) => d.id !== id));
+      setConfirmDelete(null);
+      setSuccessMessage("Proyek berhasil dihapus!");
     } catch (err) {
       console.error(err);
-      alert("Gagal update status!");
+      setSuccessMessage("Gagal menghapus proyek!");
+      setConfirmDelete(null);
     }
-  }
+  };
 
-  // =====================================================
-  // FILTERING FIXED
-  // =====================================================
+  // ===========================
+  // FILTER + FIX FINISHED TERSEMBUNYI
+  // ===========================
   const filteredData = useMemo(() => {
     return data.filter((item) => {
+      const status = item.raw.status;
 
-      const statusRaw = item.raw.status; // "approved" / "pending" / "finished"
+      // Finished disembunyikan KECUALI saat search aktif
+      if (status === "finished" && searchTerm.trim() === "") return false;
 
-      // 1. PENDING selalu disembunyikan total
-      if (statusRaw === "pending") return false;
-
-      // 2. FINISHED disembunyikan, kecuali jika ada searchTerm
-      if (statusRaw === "finished" && searchTerm.trim() === "") return false;
-
-      // 3. FILTER TYPE
+      // Filter tipe
       if (filterType !== "Semua") {
-        const requiredType = TYPE_MAP[filterType];
-        if (item.tipe !== requiredType) return false;
+        const req = TYPE_MAP[filterType];
+        if (item.tipe !== req) return false;
       }
 
-      // 4. SEARCH
-      return item.judul
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase().trim());
+      // Search berdasarkan judul
+      if (searchTerm.trim()) {
+        return item.judul.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+
+      return true;
     });
   }, [data, filterType, searchTerm]);
 
-
-
+  // ===========================
+  // PAGINATION
+  // ===========================
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const visibleData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  // ===========================
+  // OPEN EDIT
+  // ===========================
   const openEdit = (item: any) => {
     const mapped = {
       id: item.raw.id,
@@ -191,49 +191,42 @@ export default function DaftarProyekPage() {
     setIsEditModalOpen(true);
   };
 
-  // =====================================================
+  // ===========================
   // UI
-  // =====================================================
+  // ===========================
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <AdminSidebar
-        isOpen={isSidebarOpen}
-        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
+      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
-        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
+        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
+          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+        }`}
       >
+        {/* TITLE */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black uppercase">
-            Daftar Proyek
-          </h1>
-          <p className="text-gray-600 text-sm">
-            Kelola semua proyek produksi PSTeam.
-          </p>
+          <h1 className="text-3xl font-bold text-black uppercase">Daftar Proyek</h1>
+          <p className="text-gray-600 text-sm">Kelola semua proyek produksi PSTeam.</p>
         </div>
 
-        {loading && (
-          <p className="text-center text-gray-500 py-10">Loading data...</p>
-        )}
+        {/* LOADING */}
+        {loading && <p className="text-center py-10 text-gray-500">Loading...</p>}
 
+        {/* TABLE */}
         {!loading && (
           <>
-            {/* SEARCH & FILTER */}
+            {/* SEARCH FILTER */}
             <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
-              {/* Search Bar */}
+              {/* SEARCH */}
               <div className="relative flex items-center h-10">
                 {!isSearchOpen && (
                   <button
                     onClick={() => {
                       setIsSearchOpen(true);
-                      setTimeout(() => {
-                        document.getElementById("searchProject")?.focus();
-                      }, 50);
+                      setTimeout(() => document.getElementById("searchProject")?.focus(), 50);
                     }}
-                    className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-md absolute left-0"
+                    className="absolute left-0 w-10 h-10 bg-blue-500 text-white flex items-center justify-center rounded-md"
                   >
                     <Search size={18} />
                   </button>
@@ -246,18 +239,15 @@ export default function DaftarProyekPage() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  onBlur={() => {
-                    if (searchTerm.trim() === "") setIsSearchOpen(false);
-                  }}
+                  onBlur={() => !searchTerm.trim() && setIsSearchOpen(false)}
                   placeholder="Cari proyek..."
-                  className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${isSearchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
-                    }`}
+                  className={`transition-all duration-300 h-10 border bg-white rounded-md shadow-sm text-sm ${
+                    isSearchOpen ? "w-56 pl-10 pr-3 opacity-100" : "w-10 opacity-0 pointer-events-none"
+                  }`}
                 />
               </div>
 
-              {/* FILTER TIPE — FIXED STATIC OPTIONS */}
+              {/* FILTER TIPE */}
               <div className="relative">
                 <select
                   value={filterType}
@@ -265,65 +255,63 @@ export default function DaftarProyekPage() {
                     setFilterType(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
+                  className="border bg-white rounded-md pl-3 pr-10 py-2 shadow text-sm cursor-pointer"
                 >
-                  {TYPE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
+                  {TYPE_OPTIONS.map((t) => (
+                    <option key={t}>{t}</option>
                   ))}
                 </select>
-
                 <ChevronDown
                   size={16}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
                 />
               </div>
             </div>
 
-            {/* TABLE */}
+            {/* TABLE BOX */}
             <div
-              className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full"
-                }`}
+              className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${
+                isSidebarOpen ? "min-w-[1057px]" : "w-full"
+              }`}
             >
               <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
-                <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
+                <thead className="bg-[#eaf0fa] text-gray-800 font-semibold uppercase">
                   <tr>
-                    <th className="border px-4 py-2 border-gray-300 w-12">NO</th>
-                    <th className="border px-4 py-2 border-gray-300 w-56">EMAIL</th>
-                    <th className="border px-4 py-2 border-gray-300 w-40">NO TELEPON</th>
-                    <th className="border px-4 py-2 border-gray-300 w-56">JUDUL</th>
-                    <th className="border px-4 py-2 border-gray-300 w-48">TIPE</th>
-                    <th className="border px-4 py-2 border-gray-300 w-40">STATUS</th>
-                    <th className="border px-4 py-2 border-gray-300 w-48">AKSI</th>
+                    <th className="border px-4 py-3 border-gray-300">No</th>
+                    <th className="border px-4 py-3 border-gray-300">EMAIL</th>
+                    <th className="border px-4 py-3 border-gray-300">NO TELEPON</th>
+                    <th className="border px-4 py-3 border-gray-300">JUDUL</th>
+                    <th className="border px-4 py-3 border-gray-300">TIPE</th>
+                    <th className="border px-4 py-3 border-gray-300">STATUS</th>
+                    <th className="border px-4 py-3 border-gray-300">AKSI</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {visibleData.length > 0 ? (
                     visibleData.map((item) => (
-                      <tr key={item.no} className="hover:bg-gray-50">
+                      <tr key={item.id} className="hover:bg-gray-50">
                         <td className="border px-4 py-2 border-gray-300">{item.no}</td>
                         <td className="border px-4 py-2 border-gray-300">{item.email}</td>
                         <td className="border px-4 py-2 border-gray-300">{item.phoneNumber}</td>
                         <td className="border px-4 py-2 border-gray-300">{item.judul}</td>
-                        <td className="border px-4 py-2 border-gray-300">
-                          {item.tipeLabel || item.tipe}
-                        </td>
+                        <td className="border px-4 py-2 border-gray-300">{item.tipeLabel}</td>
+
                         <td className="border px-4 py-2 border-gray-300">
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${item.status === "Selesai"
-                              ? "bg-green-100 text-green-700"
-                              : item.status === "Sedang Diproses"
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              item.status === "finished"
+                                ? "bg-green-100 text-green-700"
+                                : item.status === "approved"
                                 ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-600"
-                              }`}
+                                : "bg-gray-200 text-gray-600"
+                            }`}
                           >
                             {item.status}
                           </span>
                         </td>
 
-                        {/* ACTION BUTTONS */}
+                        {/* ACTION */}
                         <td className="border px-4 py-2 border-gray-300">
                           <div className="flex justify-center gap-2">
                             <button
@@ -331,19 +319,22 @@ export default function DaftarProyekPage() {
                                 setSelectedDetail(item.raw);
                                 setIsDetailOpen(true);
                               }}
-                              className="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1 flex items-center gap-1 text-xs font-semibold"
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
                             >
                               <FileText size={14} /> Detail
                             </button>
 
                             <button
                               onClick={() => openEdit(item)}
-                              className="bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1 flex items-center gap-1 text-xs font-semibold"
+                              className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
                             >
-                              <Edit size={14} /> Edit
+                              <IconEdit size={14} /> Edit
                             </button>
 
-                            <button className="bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1 flex items-center gap-1 text-xs font-semibold">
+                            <button
+                              onClick={() => setConfirmDelete(item)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
+                            >
                               <Trash2 size={14} /> Hapus
                             </button>
                           </div>
@@ -352,8 +343,8 @@ export default function DaftarProyekPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="text-center py-6 text-gray-500 italic">
-                        Tidak ada proyek yang sudah diverifikasi.
+                      <td colSpan={7} className="py-6 text-gray-500 italic">
+                        Tidak ada proyek ditemukan.
                       </td>
                     </tr>
                   )}
@@ -366,33 +357,35 @@ export default function DaftarProyekPage() {
                   onClick={() => {
                     if (currentPage > 1) {
                       const newGroup = Math.floor((currentPage - 2) / 3);
-                      setCurrentPage((prev) => Math.max(prev - 1, 1));
+                      setCurrentPage((prev) => prev - 1);
                       setPageGroup(newGroup);
                     }
                   }}
                   disabled={currentPage === 1}
-                  className={`px-2 py-1 rounded border text-xs ${currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                    }`}
+                  className={`px-2 py-1 rounded border text-xs ${
+                    currentPage === 1
+                      ? "bg-gray-200 text-gray-400"
+                      : "bg-gray-100 hover:bg-gray-300"
+                  }`}
                 >
-                  &lt;
+                  {"<"}
                 </button>
 
                 {Array.from({ length: 3 }, (_, i) => {
-                  const pageNumber = pageGroup * 3 + (i + 1);
-                  if (pageNumber > totalPages) return null;
+                  const pageNum = pageGroup * 3 + (i + 1);
+                  if (pageNum > totalPages) return null;
 
                   return (
                     <button
-                      key={pageNumber}
-                      onClick={() => setCurrentPage(pageNumber)}
-                      className={`px-2 py-1 rounded text-xs border ${currentPage === pageNumber
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                        }`}
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-2 py-1 rounded border text-xs ${
+                        currentPage === pageNum
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 hover:bg-gray-300"
+                      }`}
                     >
-                      {pageNumber}
+                      {pageNum}
                     </button>
                   );
                 })}
@@ -401,38 +394,88 @@ export default function DaftarProyekPage() {
                   onClick={() => {
                     if (currentPage < totalPages) {
                       const newGroup = Math.floor(currentPage / 3);
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                      setCurrentPage((prev) => prev + 1);
                       setPageGroup(newGroup);
                     }
                   }}
                   disabled={currentPage === totalPages}
-                  className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                    }`}
+                  className={`px-2 py-1 rounded border text-xs ${
+                    currentPage === totalPages
+                      ? "bg-gray-200 text-gray-400"
+                      : "bg-gray-100 hover:bg-gray-300"
+                  }`}
                 >
-                  &gt;
+                  {">"}
                 </button>
               </div>
             </div>
           </>
         )}
 
-        {/* MODALS */}
+        {/* DETAIL MODAL */}
         <DetailProjectModal
           isOpen={isDetailOpen}
           onClose={() => setIsDetailOpen(false)}
           data={selectedDetail}
         />
 
+        {/* EDIT MODAL */}
         <EditProjectModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           data={selectedData}
           mode="edit"
-          onUpdateStatus={updateStatus}
+          onUpdateStatus={handleUpdateStatus}
         />
       </main>
+
+      {/* ===================== */}
+      {/* CONFIRM DELETE MODAL */}
+      {/* ===================== */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold mb-3">Konfirmasi Hapus</h3>
+            <p className="text-sm text-gray-700 mb-6">
+              Yakin ingin menghapus proyek <b>{confirmDelete.judul}</b>?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="px-4 py-2 rounded bg-gray-300 text-black text-sm hover:bg-gray-400"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={() => confirmDeleteNow(confirmDelete.id)}
+                className="px-4 py-2 rounded bg-red-600 text-white text-sm hover:bg-red-700"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== */}
+      {/* SUCCESS MODAL */}
+      {/* ===================== */}
+      {successMessage && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
+            <p className="mb-4">{successMessage}</p>
+
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

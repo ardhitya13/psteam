@@ -53,27 +53,18 @@ export default function ProductManager() {
     loadProducts();
   }, []);
 
+  // ====> FIX PALING PENTING
+  const refresh = async () => {
+    await loadProducts();
+  };
+
   /* ==========================================================
-     CRUD
+     DELETE
   ========================================================== */
-
-  // CREATE
-  const addProduct = (p: ProductItem) => {
-    setProducts((prev) => [...prev, p]);
-  };
-
-  // UPDATE
-  const updateProduct = (updated: ProductItem) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === updated.id ? updated : p))
-    );
-  };
-
-  // DELETE
   const deleteProduct = async (id: number) => {
     try {
       await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      await refresh();
     } catch (err) {
       console.error("Gagal hapus:", err);
     }
@@ -121,7 +112,6 @@ export default function ProductManager() {
 
       {/* FILTER BAR */}
       <div className="flex justify-end items-center gap-3 mb-6">
-
         {/* SEARCH */}
         <div className="relative flex items-center h-10">
           {!isSearchOpen && (
@@ -150,11 +140,11 @@ export default function ProductManager() {
             }}
             placeholder="Cari produk..."
             className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10
-            ${
-              isSearchOpen
-                ? "w-56 pl-3 pr-3 opacity-100"
-                : "w-0 opacity-0 pointer-events-none"
-            }`}
+              ${
+                isSearchOpen
+                  ? "w-56 pl-3 pr-3 opacity-100"
+                  : "w-0 opacity-0 pointer-events-none"
+              }`}
           />
         </div>
 
@@ -204,18 +194,14 @@ export default function ProductManager() {
 
       {/* MODALS */}
       {addOpen && (
-        <AddProductModal
-          onClose={() => setAddOpen(false)}
-          onSubmit={addProduct}
-        />
+        <AddProductModal onClose={() => setAddOpen(false)} onSubmit={refresh} />
       )}
 
       {editData && (
         <EditProductModal
           data={editData}
           onClose={() => setEditData(null)}
-          onSubmit={updateProduct}
-          existingProducts={products}
+          onSubmit={refresh}
         />
       )}
 

@@ -11,25 +11,42 @@ export default function RegisterTrainingModal({ open, course, onClose }: any) {
   const [batch, setBatch] = useState("Batch 1");
   const [notes, setNotes] = useState("");
 
+  // FIX NORMALIZER — pastikan AI selalu terdeteksi
+  function normalizeType(category: string) {
+    const s = (category || "").toLowerCase();
+
+    // urutan FIX (AI harus dicek dulu)
+    if (s.includes("artificial")) return "ai";
+    if (s.includes("machine")) return "ai";
+    if (s.includes("ai")) return "ai";
+
+    if (s.includes("web")) return "web";
+    if (s.includes("mobile")) return "mobile";
+    if (s.includes("iot") || s.includes("internet")) return "iot";
+
+    return "iot";
+  }
+
   const submit = async () => {
     if (!name.trim()) return alert("Nama wajib diisi.");
     if (!email.trim()) return alert("Email wajib diisi.");
+
+    const detectedType = normalizeType(course.category);
 
     const payload = {
       name,
       email,
       phone,
       trainingTitle: course.title,
-      trainingType: course.category.includes("Web")
-        ? "web"
-        : course.category.includes("Mobile")
-        ? "mobile"
-        : course.category.includes("AI")
-        ? "ai"
-        : "iot",
+      trainingType: detectedType, // FIX 🔥
       batch,
       notes,
     };
+
+    // debug log (tidak mengubah UI sama sekali)
+    console.log("CATEGORY:", course.category);
+    console.log("DETECTED TYPE:", detectedType);
+    console.log("PAYLOAD:", payload);
 
     await fetch("http://localhost:4000/api/trainings", {
       method: "POST",

@@ -18,10 +18,14 @@ export default function VerifikasiProyekPage() {
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageGroup, setPageGroup] = useState(0); // FIX: match DaftarProyek pagination
+  const [pageGroup, setPageGroup] = useState(0);
+
+  // 🔥 Alert TERIMA + TOLAK
+  const [confirmAccept, setConfirmAccept] = useState<any>(null);
+  const [confirmReject, setConfirmReject] = useState<any>(null);
 
   // =====================================================
-  // FETCH
+  // FETCH DATA
   // =====================================================
   const loadData = async () => {
     try {
@@ -53,17 +57,32 @@ export default function VerifikasiProyekPage() {
   }, []);
 
   // =====================================================
-  // FILTERING + PAGINATION
+  // UPDATE STATUS
+  // =====================================================
+  const approveNow = async (id: number) => {
+    await fetch(`http://localhost:4000/api/submissions/${id}/approve`, {
+      method: "PATCH",
+    });
+    setConfirmAccept(null);
+    loadData();
+  };
+
+  const rejectNow = async (id: number) => {
+    await fetch(`http://localhost:4000/api/submissions/${id}/reject`, {
+      method: "PATCH",
+    });
+    setConfirmReject(null);
+    loadData();
+  };
+
+  // =====================================================
+  // FILTER & PAGINATION
   // =====================================================
   const filteredData = data.filter((item) =>
     `${item.email} ${item.judul}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredData.length / itemsPerPage)
-  );
-
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * itemsPerPage;
   const paginated = filteredData.slice(startIndex, startIndex + itemsPerPage);
@@ -74,70 +93,35 @@ export default function VerifikasiProyekPage() {
   }, [searchTerm, itemsPerPage]);
 
   // =====================================================
-  // ACTIONS
-  // =====================================================
-  const handleTerima = async (item: any) => {
-    if (!confirm(`Terima proyek "${item.judul}"?`)) return;
-
-    await fetch(`http://localhost:4000/api/submissions/${item.id}/approve`, {
-      method: "PATCH",
-    });
-
-    loadData();
-  };
-
-  const handleTolak = async (item: any) => {
-    if (!confirm(`Tolak proyek "${item.judul}"?`)) return;
-
-    await fetch(`http://localhost:4000/api/submissions/${item.id}/reject`, {
-      method: "PATCH",
-    });
-
-    loadData();
-  };
-
-  // =====================================================
   // UI
   // =====================================================
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <AdminSidebar
-        isOpen={isSidebarOpen}
-        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
+      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
         className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
           isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
         }`}
       >
-        {/* =======================================
-            TITLE
-        ======================================== */}
+        {/* TITLE */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-black uppercase tracking-wide">
             Verifikasi Proyek
           </h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Kelola pendaftaran proyek PSTeam.
-          </p>
+          <p className="text-gray-600 text-sm mt-1">Kelola pendaftaran proyek PSTeam.</p>
         </div>
 
-        {/* =======================================
-            SEARCH + FILTER PAGE
-        ======================================== */}
+        {/* CONTROLS */}
         <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
-
           {/* Search */}
           <div className="relative flex items-center h-10">
             {!isSearchOpen && (
               <button
                 onClick={() => {
                   setIsSearchOpen(true);
-                  setTimeout(() => {
-                    document.getElementById("searchProject")?.focus();
-                  }, 50);
+                  setTimeout(() => document.getElementById("searchProject")?.focus(), 50);
                 }}
                 className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-md absolute left-0"
               >
@@ -150,20 +134,16 @@ export default function VerifikasiProyekPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onBlur={() => {
-                if (searchTerm.trim() === "") setIsSearchOpen(false);
+                if (!searchTerm.trim()) setIsSearchOpen(false);
               }}
               placeholder="Cari proyek..."
-              className={`transition-all duration-300 border border-gray-300 bg-white 
-                rounded-md shadow-sm text-sm h-10
-                ${
-                  isSearchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
-                }`}
+              className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${
+                isSearchOpen ? "w-56 pl-10 pr-3 opacity-100" : "w-10 opacity-0 pointer-events-none"
+              }`}
             />
           </div>
 
-          {/* Items Per Page */}
+          {/* Items per page */}
           <div className="relative">
             <select
               value={itemsPerPage}
@@ -184,9 +164,7 @@ export default function VerifikasiProyekPage() {
           </div>
         </div>
 
-        {/* =======================================
-            TABEL  (TIDAK DIUBAH PERMINTAAN)
-        ======================================== */}
+        {/* TABLE */}
         <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
           <table className="w-full text-sm text-gray-700 border border-gray-200 border-collapse">
             <thead className="bg-gray-300 text-gray-800">
@@ -227,15 +205,17 @@ export default function VerifikasiProyekPage() {
 
                     <td className="border px-4 py-2 border-gray-300 text-center">
                       <div className="inline-flex gap-2">
+                        {/* 🔵 TERIMA */}
                         <button
-                          onClick={() => handleTerima(item)}
+                          onClick={() => setConfirmAccept(item)}
                           className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded"
                         >
                           Terima
                         </button>
 
+                        {/* 🔴 TOLAK */}
                         <button
-                          onClick={() => handleTolak(item)}
+                          onClick={() => setConfirmReject(item)}
                           className="bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-1 rounded"
                         >
                           Tolak
@@ -246,10 +226,7 @@ export default function VerifikasiProyekPage() {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center py-6 text-gray-500 italic"
-                  >
+                  <td colSpan={7} className="text-center py-6 text-gray-500 italic">
                     Tidak ada proyek yang menunggu verifikasi.
                   </td>
                 </tr>
@@ -257,79 +234,133 @@ export default function VerifikasiProyekPage() {
             </tbody>
           </table>
 
-          {/* ======================================================
-              PAGINATION — MATCH DENGAN DAFTAR PROYEK
-          ======================================================= */}
+          {/* PAGINATION */}
           <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
-
-            {/* PREV */}
             <button
               onClick={() => {
                 if (currentPage > 1) {
-                  const newGroup = Math.floor((currentPage - 2) / 3);
-                  setCurrentPage((prev) => Math.max(prev - 1, 1));
-                  setPageGroup(newGroup);
+                  setCurrentPage((prev) => prev - 1);
+                  setPageGroup(Math.floor((currentPage - 2) / 3));
                 }
               }}
               disabled={currentPage === 1}
               className={`px-2 py-1 rounded border text-xs ${
                 currentPage === 1
                   ? "bg-gray-200 text-gray-400"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  : "bg-gray-100 hover:bg-gray-300"
               }`}
             >
               &lt;
             </button>
 
-            {/* NUMBER BUTTONS (3 only) */}
             {Array.from({ length: 3 }, (_, i) => {
-              const pageNumber = pageGroup * 3 + (i + 1);
-              if (pageNumber > totalPages) return null;
+              const pageNum = pageGroup * 3 + (i + 1);
+              if (pageNum > totalPages) return null;
 
               return (
                 <button
-                  key={pageNumber}
-                  onClick={() => setCurrentPage(pageNumber)}
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
                   className={`px-2 py-1 rounded text-xs border ${
-                    currentPage === pageNumber
+                    currentPage === pageNum
                       ? "bg-blue-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                      : "bg-gray-100 hover:bg-gray-300"
                   }`}
                 >
-                  {pageNumber}
+                  {pageNum}
                 </button>
               );
             })}
 
-            {/* NEXT */}
             <button
               onClick={() => {
                 if (currentPage < totalPages) {
-                  const newGroup = Math.floor(currentPage / 3);
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-                  setPageGroup(newGroup);
+                  setCurrentPage((prev) => prev + 1);
+                  setPageGroup(Math.floor(currentPage / 3));
                 }
               }}
               disabled={currentPage === totalPages}
               className={`px-2 py-1 rounded border text-xs ${
                 currentPage === totalPages
                   ? "bg-gray-200 text-gray-400"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  : "bg-gray-100 hover:bg-gray-300"
               }`}
             >
               &gt;
             </button>
-
           </div>
         </div>
       </main>
 
+      {/* DETAIL */}
       <ProjectDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         data={selectedData}
         canChangeStatus={false}
       />
+
+      {/* =====================================================
+          🔵 MODAL TERIMA
+      ====================================================== */}
+      {confirmAccept && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold mb-3">Konfirmasi Terima</h3>
+            <p className="text-sm text-gray-700 mb-6">
+              Apakah Anda yakin ingin menerima proyek{" "}
+              <b>{confirmAccept.judul}</b>?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmAccept(null)}
+                className="px-4 py-2 rounded bg-gray-300 text-black text-sm hover:bg-gray-400"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={() => approveNow(confirmAccept.id)}
+                className="px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+              >
+                Ya, Terima
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          🔴 MODAL TOLAK
+      ====================================================== */}
+      {confirmReject && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold mb-3 text-red-600">Konfirmasi Penolakan</h3>
+            <p className="text-sm text-gray-700 mb-6">
+              Apakah Anda yakin ingin menolak proyek{" "}
+              <b>{confirmReject.judul}</b>?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmReject(null)}
+                className="px-4 py-2 rounded bg-gray-300 text-black text-sm hover:bg-gray-400"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={() => rejectNow(confirmReject.id)}
+                className="px-4 py-2 rounded bg-red-600 text-white text-sm hover:bg-red-700"
+              >
+                Ya, Tolak
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

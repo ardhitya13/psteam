@@ -1,100 +1,128 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Search, ChevronDown, Eye, Check, X } from "lucide-react";
-import AdminNavbar from "./AdminNavbar";
-import AdminSidebar from "./AdminSidebar";
+import React, { useState, useEffect } from "react";
+import { Search, ChevronDown } from "lucide-react";
+import AdminNavbar from "../components/AdminNavbar";
+import AdminSidebar from "../components/AdminSidebar";
+import {
+  getPendingRegistrations,
+  updateTrainingStatus,
+} from "../../../lib/apiTraining";
 
-import TrainingVerificationDetailModal from "./TrainingVerifyDetailModal";
-import TrainingVerificationStatusModal from "./TrainingVerifyStatusModal";
-
-export type Registration = {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  trainingTitle: string;
-  trainingType: "web" | "mobile" | "ai" | "iot";
-  batch: string;
-  notes?: string;
-  status: "pending" | "approved" | "rejected";
-};
-
-export default function TrainingVerificationAdmin() {
+export default function VerifyTrainingAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageGroup, setPageGroup] = useState(0); // 🔥 DITAMBAHKAN
+  const [pageGroup, setPageGroup] = useState(0);
 
-  const [detailData, setDetailData] = useState<Registration | null>(null);
-  const [statusData, setStatusData] = useState<{
-    data: Registration;
-    action: "approved" | "rejected";
-  } | null>(null);
+  // 🔵 Modal konfirmasi
+  const [confirmAccept, setConfirmAccept] = useState<any>(null);
+  const [confirmReject, setConfirmReject] = useState<any>(null);
 
+  // ========================
+  // NORMALIZER TYPE
+  // ========================
+  function normalizeType(str: string) {
+    if (!str) return "";
+    const s = str.toLowerCase();
+
+    if (s.includes("web")) return "web";
+    if (s.includes("mobile")) return "mobile";
+    if (s.includes("iot") || s.includes("internet")) return "iot";
+    if (s.includes("ai") || s.includes("machine") || s.includes("artificial"))
+      return "ai";
+
+    return s;
+  }
+
+  // ========================
   // LOAD DATA
-  const loadRegistrations = async () => {
-    const res = await fetch("http://localhost:4000/api/trainings", { cache: "no-store" });
-    const json = await res.json();
-    setRegistrations(json);
-  };
+  // ========================
+  async function load() {
+    const res = await getPendingRegistrations();
+
+    // 🔥 FIX WAJIB: data HARUS dimapping agar trainingType selalu ada
+    const mapped = res.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      email: item.email,
+      phone: item.phone,
+      trainingTitle: item.trainingTitle,
+      trainingType: item.trainingType ?? "", // FIX 🔥
+      batch: item.batch,
+      notes: item.notes,
+      status: item.status,
+    }));
+
+    setData(mapped);
+    setLoading(false);
+  }
 
   useEffect(() => {
-    loadRegistrations();
+    load();
   }, []);
 
+  // ========================
   // UPDATE STATUS
-  const updateStatus = async (id: number, newStatus: "approved" | "rejected") => {
-    await fetch(`http://localhost:4000/api/trainings/${id}/status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-
-    setStatusData(null);
-    await loadRegistrations();
+  // ========================
+  const approveNow = async (id: number) => {
+    await updateTrainingStatus(id, "approved");
+    setConfirmAccept(null);
+    load(); // refresh pending
   };
 
-  // FILTERING
-  const filtered = registrations.filter((r) =>
-    `${r.name} ${r.email} ${r.trainingTitle}`.toLowerCase().includes(searchTerm.toLowerCase())
+  const rejectNow = async (id: number) => {
+    await updateTrainingStatus(id, "rejected");
+    setConfirmReject(null);
+    load(); // refresh pending
+  };
+
+  // ========================
+  // FILTER + PAGINATION
+  // ========================
+  const filtered = data.filter((item: any) =>
+    `${item.name} ${item.email} ${item.trainingTitle}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
 
-  // PAGINATION
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * itemsPerPage;
   const pageItems = filtered.slice(startIndex, startIndex + itemsPerPage);
 
-  // RESET PAGE & GROUP
   useEffect(() => {
     setCurrentPage(1);
     setPageGroup(0);
   }, [searchTerm, itemsPerPage]);
 
+  // ========================
+  // UI
+  // ========================
   return (
-    <div className="min-h-screen w-full bg-[#f5f7fb] flex flex-col">
+    <div className="min-h-screen bg-[#f5f7fb]">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div className="flex flex-1">
+      <div className="flex">
         <AdminSidebar
           isOpen={isSidebarOpen}
           toggle={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
         <main
-          className={`flex-1 px-8 md:px-12 py-6 mt-[85px] transition-all duration-300 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
         >
           {/* TITLE */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-black uppercase">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold uppercase">
               Verifikasi Pelatihan
             </h1>
             <p className="text-gray-600 text-sm">
@@ -102,39 +130,33 @@ export default function TrainingVerificationAdmin() {
             </p>
           </div>
 
-          {/* CONTROL BAR */}
-          <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-5">
-            {/* SEARCH */}
+          {/* SEARCH */}
+          <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
             <div className="relative flex items-center h-10">
               {!isSearchOpen && (
                 <button
                   onClick={() => {
                     setIsSearchOpen(true);
-                    setTimeout(() => {
-                      document.getElementById("searchInput")?.focus();
-                    }, 50);
+                    setTimeout(() => document.getElementById("search")?.focus(), 50);
                   }}
-                  className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-md absolute left-0"
+                  className="absolute left-0 w-10 h-10 bg-blue-500 rounded-md flex items-center justify-center text-white"
                 >
                   <Search size={18} />
                 </button>
               )}
 
               <input
-                id="searchInput"
+                id="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onBlur={() => {
-                  if (searchTerm.trim() === "") setIsSearchOpen(false);
+                  if (!searchTerm.trim()) setIsSearchOpen(false);
                 }}
-                placeholder="Cari peserta..."
-                className={`transition-all duration-300 border border-gray-300 bg-white 
-                  rounded-md shadow-sm text-sm h-10
-                ${
-                  isSearchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
+                className={`transition-all duration-300 h-10 border bg-white rounded-md shadow-sm text-sm ${isSearchOpen
+                    ? "w-60 pl-10 pr-3 opacity-100"
                     : "w-10 opacity-0 pointer-events-none"
-                }`}
+                  }`}
+                placeholder="Cari peserta..."
               />
             </div>
 
@@ -151,6 +173,7 @@ export default function TrainingVerificationAdmin() {
                   </option>
                 ))}
               </select>
+
               <ChevronDown
                 size={16}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
@@ -159,132 +182,97 @@ export default function TrainingVerificationAdmin() {
           </div>
 
           {/* TABLE */}
-          <div className="bg-white rounded-lg shadow-md border border-gray-300 w-full max-w-[1200px] mx-auto overflow-x-auto">
-            <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
-              <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
+          <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
+            <table className="min-w-full text-sm text-gray-800 text-center border-collapse">
+              <thead className="bg-[#eaf0fa] text-gray-700 font-semibold">
                 <tr>
-                  <th className="px-4 py-3 border border-gray-300">No</th>
-                  <th className="px-4 py-3 border border-gray-300">Nama</th>
-                  <th className="px-4 py-3 border border-gray-300">Email</th>
-                  <th className="px-4 py-3 border border-gray-300">Telepon</th>
-                  <th className="px-4 py-3 border border-gray-300">Pelatihan</th>
-                  <th className="px-4 py-3 border border-gray-300">Tipe</th>
-                  <th className="px-4 py-3 border border-gray-300">Status</th>
-                  <th className="px-4 py-3 border border-gray-300">Spesifikasi</th>
-                  <th className="px-4 py-3 border border-gray-300">Aksi</th>
+                  <th className="border px-4 py-3 border-gray-300">No</th>
+                  <th className="border px-4 py-3 border-gray-300">Nama</th>
+                  <th className="border px-4 py-3 border-gray-300">Email</th>
+                  <th className="border px-4 py-3 border-gray-300">Telepon</th>
+                  <th className="border px-4 py-3 border-gray-300">Pelatihan</th>
+                  <th className="border px-4 py-3 border-gray-300">Tipe</th>
+                  <th className="border px-4 py-3 border-gray-300">Aksi</th>
                 </tr>
               </thead>
 
               <tbody>
                 {pageItems.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={9}
-                      className="text-center py-6 italic text-gray-500"
-                    >
-                      Tidak ada pelatihan yang mau di verifikasi.
+                    <td colSpan={7} className="text-center py-8 text-gray-500">
+                      Tidak ada data.
                     </td>
                   </tr>
                 ) : (
-                pageItems.map((r, i) => (
-                  <tr key={r.id} className="hover:bg-blue-50 border">
-                    <td className="border px-4 py-2 border-gray-300">{startIndex + i + 1}</td>
-                    <td className="border px-4 py-2 border-gray-300 font-semibold">{r.name}</td>
-                    <td className="border px-4 py-2 border-gray-300">{r.email}</td>
-                    <td className="border px-4 py-2 border-gray-300">{r.phone}</td>
-                    <td className="border px-4 py-2 border-gray-300">{r.trainingTitle}</td>
-                    <td className="border px-4 py-2 border-gray-300 capitalize">{r.trainingType}</td>
+                  pageItems.map((p: any, i: number) => (
+                    <tr key={p.id} className="hover:bg-blue-50">
+                      <td className="border px-4 py-2 border-gray-300">{startIndex + i + 1}</td>
+                      <td className="border px-4 py-2 border-gray-300">{p.name}</td>
+                      <td className="border px-4 py-2 border-gray-300">{p.email}</td>
+                      <td className="border px-4 py-2 border-gray-300">{p.phone}</td>
+                      <td className="border px-4 py-2 border-gray-300">{p.trainingTitle}</td>
 
-                    <td className="border px-4 py-2 border-gray-300">
-                      {r.status === "pending" && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-md text-xs">
-                          Pending
-                        </span>
-                      )}
-                      {r.status === "approved" && (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs">
-                          Diterima
-                        </span>
-                      )}
-                      {r.status === "rejected" && (
-                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-md text-xs">
-                          Ditolak
-                        </span>
-                      )}
-                    </td>
+                      <td className="border px-4 py-2 border-gray-300 capitalize">
+                        {normalizeType(p.trainingType || "")}
+                      </td>
 
-                    <td className="border px-4 py-2 border-gray-300">
-                      <button
-                        onClick={() => setDetailData(r)}
-                        className="bg-green-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
-                      >
-                        <Eye size={14} /> Detail
-                      </button>
-                    </td>
+                      <td className="border px-4 py-2 border-gray-300">
+                        <div className="inline-flex gap-2">
+                          <button
+                            onClick={() => setConfirmAccept(p)}
+                            className="bg-blue-600 text-white px-3 py-1 text-xs rounded"
+                          >
+                            Terima
+                          </button>
 
-                    <td className="border px-4 py-2 border-gray-300">
-                      <div className="flex gap-2 justify-center">
-                        <button
-                          onClick={() => setStatusData({ data: r, action: "approved" })}
-                          className="bg-blue-600 text-white px-3 py-1 rounded-md flex items-center gap-1"
-                        >
-                          <Check size={14} /> Terima
-                        </button>
-
-                        <button
-                          onClick={() => setStatusData({ data: r, action: "rejected" })}
-                          className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
-                        >
-                          <X size={14} /> Tolak
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+                          <button
+                            onClick={() => setConfirmReject(p)}
+                            className="bg-red-600 text-white px-3 py-1 text-xs rounded"
+                          >
+                            Tolak
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
 
-            {/* ======================================================
-                PAGINATION (Model 3 Tombol per Grup)
-            ======================================================= */}
-            <div className="flex justify-end items-center py-3 px-4 gap-2 bg-gray-50 rounded-b-lg">
-
+            {/* PAGINATION */}
+            <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
               {/* PREV */}
               <button
                 onClick={() => {
                   if (currentPage > 1) {
-                    const newGroup = Math.floor((currentPage - 2) / 3);
-                    setCurrentPage((prev) => prev - 1);
-                    setPageGroup(newGroup);
+                    setCurrentPage(currentPage - 1);
+                    setPageGroup(Math.floor((currentPage - 2) / 3));
                   }
                 }}
                 disabled={currentPage === 1}
-                className={`px-3 py-1 rounded border text-xs ${
-                  currentPage === 1
+                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
                     ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+                    : "bg-gray-100 hover:bg-gray-300"
+                  }`}
               >
                 &lt;
               </button>
 
-              {/* 3 PAGE BUTTONS ONLY */}
+              {/* PAGE NUMBERS */}
               {Array.from({ length: 3 }, (_, i) => {
-                const pageNumber = pageGroup * 3 + (i + 1);
-                if (pageNumber > totalPages) return null;
+                const pageNum = pageGroup * 3 + (i + 1);
+                if (pageNum > totalPages) return null;
 
                 return (
                   <button
-                    key={pageNumber}
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className={`px-3 py-1 rounded text-xs border ${
-                      currentPage === pageNumber
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
                         ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                    }`}
+                        : "bg-gray-100 hover:bg-gray-300"
+                      }`}
                   >
-                    {pageNumber}
+                    {pageNum}
                   </button>
                 );
               })}
@@ -293,43 +281,80 @@ export default function TrainingVerificationAdmin() {
               <button
                 onClick={() => {
                   if (currentPage < totalPages) {
-                    const newGroup = Math.floor(currentPage / 3);
-                    setCurrentPage((prev) => prev + 1);
-                    setPageGroup(newGroup);
+                    setCurrentPage(currentPage + 1);
+                    setPageGroup(Math.floor(currentPage / 3));
                   }
                 }}
                 disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded border text-xs ${
-                  currentPage === totalPages
+                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
                     ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+                    : "bg-gray-100 hover:bg-gray-300"
+                  }`}
               >
                 &gt;
               </button>
-
             </div>
           </div>
-
-          {/* MODALS */}
-          {detailData && (
-            <TrainingVerificationDetailModal
-              data={detailData}
-              onClose={() => setDetailData(null)}
-            />
-          )}
-
-          {statusData && (
-            <TrainingVerificationStatusModal
-              data={statusData.data}
-              action={statusData.action}
-              onConfirm={() => updateStatus(statusData.data.id!, statusData.action)}
-              onClose={() => setStatusData(null)}
-            />
-          )}
-
         </main>
       </div>
+
+      {/* MODAL TERIMA */}
+      {confirmAccept && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold mb-3">Konfirmasi Terima</h3>
+            <p className="text-sm text-gray-700 mb-6">
+              Terima peserta <b>{confirmAccept.name}</b>?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmAccept(null)}
+                className="px-4 py-2 bg-gray-300 rounded text-sm"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={() => approveNow(confirmAccept.id)}
+                className="px-4 py-2 bg-blue-600 text-white rounded text-sm"
+              >
+                Ya, Terima
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TOLAK */}
+      {confirmReject && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold mb-3 text-red-600">
+              Konfirmasi Penolakan
+            </h3>
+            <p className="text-sm text-gray-700 mb-6">
+              Tolak peserta <b>{confirmReject.name}</b>?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmReject(null)}
+                className="px-4 py-2 bg-gray-300 rounded text-sm"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={() => rejectNow(confirmReject.id)}
+                className="px-4 py-2 bg-red-600 text-white rounded text-sm"
+              >
+                Ya, Tolak
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

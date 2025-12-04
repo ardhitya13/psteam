@@ -4,13 +4,17 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { ProductItem } from "./ProductManager";
 
+const API_URL = "http://localhost:4000/api/products";
+
 export default function AddProductModal({
   onClose,
   onSubmit,
 }: {
   onClose: () => void;
-  onSubmit: (p: ProductItem) => void;
+  onSubmit: () => void; // FIX
 }) {
+  const today = new Date().toISOString().split("T")[0];
+
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -20,41 +24,36 @@ export default function AddProductModal({
     academicYear: "2024/2025",
     description: "",
     link: "",
-    publishDate: "",
+    publishDate: today,
   });
 
   const update = (key: string, value: any) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  // PREVIEW GAMBAR
   useEffect(() => {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPreview(url);
+
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  // GENERATE TAHUN AJARAN
-  const generateAcademicYears = () => {
-    const years = [];
-    for (let y = 2010; y <= 2035; y++) years.push(`${y}/${y + 1}`);
-    return years;
+  const generateYears = () => {
+    const arr = [];
+    for (let y = 2010; y <= 2035; y++) arr.push(`${y}/${y + 1}`);
+    return arr;
   };
 
-  // SUBMIT (SEND TO BACKEND)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!file) {
-      alert("Silakan pilih thumbnail gambar.");
+      alert("Thumbnail wajib diisi.");
       return;
     }
 
     const fd = new FormData();
-
-    // ⚡ FIX UTAMA — backend pakai req.file dengan field "image"
     fd.append("image", file);
-
     fd.append("title", form.title);
     fd.append("category", form.category);
     fd.append("academicYear", form.academicYear);
@@ -62,26 +61,12 @@ export default function AddProductModal({
     fd.append("link", form.link);
     fd.append("publishDate", form.publishDate);
 
-    const res = await fetch("http://localhost:4000/api/products", {
+    await fetch(API_URL, {
       method: "POST",
       body: fd,
     });
 
-    const json = await res.json();
-
-    // ⚡ Backend return product langsung, bukan { data: ... }
-    onSubmit({
-      id: json.id,
-      image: json.image ?? "/placeholder.png",
-      title: json.title,
-      category: json.category,
-      academicYear: json.academicYear,
-      code: json.code,
-      description: json.description,
-      link: json.link,
-      publishDate: json.publishDate,
-    });
-
+    await onSubmit(); // FIX
     onClose();
   };
 
@@ -97,7 +82,7 @@ export default function AddProductModal({
         <h2 className="text-xl font-bold mb-4 text-blue-900">Tambah Produk</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* THUMBNAIL */}
+          {/* Thumbnail */}
           <div>
             <label className="block text-sm font-semibold mb-2">Thumbnail</label>
 
@@ -105,46 +90,40 @@ export default function AddProductModal({
               type="file"
               accept="image/*"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="mb-2 text-sm"
             />
 
-            <div className="w-full h-64 bg-white border rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-full h-72 bg-gray-100 border rounded flex items-center justify-center mt-2 overflow-hidden">
               {preview ? (
-                <img
-                  src={preview}
-                  className="object-contain w-full h-full"
-                />
+                <img src={preview} className="object-contain w-full h-full" />
               ) : (
-                <div className="text-sm text-gray-500">Tidak ada preview</div>
+                <p className="text-gray-500 text-sm">Belum ada preview</p>
               )}
             </div>
           </div>
 
-          {/* JUDUL */}
+          {/* Judul */}
           <div>
             <label className="text-sm font-semibold">Judul</label>
             <input
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
               className="w-full border rounded px-3 py-2 mt-1"
-              placeholder="Judul Produk"
             />
           </div>
 
-          {/* DESKRIPSI */}
+          {/* Deskripsi */}
           <div>
             <label className="text-sm font-semibold">Deskripsi Singkat</label>
             <input
               value={form.description}
               onChange={(e) => update("description", e.target.value)}
               className="w-full border rounded px-3 py-2 mt-1"
-              placeholder="Deskripsi singkat"
             />
           </div>
 
-          {/* CATEGORY */}
+          {/* Category */}
           <div>
-            <label className="text-sm font-semibold">Tipe</label>
+            <label className="text-sm font-semibold">Kategori</label>
             <select
               value={form.category}
               onChange={(e) => update("category", e.target.value)}
@@ -157,7 +136,7 @@ export default function AddProductModal({
             </select>
           </div>
 
-          {/* TAHUN AKADEMIK */}
+          {/* Tahun */}
           <div>
             <label className="text-sm font-semibold">Tahun Akademik</label>
             <select
@@ -165,13 +144,13 @@ export default function AddProductModal({
               onChange={(e) => update("academicYear", e.target.value)}
               className="w-full border rounded px-3 py-2 mt-1"
             >
-              {generateAcademicYears().map((y) => (
+              {generateYears().map((y) => (
                 <option key={y}>{y}</option>
               ))}
             </select>
           </div>
 
-          {/* TANGGAL PUBLISH */}
+          {/* Publish */}
           <div>
             <label className="text-sm font-semibold">Tanggal Publish</label>
             <input
@@ -182,7 +161,7 @@ export default function AddProductModal({
             />
           </div>
 
-          {/* LINK */}
+          {/* Link */}
           <div>
             <label className="text-sm font-semibold">Link Website</label>
             <input
@@ -193,7 +172,6 @@ export default function AddProductModal({
             />
           </div>
 
-          {/* BUTTONS */}
           <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
@@ -203,10 +181,7 @@ export default function AddProductModal({
               Batal
             </button>
 
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
               Simpan Produk
             </button>
           </div>
