@@ -7,7 +7,6 @@ import teamRoutes from "./routes/teamRoutes";
 import projectSubmissionRoutes from "./routes/projectSubmissionRoutes";
 import trainingRoutes from "./routes/trainingRoutes";
 import productRoutes from "./routes/productRoutes";
-import submissionRoutes from "./routes/projectSubmissionRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -34,7 +33,6 @@ app.use("/api/team", teamRoutes);
 app.use("/api/submissions", projectSubmissionRoutes);
 app.use("/api/trainings", trainingRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/submissions", submissionRoutes);
 
 // ===============================
 // Root route

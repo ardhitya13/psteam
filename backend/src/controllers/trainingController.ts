@@ -101,3 +101,22 @@ export const updateStatus = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to update status" });
   }
 };
+
+// ============================================================
+// DELETE REGISTRATION
+// ============================================================
+export const deleteRegistration = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+
+    await prisma.trainingregistration.delete({
+      where: { id }
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("deleteRegistration error:", err);
+    return res.status(500).json({ error: "Failed to delete registration" });
+  }
+};
+
