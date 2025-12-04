@@ -12,7 +12,7 @@ type Participant = {
     email: string;
     phone: string;
     trainingTitle: string;
-    type: "web" | "mobile" | "iot" | "ai";
+    trainingType: "web" | "mobile" | "iot" | "ai"; // FIX
     batch: string;
 };
 
@@ -27,9 +27,10 @@ export default function TrainingParticipantsAdmin() {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const [pageGroup, setPageGroup] = useState(0); // 🔥 DITAMBAHKAN sesuai contoh
+    const [pageGroup, setPageGroup] = useState(0);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+    // LOAD DATA
     useEffect(() => {
         fetch("http://localhost:4000/api/trainings/approved")
             .then((r) => r.json())
@@ -40,25 +41,41 @@ export default function TrainingParticipantsAdmin() {
     }, []);
 
     // =============================================
+    // DELETE PARTICIPANT
+    // =============================================
+    const handleDelete = async (id: number) => {
+        const ok = confirm("Yakin ingin menghapus peserta ini?");
+        if (!ok) return;
+
+        await fetch(`http://localhost:4000/api/trainings/${id}`, {
+            method: "DELETE",
+        });
+
+        setParticipants((prev) => prev.filter((p) => p.id !== id));
+    };
+
+    // =============================================
     // FILTER
     // =============================================
     const filtered = participants.filter((p) => {
         const matchSearch =
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchType = selectedType === "all" ? true : p.type === selectedType;
+
+        const matchType =
+            selectedType === "all" ? true : p.trainingType === selectedType;
+
         return matchSearch && matchType;
     });
 
     // =============================================
-    // PAGINATION (Mengikuti Contoh)
+    // PAGINATION
     // =============================================
     const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
     const safePage = Math.min(currentPage, totalPages);
     const startIndex = (safePage - 1) * itemsPerPage;
     const pageItems = filtered.slice(startIndex, startIndex + itemsPerPage);
 
-    // Reset pagination saat filter/search berubah
     useEffect(() => {
         setCurrentPage(1);
         setPageGroup(0);
@@ -178,6 +195,7 @@ export default function TrainingParticipantsAdmin() {
                                     <th className="px-4 py-3 border border-gray-300">Pelatihan</th>
                                     <th className="px-4 py-3 border border-gray-300">Tipe</th>
                                     <th className="px-4 py-3 border border-gray-300">Batch</th>
+                                    <th className="px-4 py-3 border border-gray-300">Aksi</th>
                                 </tr>
                             </thead>
 
@@ -185,7 +203,7 @@ export default function TrainingParticipantsAdmin() {
                                 {pageItems.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={7}
+                                            colSpan={8}
                                             className="text-center py-6 italic text-gray-500"
                                         >
                                             Belum ada peserta diterima.
@@ -194,24 +212,51 @@ export default function TrainingParticipantsAdmin() {
                                 ) : (
                                     pageItems.map((p, i) => (
                                         <tr key={p.id} className="hover:bg-blue-50 border">
-                                            <td className="border px-4 py-2 border-gray-300">{startIndex + i + 1}</td>
-                                            <td className="border px-4 py-2 border-gray-300 font-semibold">{p.name}</td>
-                                            <td className="border px-4 py-2 border-gray-300">{p.email}</td>
-                                            <td className="border px-4 py-2 border-gray-300">{p.phone}</td>
-                                            <td className="border px-4 py-2 border-gray-300">{p.trainingTitle}</td>
-                                            <td className="border px-4 py-2 border-gray-300 capitalize">{p.type}</td>
-                                            <td className="border px-4 py-2 border-gray-300">{p.batch}</td>
+                                            <td className="border px-4 py-2 border-gray-300">
+                                                {startIndex + i + 1}
+                                            </td>
+
+                                            <td className="border px-4 py-2 border-gray-300 font-semibold">
+                                                {p.name}
+                                            </td>
+
+                                            <td className="border px-4 py-2 border-gray-300">
+                                                {p.email}
+                                            </td>
+
+                                            <td className="border px-4 py-2 border-gray-300">
+                                                {p.phone}
+                                            </td>
+
+                                            <td className="border px-4 py-2 border-gray-300">
+                                                {p.trainingTitle}
+                                            </td>
+
+                                            <td className="border px-4 py-2 border-gray-300 capitalize">
+                                                {p.trainingType}
+                                            </td>
+
+                                            <td className="border px-4 py-2 border-gray-300">
+                                                {p.batch}
+                                            </td>
+
+                                            {/* DELETE BUTTON */}
+                                            <td className="border px-4 py-2 border-gray-300">
+                                                <button
+                                                    onClick={() => handleDelete(p.id)}
+                                                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                                >
+                                                    Hapus
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))
                                 )}
                             </tbody>
                         </table>
 
-                        {/* ===========================================
-                            PAGINATION (Mengikuti contoh 3 angka)
-                        ============================================ */}
+                        {/* PAGINATION */}
                         <div className="flex justify-end items-center py-3 px-4 gap-2 bg-gray-50 text-sm rounded-b-lg">
-
                             {/* PREV */}
                             <button
                                 onClick={() => {
@@ -269,7 +314,6 @@ export default function TrainingParticipantsAdmin() {
                             >
                                 &gt;
                             </button>
-
                         </div>
                     </div>
                 </main>
