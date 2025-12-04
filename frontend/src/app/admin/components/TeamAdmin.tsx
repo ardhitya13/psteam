@@ -21,7 +21,6 @@ import AdminSidebar from "./AdminSidebar";
 import AddTeamModal from "./TeamAddModal";
 import EditTeamModal from "./TeamEditModal";
 
-// === IMPORT API BACKEND ===
 import {
   getAllProjects,
   createProject,
@@ -51,7 +50,7 @@ type TeamPerson = {
 type TeamProject = {
   id: number;
   teamTitle: string;
-  teamMembers: TeamPerson[]; // FIXED
+  teamMembers: TeamPerson[];
 };
 
 export default function TeamAdmin() {
@@ -77,17 +76,23 @@ export default function TeamAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // ============= LOAD FROM BACKEND =============
+  // ======================================================
+  // 🔥 PATCH: FIX IMAGE MAPPING AGAR GAMBAR MUNCUL
+  // ======================================================
+  const fixImage = (img?: string) => {
+    if (!img) return "";
+    if (img.startsWith("http")) return img;
+    return "http://localhost:4000" + img;
+  };
+
+  // ============= LOAD DATA BACKEND =============
   const loadProjects = async () => {
     try {
       const data = await getAllProjects();
-
-      // NORMALISASI (jaga-jaga backend mengirim field lama)
       const normalized = (data || []).map((p: any) => ({
         ...p,
-        teamMembers: p.teamMembers ?? p.members ?? [],
+        teamMembers: p.teamMembers ?? p.teammember ?? p.members ?? [],
       }));
-
       setProjects(normalized);
     } catch (err) {
       console.error("Error load data:", err);
@@ -98,7 +103,7 @@ export default function TeamAdmin() {
     loadProjects();
   }, []);
 
-  // ============= ADD PROJECT =============
+  // ================= CREATE PROJECT =================
   const handleAdd = async (data: {
     teamTitle: string;
     teamMembers: TeamPerson[];
@@ -108,22 +113,22 @@ export default function TeamAdmin() {
       await loadProjects();
     } catch (err) {
       console.error("Error adding project:", err);
-      alert("Gagal menambahkan project. Cek console untuk detail.");
+      alert("Gagal menambahkan project. Cek console.");
     }
   };
 
-  // ============= ADD MEMBER =============
+  // ================= ADD MEMBER =================
   const handleAddMember = async (projectId: number, teamMember: TeamPerson) => {
     try {
       await addMember(projectId, teamMember);
       await loadProjects();
     } catch (err) {
       console.error("Error adding member:", err);
-      alert("Gagal menambahkan anggota. Cek console untuk detail.");
+      alert("Gagal menambahkan anggota.");
     }
   };
 
-  // ============= DELETE PROJECT =============
+  // ================= DELETE PROJECT =================
   const handleDeleteProject = async (id: number) => {
     if (!confirm("Yakin ingin menghapus tim ini?")) return;
 
@@ -132,32 +137,34 @@ export default function TeamAdmin() {
       await loadProjects();
     } catch (err) {
       console.error("Error deleting project:", err);
-      alert("Gagal menghapus project. Cek console untuk detail.");
+      alert("Gagal menghapus project.");
     }
   };
 
-  // ============= DELETE MEMBER =============
+  // ================= DELETE MEMBER =================
   const handleDeleteMember = async (projectId: number, memberId?: number) => {
     if (!memberId) return;
+
     try {
       await deleteMember(memberId);
       await loadProjects();
     } catch (err) {
       console.error("Error deleting member:", err);
-      alert("Gagal menghapus anggota. Cek console untuk detail.");
+      alert("Gagal menghapus anggota.");
     }
   };
 
-  // ============= UPDATE MEMBER ============
+  // ================= UPDATE MEMBER =================
   const handleUpdateMember = async (updated: TeamPerson) => {
     if (!updated.id) return;
+
     try {
       await updateMember(updated.id, updated);
       await loadProjects();
       setEditData(null);
     } catch (err) {
       console.error("Error updating member:", err);
-      alert("Gagal mengupdate anggota. Cek console untuk detail.");
+      alert("Gagal mengupdate anggota.");
     }
   };
 
@@ -165,12 +172,16 @@ export default function TeamAdmin() {
     setExpandedProject(expandedProject === id ? null : id);
   };
 
-  // FILTER & PAGINATION
+  // FILTERING & PAGINATION
   const filteredProjects = projects.filter((p) =>
     p.teamTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / itemsPerPage));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProjects.length / itemsPerPage)
+  );
+
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const startIndex = (safeCurrentPage - 1) * itemsPerPage;
 
@@ -179,12 +190,12 @@ export default function TeamAdmin() {
     startIndex + itemsPerPage
   );
 
-    useEffect(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, itemsPerPage]);
 
   // ======================================================
-  // ====================== UI ============================
+  // ========================= UI =========================
   // ======================================================
 
   return (
@@ -192,33 +203,41 @@ export default function TeamAdmin() {
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <div className="flex flex-1">
-        <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <AdminSidebar
+          isOpen={isSidebarOpen}
+          toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
 
         <main
           className={`flex-1 transition-all duration-300 px-8 py-6 ${
             isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
           } mt-[85px]`}
-          style={{
-            minHeight: "calc(100vh - 85px)",
-          }}
+          style={{ minHeight: "calc(100vh - 85px)" }}
         >
           {/* TITLE */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-black uppercase">Daftar Tim Pengembang</h1>
-            <p className="text-gray-600 text-sm">Kelola daftar project dan anggota tim.</p>
+            <h1 className="text-3xl font-bold text-black uppercase">
+              Daftar Tim Pengembang
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Kelola daftar project dan anggota tim.
+            </p>
           </div>
 
           {/* CONTROL BAR */}
           <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-5">
-            {/* SEARCH BUTTON */}
+            {/* SEARCH */}
             <div className="relative flex items-center justify-center">
               {!isSearchOpen && (
                 <button
                   onClick={() => {
                     setIsSearchOpen(true);
                     setTimeout(() => {
-                      const input = document.getElementById("searchInput") as HTMLInputElement;
-                      input?.focus();
+                      (
+                        document.getElementById(
+                          "searchInput"
+                        ) as HTMLInputElement
+                      )?.focus();
                     }, 50);
                   }}
                   className="absolute w-10 h-10 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow-sm z-20"
@@ -227,7 +246,6 @@ export default function TeamAdmin() {
                 </button>
               )}
 
-              {/* INPUT SEARCH */}
               <input
                 id="searchInput"
                 type="text"
@@ -237,13 +255,18 @@ export default function TeamAdmin() {
                 onBlur={() => {
                   if (searchTerm.trim() === "") setIsSearchOpen(false);
                 }}
-                className={`transition-all duration-300 bg-white border border-gray-300 rounded-md shadow-sm 
-                  text-sm text-gray-900 placeholder-gray-400
-                  ${isSearchOpen ? "w-56 pl-10 pr-3 py-2 opacity-100 z-30" : "w-10 pl-0 pr-0 py-2 opacity-0 pointer-events-none z-10"}`}
+                className={`transition-all duration-300 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-900 placeholder-gray-400 ${
+                  isSearchOpen
+                    ? "w-56 pl-10 pr-3 py-2 opacity-100 z-30"
+                    : "w-10 pl-0 pr-0 py-2 opacity-0 pointer-events-none z-10"
+                }`}
               />
 
               {isSearchOpen && (
-                <Search size={16} className="absolute left-3 text-gray-500 pointer-events-none z-40" />
+                <Search
+                  size={16}
+                  className="absolute left-3 text-gray-500 pointer-events-none z-40"
+                />
               )}
             </div>
 
@@ -253,12 +276,6 @@ export default function TeamAdmin() {
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
                 className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none"
-                style={{
-                  WebkitAppearance: "none",
-                  MozAppearance: "none",
-                  appearance: "none",
-                  backgroundImage: "none",
-                }}
               >
                 {[10, 20, 30, 40].map((num) => (
                   <option key={num} value={num}>
@@ -273,7 +290,7 @@ export default function TeamAdmin() {
               />
             </div>
 
-            {/* BUTTON TAMBAH TIM */}
+            {/* BUTTON ADD PROJECT */}
             <button
               onClick={() => {
                 setAddForProject(null);
@@ -292,8 +309,12 @@ export default function TeamAdmin() {
               <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
                 <tr>
                   <th className="py-3 px-4 border border-gray-300 w-16">No</th>
-                  <th className="py-3 px-4 border border-gray-300">Nama Project</th>
-                  <th className="py-3 px-4 border border-gray-300">Jumlah Anggota</th>
+                  <th className="py-3 px-4 border border-gray-300">
+                    Nama Project
+                  </th>
+                  <th className="py-3 px-4 border border-gray-300">
+                    Jumlah Anggota
+                  </th>
                   <th className="py-3 px-4 border border-gray-300">Aksi</th>
                 </tr>
               </thead>
@@ -307,11 +328,9 @@ export default function TeamAdmin() {
                         <td className="font-medium py-3 px-4 border border-gray-300">
                           {startIndex + index + 1}
                         </td>
-
                         <td className="font-semibold text-gray-900 py-3 px-4 border border-gray-300">
                           {project.teamTitle}
                         </td>
-
                         <td className="py-3 px-4 border border-gray-300">
                           {project.teamMembers.length}
                         </td>
@@ -319,13 +338,14 @@ export default function TeamAdmin() {
                         {/* ACTION */}
                         <td className="py-3 px-4 border border-gray-300 text-center relative">
                           <div className="flex justify-center gap-2 items-center">
-                            {/* EXPAND */}
                             <button
                               onClick={() => toggleExpand(project.id)}
                               className="bg-[#DBEAFE] hover:bg-[#BFDBFE] text-blue-700 px-3 py-1 rounded-md flex items-center gap-1 text-sm font-semibold"
                             >
                               <Users size={14} />
-                              {expandedProject === project.id ? "Tutup" : "Lihat Anggota"}
+                              {expandedProject === project.id
+                                ? "Tutup"
+                                : "Lihat Anggota"}
                               {expandedProject === project.id ? (
                                 <ChevronUp size={14} />
                               ) : (
@@ -337,11 +357,14 @@ export default function TeamAdmin() {
                             <div className="relative inline-block text-left">
                               <button
                                 onClick={() =>
-                                  setOpenDropdownId((prev) => (prev === project.id ? null : project.id))
+                                  setOpenDropdownId((prev) =>
+                                    prev === project.id ? null : project.id
+                                  )
                                 }
                                 className="bg-[#0ea5a4] hover:bg-[#059e9d] text-white px-3 py-1 rounded-md flex items-center gap-2 text-sm font-semibold"
                               >
-                                <span className="font-bold">+</span> Tambah Anggota ▾
+                                <span className="font-bold">+</span> Tambah
+                                Anggota ▾
                               </button>
 
                               {openDropdownId === project.id && (
@@ -398,26 +421,28 @@ export default function TeamAdmin() {
                       {/* EXPANDED CONTENT */}
                       {expandedProject === project.id && (
                         <tr>
-                          <td colSpan={4} className="p-0 border border-gray-300 overflow-visible">
+                          <td
+                            colSpan={4}
+                            className="p-0 border border-gray-300 overflow-visible"
+                          >
                             <div className="p-3 bg-gray-50">
                               <h2 className="text-lg font-bold text-gray-900 mb-3 text-center">
                                 Anggota Tim Produksi {project.teamTitle}
                               </h2>
 
                               {(() => {
-                                const dosenMembers = project.teamMembers.filter(
-                                  (m) => m.category === "dosen"
-                                );
-
-                                const mahasiswaMembers = project.teamMembers.filter(
-                                  (m) => m.category === "mahasiswa"
-                                );
+                                const dosenMembers =
+                                  project.teamMembers.filter(
+                                    (m) => m.category === "dosen"
+                                  );
+                                const mahasiswaMembers =
+                                  project.teamMembers.filter(
+                                    (m) => m.category === "mahasiswa"
+                                  );
 
                                 return (
                                   <div className="space-y-6">
-                                    {/* ===================================
-                                        TABEL DOSEN
-                                    ====================================== */}
+                                    {/* =================== DOSEN TABLE =================== */}
                                     <div>
                                       <h3 className="text-md font-semibold text-black mb-2">
                                         Daftar Dosen
@@ -427,14 +452,30 @@ export default function TeamAdmin() {
                                         <table className="w-full text-xs md:text-sm text-left border-collapse border border-gray-300 bg-white rounded-md">
                                           <thead className="bg-gray-100 text-gray-700 border border-gray-300">
                                             <tr>
-                                              <th className="py-2 px-3 border border-gray-300">Foto</th>
-                                              <th className="py-2 px-3 border border-gray-300">Nama</th>
-                                              <th className="py-2 px-3 border border-gray-300">Peran</th>
-                                              <th className="py-2 px-3 border border-gray-300">Kategori</th>
-                                              <th className="py-2 px-3 border border-gray-300">Email</th>
-                                              <th className="py-2 px-3 border border-gray-300">Dosen Info</th>
-                                              <th className="py-2 px-3 border border-gray-300">Sosial Media</th>
-                                              <th className="py-2 px-3 text-center border border-gray-300">Aksi</th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Foto
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Nama
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Peran
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Kategori
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Email
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Dosen Info
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Sosial Media
+                                              </th>
+                                              <th className="py-2 px-3 text-center border border-gray-300">
+                                                Aksi
+                                              </th>
                                             </tr>
                                           </thead>
 
@@ -449,7 +490,7 @@ export default function TeamAdmin() {
                                                     <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200">
                                                       {m.image ? (
                                                         <img
-                                                          src={m.image}
+                                                          src={fixImage(m.image)}
                                                           alt={m.name}
                                                           className="object-cover w-full h-full"
                                                         />
@@ -461,12 +502,21 @@ export default function TeamAdmin() {
                                                     </div>
                                                   </td>
 
-                                                  <td className="py-2 px-3 border border-gray-300">{m.name}</td>
-                                                  <td className="py-2 px-3 border border-gray-300">{m.role}</td>
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    {m.name}
+                                                  </td>
+
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    {m.role}
+                                                  </td>
+
                                                   <td className="py-2 px-3 border border-gray-300 capitalize">
                                                     {m.category}
                                                   </td>
-                                                  <td className="py-2 px-3 border border-gray-300">{m.email}</td>
+
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    {m.email}
+                                                  </td>
 
                                                   <td className="py-2 px-3 border border-gray-300 align-top">
                                                     <div className="text-sm text-gray-700 font-medium mb-1">
@@ -474,15 +524,21 @@ export default function TeamAdmin() {
                                                     </div>
                                                     <div className="text-xs text-gray-500 space-y-1">
                                                       <div>
-                                                        <span className="font-medium">• Program Studi:</span>{" "}
+                                                        <span className="font-medium">
+                                                          • Program Studi:
+                                                        </span>{" "}
                                                         {m.studyProgram || "-"}
                                                       </div>
                                                       <div>
-                                                        <span className="font-medium">• Pendidikan:</span>{" "}
+                                                        <span className="font-medium">
+                                                          • Pendidikan:
+                                                        </span>{" "}
                                                         {m.education || "-"}
                                                       </div>
                                                       <div>
-                                                        <span className="font-medium">• Spesialis:</span>{" "}
+                                                        <span className="font-medium">
+                                                          • Spesialis:
+                                                        </span>{" "}
                                                         {m.specialization || "-"}
                                                       </div>
                                                     </div>
@@ -491,28 +547,58 @@ export default function TeamAdmin() {
                                                   <td className="py-2 px-3 border border-gray-300">
                                                     <div className="flex gap-3 text-gray-600 items-center">
                                                       {m.github && (
-                                                        <a href={m.github} target="_blank">
-                                                          <Github size={20} className="hover:text-black" />
+                                                        <a
+                                                          href={m.github}
+                                                          target="_blank"
+                                                        >
+                                                          <Github
+                                                            size={20}
+                                                            className="hover:text-black"
+                                                          />
                                                         </a>
                                                       )}
                                                       {m.linkedin && (
-                                                        <a href={m.linkedin} target="_blank">
-                                                          <Linkedin size={20} className="hover:text-blue-700" />
+                                                        <a
+                                                          href={m.linkedin}
+                                                          target="_blank"
+                                                        >
+                                                          <Linkedin
+                                                            size={20}
+                                                            className="hover:text-blue-700"
+                                                          />
                                                         </a>
                                                       )}
                                                       {m.facebook && (
-                                                        <a href={m.facebook} target="_blank">
-                                                          <Facebook size={20} className="hover:text-blue-600" />
+                                                        <a
+                                                          href={m.facebook}
+                                                          target="_blank"
+                                                        >
+                                                          <Facebook
+                                                            size={20}
+                                                            className="hover:text-blue-600"
+                                                          />
                                                         </a>
                                                       )}
                                                       {m.instagram && (
-                                                        <a href={m.instagram} target="_blank">
-                                                          <Instagram size={20} className="hover:text-pink-500" />
+                                                        <a
+                                                          href={m.instagram}
+                                                          target="_blank"
+                                                        >
+                                                          <Instagram
+                                                            size={20}
+                                                            className="hover:text-pink-500"
+                                                          />
                                                         </a>
                                                       )}
                                                       {m.website && (
-                                                        <a href={m.website} target="_blank">
-                                                          <Globe size={20} className="hover:text-green-600" />
+                                                        <a
+                                                          href={m.website}
+                                                          target="_blank"
+                                                        >
+                                                          <Globe
+                                                            size={20}
+                                                            className="hover:text-green-600"
+                                                          />
                                                         </a>
                                                       )}
                                                     </div>
@@ -521,7 +607,9 @@ export default function TeamAdmin() {
                                                   <td className="py-2 px-3 text-center border border-gray-300">
                                                     <div className="flex justify-center gap-2">
                                                       <button
-                                                        onClick={() => setEditData(m)}
+                                                        onClick={() =>
+                                                          setEditData(m)
+                                                        }
                                                         className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
                                                       >
                                                         <Edit className="w-3 h-3" /> Edit
@@ -529,7 +617,10 @@ export default function TeamAdmin() {
 
                                                       <button
                                                         onClick={() =>
-                                                          handleDeleteMember(project.id, m.id)
+                                                          handleDeleteMember(
+                                                            project.id,
+                                                            m.id
+                                                          )
                                                         }
                                                         className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
                                                       >
@@ -545,7 +636,8 @@ export default function TeamAdmin() {
                                                   colSpan={8}
                                                   className="text-center py-3 text-gray-500 italic border border-gray-300"
                                                 >
-                                                  Belum ada Dosen untuk project ini.
+                                                  Belum ada Dosen untuk project
+                                                  ini.
                                                 </td>
                                               </tr>
                                             )}
@@ -554,9 +646,7 @@ export default function TeamAdmin() {
                                       </div>
                                     </div>
 
-                                    {/* ===================================
-                                        TABEL MAHASISWA
-                                    ====================================== */}
+                                    {/* =================== MAHASISWA TABLE =================== */}
                                     <div>
                                       <h3 className="text-md font-semibold text-black mb-2">
                                         Daftar Mahasiswa
@@ -566,13 +656,27 @@ export default function TeamAdmin() {
                                         <table className="w-full text-xs md:text-sm text-left border-collapse border border-gray-300 bg-white rounded-md">
                                           <thead className="bg-gray-100 text-gray-700 border border-gray-300">
                                             <tr>
-                                              <th className="py-2 px-3 border border-gray-300">Foto</th>
-                                              <th className="py-2 px-3 border border-gray-300">Nama</th>
-                                              <th className="py-2 px-3 border border-gray-300">Peran</th>
-                                              <th className="py-2 px-3 border border-gray-300">Kategori</th>
-                                              <th className="py-2 px-3 border border-gray-300">Email</th>
-                                              <th className="py-2 px-3 border border-gray-300">Sosial Media</th>
-                                              <th className="py-2 px-3 text-center border border-gray-300">Aksi</th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Foto
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Nama
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Peran
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Kategori
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Email
+                                              </th>
+                                              <th className="py-2 px-3 border border-gray-300">
+                                                Sosial Media
+                                              </th>
+                                              <th className="py-2 px-3 text-center border border-gray-300">
+                                                Aksi
+                                              </th>
                                             </tr>
                                           </thead>
 
@@ -584,10 +688,12 @@ export default function TeamAdmin() {
                                                   className="hover:bg-gray-50 transition border border-gray-300"
                                                 >
                                                   <td className="py-2 px-3 border border-gray-300">
-                                                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200">
+                                                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-2
+
+                                                      00">
                                                       {m.image ? (
                                                         <img
-                                                          src={m.image}
+                                                          src={fixImage(m.image)}
                                                           alt={m.name}
                                                           className="object-cover w-full h-full"
                                                         />
@@ -599,7 +705,9 @@ export default function TeamAdmin() {
                                                     </div>
                                                   </td>
 
-                                                  <td className="py-2 px-3 border border-gray-300">{m.name}</td>
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    {m.name}
+                                                  </td>
 
                                                   <td className="py-2 px-3 border border-gray-300">
                                                     {m.role?.trim()
@@ -611,33 +719,54 @@ export default function TeamAdmin() {
                                                     {m.category}
                                                   </td>
 
-                                                  <td className="py-2 px-3 border border-gray-300">{m.email}</td>
+                                                  <td className="py-2 px-3 border border-gray-300">
+                                                    {m.email}
+                                                  </td>
 
                                                   <td className="py-2 px-3 border border-gray-300">
                                                     <div className="flex gap-3 text-gray-600 items-center">
                                                       {m.github && (
-                                                        <a href={m.github} target="_blank">
-                                                          <Github size={20} className="hover:text-black" />
+                                                        <a
+                                                          href={m.github}
+                                                          target="_blank"
+                                                        >
+                                                          <Github
+                                                            size={20}
+                                                            className="hover:text-black"
+                                                          />
                                                         </a>
                                                       )}
                                                       {m.linkedin && (
-                                                        <a href={m.linkedin} target="_blank">
-                                                          <Linkedin size={20} className="hover:text-blue-700" />
+                                                        <a
+                                                          href={m.linkedin}
+                                                          target="_blank"
+                                                        >
+                                                          <Linkedin
+                                                            size={20}
+                                                            className="hover:text-blue-700"
+                                                          />
                                                         </a>
                                                       )}
                                                       {m.facebook && (
-                                                        <a href={m.facebook} target="_blank">
-                                                          <Facebook size={20} className="hover:text-blue-600" />
+                                                        <a
+                                                          href={m.facebook}
+                                                          target="_blank"
+                                                        >
+                                                          <Facebook
+                                                            size={20}
+                                                            className="hover:text-blue-600"
+                                                          />
                                                         </a>
                                                       )}
                                                       {m.instagram && (
-                                                        <a href={m.instagram} target="_blank">
-                                                          <Instagram size={20} className="hover:text-pink-500" />
-                                                        </a>
-                                                      )}
-                                                      {m.website && (
-                                                        <a href={m.website} target="_blank">
-                                                          <Globe size={20} className="hover:text-green-600" />
+                                                        <a
+                                                          href={m.instagram}
+                                                          target="_blank"
+                                                        >
+                                                          <Instagram
+                                                            size={20}
+                                                            className="hover:text-pink-500"
+                                                          />
                                                         </a>
                                                       )}
                                                     </div>
@@ -646,7 +775,9 @@ export default function TeamAdmin() {
                                                   <td className="py-2 px-3 text-center border border-gray-300">
                                                     <div className="flex justify-center gap-2">
                                                       <button
-                                                        onClick={() => setEditData(m)}
+                                                        onClick={() =>
+                                                          setEditData(m)
+                                                        }
                                                         className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
                                                       >
                                                         <Edit className="w-3 h-3" /> Edit
@@ -654,7 +785,10 @@ export default function TeamAdmin() {
 
                                                       <button
                                                         onClick={() =>
-                                                          handleDeleteMember(project.id, m.id)
+                                                          handleDeleteMember(
+                                                            project.id,
+                                                            m.id
+                                                          )
                                                         }
                                                         className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs"
                                                       >
@@ -670,7 +804,8 @@ export default function TeamAdmin() {
                                                   colSpan={7}
                                                   className="text-center py-3 text-gray-500 italic border border-gray-300"
                                                 >
-                                                  Belum ada Mahasiswa untuk project ini.
+                                                  Belum ada Mahasiswa untuk
+                                                  project ini.
                                                 </td>
                                               </tr>
                                             )}
@@ -689,7 +824,10 @@ export default function TeamAdmin() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center py-6 text-gray-500 italic border border-gray-300">
+                    <td
+                      colSpan={4}
+                      className="text-center py-6 text-gray-500 italic border border-gray-300"
+                    >
                       Tidak ada project ditemukan.
                     </td>
                   </tr>
@@ -702,14 +840,18 @@ export default function TeamAdmin() {
               <div className="flex items-center gap-2">
                 {(() => {
                   const safeTotalPages = Math.max(totalPages, 1);
-                  const safeCurrentPageFixed = Math.min(safeCurrentPage, safeTotalPages);
+                  const safeCurrentPageFixed = Math.min(
+                    safeCurrentPage,
+                    safeTotalPages
+                  );
 
                   return (
                     <>
-                      {/* Prev */}
                       <button
                         disabled={safeCurrentPageFixed === 1}
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
                         className={`w-10 h-10 rounded-md border flex items-center justify-center ${
                           safeCurrentPageFixed === 1
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -719,8 +861,10 @@ export default function TeamAdmin() {
                         {"<"}
                       </button>
 
-                      {/* Number Buttons */}
-                      {Array.from({ length: safeTotalPages }, (_, i) => i + 1).map((page) => (
+                      {Array.from(
+                        { length: safeTotalPages },
+                        (_, i) => i + 1
+                      ).map((page) => (
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
@@ -734,11 +878,12 @@ export default function TeamAdmin() {
                         </button>
                       ))}
 
-                      {/* Next */}
                       <button
                         disabled={safeCurrentPageFixed === safeTotalPages}
                         onClick={() =>
-                          setCurrentPage((prev) => Math.min(prev + 1, safeTotalPages))
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, safeTotalPages)
+                          )
                         }
                         className={`w-10 h-10 rounded-md border flex items-center justify-center ${
                           safeCurrentPageFixed === safeTotalPages
@@ -763,10 +908,12 @@ export default function TeamAdmin() {
                 setAddForProject(null);
                 setPresetRole("");
               }}
-              onAdd={handleAdd}
-              onAddMember={(projId: number, member: TeamPerson) => handleAddMember(projId, member)}
-              forProjectId={addForProject?.id}
-              projectTitle={addForProject?.title}
+              onAdd={(data: any) => handleAdd(data)}
+              onAddMember={(projId: number, member: TeamPerson) =>
+                handleAddMember(projId, member)
+              }
+              forProjectId={addForProject?.id ?? null}
+              projectTitle={addForProject?.title ?? ""}
               presetRole={presetRole}
             />
           )}

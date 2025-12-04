@@ -1,4 +1,4 @@
-// lib/apiTeam.ts
+// src/lib/apiTeam.ts
 const API_URL = "http://localhost:4000/api/team";
 
 async function handleResponse(res: Response) {
@@ -15,13 +15,17 @@ async function handleResponse(res: Response) {
   return type.includes("json") ? res.json() : res.text();
 }
 
-// GET
+// =====================================
+// GET ALL PROJECTS
+// =====================================
 export async function getAllProjects() {
   const res = await fetch(API_URL, { cache: "no-store" });
   return handleResponse(res);
 }
 
-// CREATE
+// =====================================
+// CREATE PROJECT  (JSON ONLY, NO FORM-DATA)
+// =====================================
 export async function createProject(data: any) {
   const res = await fetch(API_URL, {
     method: "POST",
@@ -31,7 +35,9 @@ export async function createProject(data: any) {
   return handleResponse(res);
 }
 
-// ADD MEMBER
+// =====================================
+// ADD MEMBER  → POST /api/team/:id/member
+// =====================================
 export async function addMember(projectId: number, member: any) {
   const res = await fetch(`${API_URL}/${projectId}/member`, {
     method: "POST",
@@ -41,17 +47,36 @@ export async function addMember(projectId: number, member: any) {
   return handleResponse(res);
 }
 
-// UPDATE MEMBER
+// =====================================
+// UPDATE MEMBER  → PUT /api/team/member/:memberId
+// =====================================
 export async function updateMember(memberId: number, data: any) {
+  // clone object
+  const cleaned: any = { ...data };
+
+  // remove forbidden fields (backend/prisma will fail otherwise)
+  delete cleaned.id;
+  delete cleaned.projectId;
+  delete cleaned.category;
+  delete cleaned.role;
+  delete cleaned.teamMembers;
+  delete cleaned.teammember;
+  delete cleaned.teamMember;
+  delete cleaned.__v;
+  delete cleaned._id;
+
   const res = await fetch(`${API_URL}/member/${memberId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify(cleaned),
   });
+
   return handleResponse(res);
 }
 
-// DELETE MEMBER
+// =====================================
+// DELETE MEMBER  → DELETE /api/team/member/:memberId
+// =====================================
 export async function deleteMember(memberId: number) {
   const res = await fetch(`${API_URL}/member/${memberId}`, {
     method: "DELETE",
@@ -59,7 +84,9 @@ export async function deleteMember(memberId: number) {
   return handleResponse(res);
 }
 
-// DELETE PROJECT
+// =====================================
+// DELETE PROJECT  → DELETE /api/team/:id
+// =====================================
 export async function deleteProject(projectId: number) {
   const res = await fetch(`${API_URL}/${projectId}`, {
     method: "DELETE",

@@ -13,14 +13,13 @@ model product {
   title        String
   category     String
   academicYear String
-  code         String   @unique
+  code         String   @unique(map: "Product_code_key")
   description  String
   link         String
   publishDate  DateTime @default(now())
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt  // FIX PALING PENTING
+  updatedAt    DateTime @updatedAt
 }
-
 
 model projectsubmission {
   id                 Int      @id @default(autoincrement())
@@ -28,15 +27,12 @@ model projectsubmission {
   email              String
   phoneNumber        String
   projectTitle       String
-
-  //  Error karena required tanpa default, sementara tabel sudah punya data
-
-  projectType        String   @default("web")
   projectDescription String   @db.LongText
   status             String   @default("pending")
   adminNote          String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  projectType        String   @default("web")
 }
 
 model teammember {
@@ -44,7 +40,7 @@ model teammember {
   name           String
   role           String
   email          String
-  image          String?     @db.LongText
+  image          String?
   github         String?
   linkedin       String?
   facebook       String?

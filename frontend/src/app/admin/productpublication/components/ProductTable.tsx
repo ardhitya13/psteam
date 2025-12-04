@@ -10,11 +10,10 @@ export default function ProductTable({
   onDetail,
   onEdit,
   onDelete,
-
   currentPage,
   totalPages,
   setCurrentPage,
-  itemsPerPage, // ⬅️ DITAMBAHKAN
+  itemsPerPage,
 }: {
   products: ProductItem[];
   onDetail: (p: ProductItem) => void;
@@ -24,12 +23,10 @@ export default function ProductTable({
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
-  itemsPerPage: number; // ⬅️ DITAMBAHKAN
+  itemsPerPage: number;
 }) {
-
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-300 mt-4 overflow-hidden">
-
       {/* ======================== TABLE =========================== */}
       <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
         <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
@@ -53,9 +50,22 @@ export default function ProductTable({
             </tr>
           ) : (
             products.map((p, i) => {
-              const imageUrl = p.image
-                ? `${API_URL}${p.image}`
-                : "/placeholder.png";
+              // ======================= FIX GAMBAR ========================
+              let imageUrl = "/placeholder.png";
+
+              if (p.image) {
+                if (p.image.startsWith("http")) {
+                  // Full URL
+                  imageUrl = p.image;
+                } else if (p.image.startsWith("/")) {
+                  // Sudah ada slash di depan
+                  imageUrl = `${API_URL}${p.image}`;
+                } else {
+                  // Tidak ada slash → tambahkan "/"
+                  imageUrl = `${API_URL}/${p.image}`;
+                }
+              }
+              // ============================================================
 
               return (
                 <tr
@@ -99,7 +109,6 @@ export default function ProductTable({
                   {/* AKSI */}
                   <td className="border border-gray-300 px-4 py-2 text-center">
                     <div className="inline-flex items-center gap-2 whitespace-nowrap">
-
                       <button
                         onClick={() => onDetail(p)}
                         className="px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
@@ -120,7 +129,6 @@ export default function ProductTable({
                       >
                         Hapus
                       </button>
-
                     </div>
                   </td>
                 </tr>
@@ -130,16 +138,11 @@ export default function ProductTable({
         </tbody>
       </table>
 
-      {/* ======================== PAGINATION (SAMA DENGAN VERIFIKASI) =========================== */}
+      {/* ======================== PAGINATION =========================== */}
       <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 border-t border-gray-300">
-
         {/* PREV */}
         <button
-          onClick={() => {
-            if (currentPage > 1) {
-              setCurrentPage(currentPage - 1);
-            }
-          }}
+          onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
           disabled={currentPage === 1}
           className={`px-2 py-1 rounded border text-xs ${
             currentPage === 1
@@ -150,18 +153,16 @@ export default function ProductTable({
           &lt;
         </button>
 
-        {/* PAGE NUMBER */}
+        {/* CURRENT PAGE */}
         <button className="px-3 py-1 rounded text-xs border bg-blue-600 text-white">
           {currentPage}
         </button>
 
         {/* NEXT */}
         <button
-          onClick={() => {
-            if (currentPage < totalPages) {
-              setCurrentPage(currentPage + 1);
-            }
-          }}
+          onClick={() =>
+            currentPage < totalPages && setCurrentPage(currentPage + 1)
+          }
           disabled={currentPage === totalPages}
           className={`px-2 py-1 rounded border text-xs ${
             currentPage === totalPages
@@ -171,7 +172,6 @@ export default function ProductTable({
         >
           &gt;
         </button>
-
       </div>
     </div>
   );

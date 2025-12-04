@@ -1,21 +1,55 @@
 // controllers/teamController.ts
 import { Request, Response } from "express";
 import { prisma } from "../db";
+import fs from "fs";
+import path from "path";
+
+// =====================================================
+// FOLDER UPLOAD TIM
+// =====================================================
+const uploadDir = path.join(process.cwd(), "uploads", "team");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// =====================================================
+// FUNCTION: SAVE BASE64 IMAGE → FILE
+// =====================================================
+function saveBase64Image(base64: string | undefined): string | null {
+  if (!base64 || base64.trim() === "") return null;
+
+  // contoh: data:image/png;base64,xxxxxx
+  const matches = base64.match(/^data:(.+);base64,(.+)$/);
+  if (!matches) return null;
+
+  const ext = matches[1].split("/")[1]; // png, jpg, jpeg
+  const data = matches[2];
+
+  const filename = `${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(2)}.${ext}`;
+
+  const filePath = path.join(uploadDir, filename);
+
+  fs.writeFileSync(filePath, Buffer.from(data, "base64"));
+
+  return `/uploads/team/${filename}`;
+}
 
 // ==========================================
-// GET ALL PROJECTS  (BENAR & FIXED)
+// GET ALL PROJECTS
 // ==========================================
 export const getTeams = async (req: Request, res: Response) => {
   try {
     const teams = await prisma.teamproject.findMany({
-      include: { teammember: true },   // relasi asli dari Prisma schema
+      include: { teammember: true },
       orderBy: { id: "desc" },
     });
 
-    // NORMALISASI -> agar dipakai frontend sebagai teamMembers
     const normalized = teams.map((t) => ({
       ...t,
-      teamMembers: t.teammember, // FIX PENTING agar frontend membaca anggota
+      teamMembers: t.teammember,
     }));
 
     return res.json(normalized);
@@ -26,19 +60,22 @@ export const getTeams = async (req: Request, res: Response) => {
 };
 
 // ==========================================
-// CREATE PROJECT + MEMBERS (UPDATED)
+// CREATE PROJECT + MEMBERS
 // ==========================================
 export const createTeam = async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
+    const members = (data.teamMembers || []).map((m: any) => ({
+      ...m,
+      image: saveBase64Image(m.image), // 🔥 simpan file → return path
+    }));
+
     const project = await prisma.teamproject.create({
       data: {
         teamTitle: data.teamTitle,
-
-        // Frontend mengirim teamMembers (bukan members)
         teammember: {
-          create: (data.teamMembers || []).map((m: any) => ({
+          create: members.map((m: any) => ({
             name: m.name,
             role: m.role,
             email: m.email,
@@ -60,7 +97,7 @@ export const createTeam = async (req: Request, res: Response) => {
 
     return res.json({
       ...project,
-      teammembers: project.teammember,
+      teamMembers: project.teammember,
     });
   } catch (err) {
     console.error("createTeam error:", err);
@@ -69,16 +106,14 @@ export const createTeam = async (req: Request, res: Response) => {
 };
 
 // ==========================================
-// ADD NEW MEMBER (BENAR)
+// ADD MEMBER
 // ==========================================
 export const addMember = async (req: Request, res: Response) => {
   try {
     const projectId = Number(req.params.id);
-    if (isNaN(projectId)) {
-      return res.status(400).json({ error: "Invalid project ID" });
-    }
-
     const data = req.body;
+
+    const savedImage = saveBase64Image(data.image); // 🔥 convert base64 → file path
 
     const member = await prisma.teammember.create({
       data: {
@@ -86,7 +121,7 @@ export const addMember = async (req: Request, res: Response) => {
         name: data.name,
         role: data.role,
         email: data.email,
-        image: data.image,
+        image: savedImage,
         github: data.github,
         linkedin: data.linkedin,
         facebook: data.facebook,
@@ -107,20 +142,57 @@ export const addMember = async (req: Request, res: Response) => {
 };
 
 // ==========================================
-// UPDATE MEMBER
+// UPDATE MEMBER (FINAL FIX — 100% WORKING)
 // ==========================================
 export const updateMember = async (req: Request, res: Response) => {
   try {
     const memberId = Number(req.params.memberId);
+    const data = req.body;
+
     if (isNaN(memberId)) {
       return res.status(400).json({ error: "Invalid member ID" });
     }
 
-    const data = req.body;
+    let imageValue: any = data.image;
+
+    // CASE 1 — NEW BASE64 IMAGE
+    if (typeof imageValue === "string" && imageValue.startsWith("data:image")) {
+      imageValue = saveBase64Image(imageValue);
+    }
+
+    // CASE 2 — IMAGE IS FULL URL → convert to relative path
+    if (typeof imageValue === "string" && imageValue.startsWith("http")) {
+      try {
+        const url = new URL(imageValue);
+        imageValue = url.pathname;
+      } catch {}
+    }
+
+    // BUILD UPDATE DATA
+    const updateData: any = {
+      name: data.name,
+      email: data.email ?? null,
+      github: data.github ?? null,
+      linkedin: data.linkedin ?? null,
+      facebook: data.facebook ?? null,
+      instagram: data.instagram ?? null,
+      website: data.website ?? null,
+      studyProgram: data.studyProgram ?? null,
+      education: data.education ?? null,
+      specialization: data.specialization ?? null,
+    };
+
+    // ONLY INCLUDE IMAGE IF CHANGED
+    if (imageValue !== undefined && imageValue !== null && imageValue !== "") {
+      updateData.image = imageValue;
+    }
+
+    // ROLE & CATEGORY TIDAK BOLEH DIHAPUS!
+    // JANGAN delete role/category di backend
 
     const updated = await prisma.teammember.update({
       where: { id: memberId },
-      data,
+      data: updateData,
     });
 
     return res.json(updated);
@@ -130,15 +202,14 @@ export const updateMember = async (req: Request, res: Response) => {
   }
 };
 
+
+
 // ==========================================
 // DELETE MEMBER
 // ==========================================
 export const deleteMember = async (req: Request, res: Response) => {
   try {
     const memberId = Number(req.params.memberId);
-    if (isNaN(memberId)) {
-      return res.status(400).json({ error: "Invalid member ID" });
-    }
 
     await prisma.teammember.delete({ where: { id: memberId } });
 
@@ -155,12 +226,8 @@ export const deleteMember = async (req: Request, res: Response) => {
 export const deleteProject = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: "Invalid project ID" });
-    }
 
     await prisma.teammember.deleteMany({ where: { projectId: id } });
-
     await prisma.teamproject.delete({ where: { id } });
 
     return res.json({ message: "Project deleted" });

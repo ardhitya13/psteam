@@ -13,10 +13,19 @@ import {
 import AOS from "aos";
 import "aos/dist/aos.css";
 
-const API_URL = "http://localhost:4000/team";
+const API_URL = "http://localhost:4000/api/team";
+const BASE_URL = "http://localhost:4000"; // 🔥 TAMBAHKAN INI
 
 export default function ProjectCard() {
   const [projects, setProjects] = useState<any[]>([]);
+
+  // ===================== RESOLVE IMAGE ======================
+  const resolveImage = (img: string | null | undefined) => {
+    if (!img) return "/default-profile.png";
+    if (img.startsWith("data:image")) return img; // base64
+    if (img.startsWith("http")) return img; // full URL
+    return BASE_URL + img; // 🔥 fix gambar backend
+  };
 
   // LOAD DATA ============================================
   useEffect(() => {
@@ -45,62 +54,37 @@ export default function ProjectCard() {
   const SocialIcons = ({ person }: { person: any }) => (
     <div className="flex justify-center gap-4 text-xl mt-5">
       {person.github && (
-        <a
-          href={person.github}
-          target="_blank"
-          rel="noreferrer"
-          className="text-gray-500 hover:text-black transition-all"
-        >
+        <a href={person.github} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-black transition-all">
           <FaGithub />
         </a>
       )}
       {person.linkedin && (
-        <a
-          href={person.linkedin}
-          target="_blank"
-          rel="noreferrer"
-          className="text-gray-500 hover:text-[#0a66c2] transition-all"
-        >
+        <a href={person.linkedin} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-[#0a66c2] transition-all">
           <FaLinkedin />
         </a>
       )}
       {person.facebook && (
-        <a
-          href={person.facebook}
-          target="_blank"
-          rel="noreferrer"
-          className="text-gray-500 hover:text-[#1877f2] transition-all"
-        >
+        <a href={person.facebook} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-[#1877f2] transition-all">
           <FaFacebook />
         </a>
       )}
       {person.instagram && (
-        <a
-          href={person.instagram}
-          target="_blank"
-          rel="noreferrer"
-          className="text-gray-500 hover:text-[#e4405f] transition-all"
-        >
+        <a href={person.instagram} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-[#e4405f] transition-all">
           <FaInstagram />
         </a>
       )}
       {person.website && (
-        <a
-          href={person.website}
-          target="_blank"
-          rel="noreferrer"
-          className="text-gray-500 hover:text-green-600 transition-all"
-        >
+        <a href={person.website} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-green-600 transition-all">
           <FaGlobe />
         </a>
       )}
     </div>
   );
 
-  // CARD TEMPLATE (TIDAK DIUBAH SAMA SEKALI) ==============
+  // CARD TEMPLATE ========================================
   const renderCard = (person: any, index: number) => (
     <Card
-      key={index}
+      key={person.id ?? index}
       data-aos="fade-up"
       data-aos-delay={index * 150}
       className="relative p-6 !bg-white !text-gray-800 shadow-lg hover:shadow-2xl
@@ -111,9 +95,11 @@ export default function ProjectCard() {
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#132C8E]/10 to-[#050C28]/10 rounded-2xl" />
 
       <div className="flex flex-col items-center text-center">
+        
+        {/* =========== FIX GAMBAR DI SINI =========== */}
         <div className="relative w-40 h-40 rounded-full overflow-hidden mb-4 border-4 border-gray-100 shadow-md">
           <Image
-            src={person.image || "/default-profile.png"}
+            src={resolveImage(person.image)}
             alt={person.name}
             width={160}
             height={160}
@@ -155,21 +141,18 @@ export default function ProjectCard() {
       <div className="max-w-7xl mx-auto px-6">
 
         {projects.map((project, pIndex) => {
-          const dosen = project.members.filter((m: any) => m.category === "dosen");
-          const mahasiswa = project.members.filter((m: any) => m.category === "mahasiswa");
+          const members = project.teamMembers ?? [];
+
+          const dosen = members.filter((m: any) => m.category === "dosen");
+          const mahasiswa = members.filter((m: any) => m.category === "mahasiswa");
 
           return (
             <div key={pIndex} className="mb-28">
-
+              
               {/* TITLE */}
-              <h2
-                data-aos="fade-up"
-                className="text-4xl font-bold mb-12 text-white text-center"
-              >
+              <h2 data-aos="fade-up" className="text-4xl font-bold mb-12 text-white text-center">
                 Tim Pengembang{" "}
-                <span className="text-[#60A5FA] font-extrabold">
-                  {project.teamTitle}
-                </span>
+                <span className="text-[#60A5FA] font-extrabold">{project.teamTitle}</span>
               </h2>
 
               {/* DOSEN */}
@@ -188,8 +171,7 @@ export default function ProjectCard() {
                 Anggota Mahasiswa
               </h3>
 
-              {/* GRID MAHASISWA */}
-              <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center justify-center mx-auto w-full">
+              <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center mx-auto w-full">
                 {mahasiswa.length > 0
                   ? mahasiswa.map((item: any, i: number) => renderCard(item, i))
                   : <p className="text-white col-span-full">Tidak ada mahasiswa.</p>}

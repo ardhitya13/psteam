@@ -1,13 +1,23 @@
+// src/app/admin/components/TeamEditModal.tsx
 "use client";
 
 import { useState } from "react";
 import { X } from "lucide-react";
 
-export default function EditTeamModal({ data, onClose, onUpdate }: any) {
+type Props = {
+  data: any;
+  onClose: () => void;
+  onUpdate: (payload: any) => Promise<any>;
+};
+
+export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
   const [form, setForm] = useState({ ...data });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] =
+    useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleChange = (field: string, value: string) => {
-    setForm((p: any) => ({ ...p, [field]: value }));
+    setForm((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,25 +26,78 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
 
     const reader = new FileReader();
     reader.onload = () => {
-      setForm((p: any) => ({ ...p, image: reader.result as string }));
+      setForm((prev: any) => ({
+        ...prev,
+        image: reader.result as string,
+      }));
     };
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = () => {
-    if (!form.name.trim()) return alert("Nama tidak boleh kosong!");
+  const handleSubmit = async () => {
+    setMessage(null);
 
-    onUpdate(form);
-    onClose();
+    if (!form.name || !form.name.trim()) {
+      setMessage({ type: "error", text: "Nama tidak boleh kosong." });
+      return;
+    }
+
+    // Handle image conversion
+    let imageValue = form.image;
+    if (typeof imageValue === "string" && imageValue.startsWith("http")) {
+      try {
+        const url = new URL(imageValue);
+        imageValue = url.pathname;
+      } catch {}
+    }
+
+    // FIX WAJIB — EMAIL HARUS SELALU ADA!
+    const sanitized: any = {
+      name: form.name.trim(),
+      email: form.email?.trim() || data.email || "", //  ← FIX PALING PENTING
+      github: form.github?.trim() || null,
+      linkedin: form.linkedin?.trim() || null,
+      facebook: form.facebook?.trim() || null,
+      instagram: form.instagram?.trim() || null,
+      website: form.website?.trim() || null,
+      studyProgram: form.studyProgram?.trim() || null,
+      education: form.education?.trim() || null,
+      specialization: form.specialization?.trim() || null,
+      image: imageValue || null,
+    };
+
+    delete sanitized.id;
+    delete sanitized.role;
+    delete sanitized.category;
+    delete sanitized.projectId;
+
+    setLoading(true);
+    try {
+      await onUpdate({ id: data.id, ...sanitized });
+      setMessage({
+        type: "success",
+        text: "Data anggota berhasil disimpan.",
+      });
+
+      setTimeout(() => {
+        setLoading(false);
+        onClose();
+      }, 600);
+    } catch (err: any) {
+      console.error("Edit error:", err);
+      setMessage({
+        type: "error",
+        text: `Gagal menyimpan: ${err?.message || "Error tidak diketahui"}`,
+      });
+      setLoading(false);
+    }
   };
 
   const inputClass =
-    "w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 " +
-    "focus:outline-none text-gray-800 placeholder-gray-400 bg-white";
+    "w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:outline-none text-gray-800 placeholder-gray-400 bg-white";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      {/* BACKDROP */}
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
 
       <div
@@ -42,7 +105,6 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
         aria-modal="true"
         className="relative bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
       >
-        {/* CLOSE BUTTON */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-600 hover:text-red-500 z-20"
@@ -55,7 +117,19 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
             Edit Anggota Tim
           </h2>
 
-          {/* ===================== IMAGE UPLOAD ===================== */}
+          {message && (
+            <div
+              className={`mb-4 p-3 rounded-md text-sm ${
+                message.type === "success"
+                  ? "bg-green-50 text-green-700"
+                  : "bg-red-50 text-red-700"
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
+
+          {/* FOTO */}
           <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border flex items-center justify-center">
               {form.image ? (
@@ -82,11 +156,12 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
             </div>
           </div>
 
-          {/* ===================== FORM ===================== */}
+          {/* FORM */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* NAME */}
             <div>
-              <label className="text-sm font-medium text-gray-700">Nama *</label>
+              <label className="text-sm font-medium text-gray-700">
+                Nama *
+              </label>
               <input
                 className={inputClass}
                 value={form.name || ""}
@@ -95,7 +170,6 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
               />
             </div>
 
-            {/* EMAIL */}
             <div>
               <label className="text-sm font-medium text-gray-700">Email</label>
               <input
@@ -106,37 +180,25 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
               />
             </div>
 
-            {/* ROLE (DISABLED) */}
             <div>
               <label className="text-sm font-medium text-gray-700">
-                Peran (Tidak Dapat Diubah)
+                Peran (Tidak dapat diubah)
               </label>
-              <input
-                className={inputClass}
-                value={form.role || ""}
-                disabled
-              />
+              <input className={inputClass} value={form.role} disabled />
             </div>
 
-            {/* CATEGORY (DISABLED) */}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 Kategori
               </label>
-              <select
-                className={inputClass}
-                value={form.category}
-                disabled
-              >
+              <select className={inputClass} value={form.category} disabled>
                 <option value="dosen">Dosen</option>
                 <option value="mahasiswa">Mahasiswa</option>
               </select>
             </div>
 
-            {/* ========== DOSEN INFO SECTION ========== */}
             {form.category === "dosen" && (
               <>
-                {/* Program Studi */}
                 <div>
                   <label className="text-sm font-medium text-gray-700">
                     Program Studi
@@ -151,7 +213,6 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
                   />
                 </div>
 
-                {/* Pendidikan */}
                 <div>
                   <label className="text-sm font-medium text-gray-700">
                     Pendidikan
@@ -166,7 +227,6 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
                   />
                 </div>
 
-                {/* Spesialisasi */}
                 <div>
                   <label className="text-sm font-medium text-gray-700">
                     Spesialisasi
@@ -183,63 +243,62 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
               </>
             )}
 
-            {/* WEBSITE */}
             <div>
-              <label className="text-sm font-medium text-gray-700">Website</label>
+              <label className="text-sm font-medium text-gray-700">
+                Website
+              </label>
               <input
                 className={inputClass}
                 value={form.website || ""}
                 onChange={(e) => handleChange("website", e.target.value)}
-                placeholder="https://example.com"
               />
             </div>
 
-            {/* GITHUB */}
             <div>
-              <label className="text-sm font-medium text-gray-700">GitHub</label>
+              <label className="text-sm font-medium text-gray-700">
+                GitHub
+              </label>
               <input
                 className={inputClass}
                 value={form.github || ""}
                 onChange={(e) => handleChange("github", e.target.value)}
-                placeholder="https://github.com/username"
               />
             </div>
 
-            {/* LINKEDIN */}
             <div>
-              <label className="text-sm font-medium text-gray-700">LinkedIn</label>
+              <label className="text-sm font-medium text-gray-700">
+                LinkedIn
+              </label>
               <input
                 className={inputClass}
                 value={form.linkedin || ""}
                 onChange={(e) => handleChange("linkedin", e.target.value)}
-                placeholder="https://linkedin.com/in/username"
               />
             </div>
 
-            {/* FACEBOOK */}
             <div>
-              <label className="text-sm font-medium text-gray-700">Facebook</label>
+              <label className="text-sm font-medium text-gray-700">
+                Facebook
+              </label>
               <input
                 className={inputClass}
                 value={form.facebook || ""}
                 onChange={(e) => handleChange("facebook", e.target.value)}
-                placeholder="https://facebook.com/username"
               />
             </div>
 
-            {/* INSTAGRAM */}
             <div>
-              <label className="text-sm font-medium text-gray-700">Instagram</label>
+              <label className="text-sm font-medium text-gray-700">
+                Instagram
+              </label>
               <input
                 className={inputClass}
                 value={form.instagram || ""}
                 onChange={(e) => handleChange("instagram", e.target.value)}
-                placeholder="https://instagram.com/username"
               />
             </div>
           </div>
 
-          {/* ===================== BUTTONS ===================== */}
           <div className="flex justify-end gap-3 mt-8">
             <button
               onClick={onClose}
@@ -250,9 +309,10 @@ export default function EditTeamModal({ data, onClose, onUpdate }: any) {
 
             <button
               onClick={handleSubmit}
+              disabled={loading}
               className="px-6 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold"
             >
-              Simpan Perubahan
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
         </div>

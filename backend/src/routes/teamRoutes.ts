@@ -1,4 +1,3 @@
-// routes/teamRoutes.ts
 import { Router } from "express";
 import {
   getTeams,
@@ -9,12 +8,20 @@ import {
   deleteProject,
 } from "../controllers/teamController";
 
+import { uploadTeam } from "../middleware/uploadTeam";   // <-- tambah
+
 const router = Router();
 
+// CREATE PROJECT (banyak foto)
+router.post("/", uploadTeam.array("images"), createTeam);
+
+// ADD MEMBER (foto tunggal)
+router.post("/:id/member", uploadTeam.single("image"), addMember);
+
+// UPDATE MEMBER (foto tunggal)
+router.put("/member/:memberId", uploadTeam.single("image"), updateMember);
+
 router.get("/", getTeams);
-router.post("/", createTeam);
-router.post("/:id/member", addMember);
-router.put("/member/:memberId", updateMember);
 router.delete("/member/:memberId", deleteMember);
 router.delete("/:id", deleteProject);
 
