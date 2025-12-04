@@ -6,6 +6,9 @@ import { Search, Trash2, Plus } from "lucide-react";
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
 
+// ⬅️ IMPORT MODAL TAMBAH DOSEN
+import AddLecturerAccountModal from "./components/AddLecturerModal";
+
 type Lecturer = {
   id: number;
   name: string;
@@ -26,6 +29,9 @@ export default function LecturerAdminPage() {
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  // ============= MODAL STATE =============
+  const [openAdd, setOpenAdd] = useState(false);
+
   // =============================================
   // FETCH DATA
   // =============================================
@@ -42,7 +48,7 @@ export default function LecturerAdminPage() {
   // =============================================
   // FILTER
   // =============================================
-  const filtered = lecturers.filter((l) => 
+  const filtered = lecturers.filter((l) =>
     l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     l.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -71,6 +77,19 @@ export default function LecturerAdminPage() {
     });
 
     loadLecturers();
+  };
+
+  // =============================================
+  // ADD LECTURER SUBMIT FUNCTION
+  // =============================================
+  const handleAddLecturer = async (data: any) => {
+    await fetch("http://localhost:4000/api/lecturers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    loadLecturers(); // refresh tabel
   };
 
   // =============================================
@@ -138,7 +157,10 @@ export default function LecturerAdminPage() {
             </select>
 
             {/* ADD BUTTON */}
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+            <button
+              onClick={() => setOpenAdd(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            >
               <Plus size={16} /> Tambah Dosen
             </button>
 
@@ -186,7 +208,6 @@ export default function LecturerAdminPage() {
 
             {/* PAGINATION */}
             <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
-
               {/* PREV */}
               <button
                 onClick={() => {
@@ -204,7 +225,7 @@ export default function LecturerAdminPage() {
                 &lt;
               </button>
 
-              {/* 3 PAGE NUMBERS */}
+              {/* PAGE NUMBERS */}
               {Array.from({ length: 3 }, (_, i) => {
                 const pageNumber = pageGroup * 3 + (i + 1);
                 if (pageNumber > totalPages) return null;
@@ -242,9 +263,16 @@ export default function LecturerAdminPage() {
               >
                 &gt;
               </button>
-
             </div>
           </div>
+
+          {/* ============= MODAL ============= */}
+          <AddLecturerAccountModal
+            isOpen={openAdd}
+            onClose={() => setOpenAdd(false)}
+            onSubmit={handleAddLecturer}
+          />
+
         </main>
       </div>
     </div>

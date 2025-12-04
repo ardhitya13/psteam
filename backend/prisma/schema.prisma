@@ -28,7 +28,7 @@ model projectsubmission {
   phoneNumber        String
   projectTitle       String
   projectType        String
-  projectDescription String
+  projectDescription String   @db.LongText
   status             String   @default("pending")
   adminNote          String?
   createdAt          DateTime @default(now())
@@ -75,3 +75,13 @@ model trainingregistration {
   createdAt     DateTime @default(now())
   updatedAt     DateTime
 }
+
+model lectureraccount {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  createdAt DateTime @default(now())
+}
+

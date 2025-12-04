@@ -37,7 +37,7 @@ export default function VerifikasiProyekPage() {
         email: item.email,
         phoneNumber: item.phoneNumber,
         judul: item.projectTitle,
-        tipe: "Website",
+        tipe: item.projectType || "-",
         deskripsi: item.projectDescription,
         status: item.status,
       }));

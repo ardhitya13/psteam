@@ -25,17 +25,17 @@ export default function DetailProyekModal({
   if (!data) return null;
 
   return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-center text-lg font-bold mb-6 text-[#000000]">
+    <ModalWrapper isOpen={isOpen} onClose={onClose} width="max-w-4xl">
+      <div className="p-6">
+        <h2 className="text-center text-xl font-bold mb-6 text-[#000000]">
           DETAIL SPESIFIKASI PROYEK
         </h2>
 
         <div className="space-y-4">
 
           {/* Email & Status */}
-          <div className="flex gap-4">
-            <div className="w-1/2">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-1/2">
               <label className="block text-gray-600 mb-1 text-xs font-semibold">
                 Email Pengaju
               </label>
@@ -46,7 +46,7 @@ export default function DetailProyekModal({
               />
             </div>
 
-            <div className="w-1/2">
+            <div className="w-full md:w-1/2">
               <label className="block text-gray-600 mb-1 text-xs font-semibold">
                 Status Proyek
               </label>
@@ -59,7 +59,7 @@ export default function DetailProyekModal({
           </div>
 
           {/* Nomor HP */}
-          <div className="w-full">
+          <div>
             <label className="block text-gray-600 mb-1 text-xs font-semibold">
               Nomor WhatsApp
             </label>
@@ -71,8 +71,8 @@ export default function DetailProyekModal({
           </div>
 
           {/* Judul & Tipe */}
-          <div className="flex gap-3 mt-4">
-            <div className="w-1/2">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-1/2">
               <label className="block text-gray-600 mb-1 text-xs font-semibold">
                 Judul Proyek
               </label>
@@ -83,7 +83,7 @@ export default function DetailProyekModal({
               />
             </div>
 
-            <div className="w-1/2">
+            <div className="w-full md:w-1/2">
               <label className="block text-gray-600 mb-1 text-xs font-semibold">
                 Tipe Proyek
               </label>
@@ -96,16 +96,27 @@ export default function DetailProyekModal({
           </div>
 
           {/* Deskripsi */}
-          <label className="block text-gray-600 mb-1 text-xs font-semibold">
-            Deskripsi Proyek
-          </label>
-          <textarea
-            value={data.deskripsi || ""}
-            disabled
-            className="w-full h-40 px-3 py-2 border rounded-md bg-gray-100 resize-none text-sm text-gray-800"
-          />
+          <div>
+            <label className="block text-gray-600 mb-1 text-xs font-semibold">
+              Deskripsi Proyek
+            </label>
+            <textarea
+              value={data.deskripsi || ""}
+              disabled
+              className="
+                w-full 
+                min-h-[260px] 
+                px-3 py-2 
+                border rounded-md 
+                bg-gray-100 
+                resize-none 
+                text-sm text-gray-800 
+                whitespace-pre-wrap 
+                break-words
+              "
+            />
+          </div>
 
-          {/* Tombol Simpan */}
           {canChangeStatus && (
             <button
               onClick={onClose}

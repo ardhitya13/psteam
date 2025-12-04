@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Briefcase,
   BookOpen,
+  UserCog,
   PenTool,
   ShieldCheck,
   Users, // Tambah ikon untuk menu tim
@@ -481,6 +482,35 @@ export default function SidebarAdmin({
                 </ul>
               </div>
             </div>
+
+            {/* KELOLA DOSEN */}
+              <div>
+                <Link href="/admin/lecturers" className="block mx-3 relative">
+                  <div
+                    ref={setRef("kelolaDosen")}
+                    onMouseEnter={() => setHoveredItem("Kelola Dosen")}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    className="group flex items-center gap-3 py-3 px-3 rounded-md
+                 transition-all duration-200 hover:bg-white cursor-pointer"
+                  >
+                    <UserCog
+                      size={22}
+                      strokeWidth={2.4}
+                      className="text-white transition-colors duration-200 group-hover:text-[#0a3b91]"
+                    />
+
+                    {isOpen && (
+                      <span className="text-white text-[15px] font-semibold transition-colors duration-200 group-hover:text-[#0a3b91]">
+                        Kelola Dosen
+                      </span>
+                    )}
+                  </div>
+
+                  {!isOpen && hoveredItem === "Kelola Dosen" && (
+                    <Tooltip text="Kelola Dosen" targetRef={refs.current["kelolaDosen"]} />
+                  )}
+                </Link>
+              </div>
           </li>
         </ul>
       </nav>

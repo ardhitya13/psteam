@@ -49,7 +49,7 @@ export default function ProjectCard({ project }: Props) {
     <motion.div
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
-      className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col"
+      className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col "
     >
       <div className="relative w-full h-80 bg-black">
         <Image

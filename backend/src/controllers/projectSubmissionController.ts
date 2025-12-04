@@ -22,13 +22,15 @@ export const createSubmission = async (req: Request, res: Response) => {
 };
 
 // ==============================
-// GET APPROVED SUBMISSIONS
+// GET APPROVED + FINISHED SUBMISSIONS (FIXED)
 // ==============================
 export const getApprovedSubmissions = async (req: Request, res: Response) => {
   try {
     const submissions = await prisma.projectsubmission.findMany({
       where: {
-        status: { in: ["pending", "approved", "finished"] },
+        status: {
+          in: ["approved", "finished"],  // <— FIX PALING PENTING
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -39,7 +41,6 @@ export const getApprovedSubmissions = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to fetch submissions" });
   }
 };
-
 
 // ==============================
 // GET PENDING SUBMISSIONS
@@ -107,7 +108,7 @@ export const rejectSubmission = async (req: Request, res: Response) => {
 };
 
 // ==============================
-// UPDATE STATUS (FITUR UNTUK EDIT STATUS ADMIN)
+// UPDATE STATUS (ADMIN EDIT — FINISH INCLUDED)
 // ==============================
 export const updateSubmissionStatus = async (req: Request, res: Response) => {
   try {
@@ -116,7 +117,7 @@ export const updateSubmissionStatus = async (req: Request, res: Response) => {
 
     const updated = await prisma.projectsubmission.update({
       where: { id },
-      data: { status },
+      data: { status }, // bisa "approved", "finished", dll
     });
 
     return res.json({

@@ -7,6 +7,30 @@ import AdminSidebar from "../components/AdminSidebar";
 import EditProjectModal from "../components/EditProjectModal";
 import DetailProjectModal from "../components/DetailProjectModal";
 
+// ===============================
+// NORMALIZER UNTUK PROJECT TYPE
+// ===============================
+function normalizeType(str: string) {
+  if (!str) return "";
+
+  const s = str.toLowerCase().trim();
+
+  if (s.includes("web")) return "web";
+  if (s.includes("mobile")) return "mobile";
+  if (s.includes("iot") || s.includes("internet of things")) return "iot";
+
+  if (
+    s.includes("ai") ||
+    s.includes("artificial intelligence") ||
+    s.includes("machine learning")
+  )
+    return "ai";
+
+  return s;
+}
+
+
+
 export default function DaftarProyekPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -19,7 +43,6 @@ export default function DaftarProyekPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // filter value stores the label shown in dropdown (e.g. "Website", "Mobile", "AI", "IoT")
   const [filterType, setFilterType] = useState("Semua");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,68 +53,62 @@ export default function DaftarProyekPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // =====================================================
+  // FIXED — STATIC LIST OF FILTER OPTIONS
+  // =====================================================
+  const TYPE_OPTIONS = [
+    "Semua",
+    "Web Development",
+    "Mobile Development",
+    "IoT",
+    "AI",
+  ];
 
+  // MAP UNTUK DROPDOWN
+  const TYPE_MAP: Record<string, string> = {
+    "Web Development": "web",
+    "Mobile Development": "mobile",
+    "IoT": "iot",
+    "AI": "ai",
+
+  };
 
   // =====================================================
   // FETCH DATA
   // =====================================================
   useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await fetch("http://localhost:4000/api/submissions/approved");
-        const json = await res.json();
+  async function loadData() {
+    try {
+      const approvedRes = await fetch(
+        "http://localhost:4000/api/submissions/approved"
+      );
 
-        if (!Array.isArray(json)) {
-          console.error("API did not return array:", json);
-          return;
-        }
+      const combined = await approvedRes.json(); // berisi approved + finished
 
-        // Map: keep both original label (tipeLabel) and normalized lowercase (tipe)
-        const mapped = json.map((item: any, index: number) => ({
-          no: index + 1,
-          id: item.id,
-          email: item.email,
-          phoneNumber: item.phoneNumber,
-          judul: item.projectTitle,
-          // tipeLabel = exactly what API returned (keperluan tampil & dropdown)
-          tipeLabel: item.projectType ?? "",
-          // tipe = normalized lowercase untuk perbandingan filter yang aman
-          tipe: (item.projectType ?? "").toString().toLowerCase(),
-          status:
-            item.status === "approved"
-              ? "Sedang Diproses"
-              : item.status === "pending"
-                ? "Belum Diproses"
-                : item.status,
-          deskripsi: item.projectDescription,
-          raw: item,
-        }));
+      const mapped = combined.map((item: any, index: number) => ({
+        no: index + 1,
+        id: item.id,
+        email: item.email,
+        phoneNumber: item.phoneNumber,
+        judul: item.projectTitle,
+        tipeLabel: item.projectType ?? "",
+        tipe: normalizeType(item.projectType ?? ""),
+        status: item.status, // biarkan original
+        raw: item,
+      }));
 
-        setData(mapped);
-      } catch (err) {
-        console.error("Error fetch data:", err);
-      } finally {
-        setLoading(false);
-      }
+      setData(mapped);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    loadData();
-  }, []);
+  loadData();
+}, []);
 
-  // =====================================================
-  // Generate unique dropdown options from fetched data
-  // =====================================================
-  const typeOptions = useMemo(() => {
-    const set = new Set<string>();
-    data.forEach((d) => {
-      const lbl = d.tipeLabel?.toString().trim();
-      const fallback = d.tipe?.toString().trim();
-      if (lbl) set.add(lbl);
-      else if (fallback) set.add(fallback);
-    });
-    // keep insertion order, add "Semua" at front
-    return ["Semua", ...Array.from(set)];
-  }, [data]);
+
 
   // =====================================================
   // UPDATE STATUS
@@ -111,11 +128,7 @@ export default function DaftarProyekPage() {
 
       const updatedData = data.map((item) =>
         item.id === id
-          ? {
-            ...item,
-            status: newStatus,
-            raw: { ...item.raw, status: newStatus },
-          }
+          ? { ...item, status: newStatus, raw: { ...item.raw, status: newStatus } }
           : item
       );
 
@@ -129,26 +142,33 @@ export default function DaftarProyekPage() {
   }
 
   // =====================================================
-  // FILTERING (case-insensitive comparison, display uses label)
+  // FILTERING FIXED
   // =====================================================
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      // type match: true if "Semua" selected, otherwise compare normalized lowercase
-      const matchType =
-        filterType === "Semua" ||
-        item.tipe === filterType.toString().toLowerCase() ||
-        (item.tipeLabel &&
-          item.tipeLabel.toString().toLowerCase() ===
-          filterType.toString().toLowerCase());
 
-      const matchSearch = item.judul
-        .toString()
+      const statusRaw = item.raw.status; // "approved" / "pending" / "finished"
+
+      // 1. PENDING selalu disembunyikan total
+      if (statusRaw === "pending") return false;
+
+      // 2. FINISHED disembunyikan, kecuali jika ada searchTerm
+      if (statusRaw === "finished" && searchTerm.trim() === "") return false;
+
+      // 3. FILTER TYPE
+      if (filterType !== "Semua") {
+        const requiredType = TYPE_MAP[filterType];
+        if (item.tipe !== requiredType) return false;
+      }
+
+      // 4. SEARCH
+      return item.judul
         .toLowerCase()
         .includes(searchTerm.toLowerCase().trim());
-
-      return matchType && matchSearch;
     });
   }, [data, filterType, searchTerm]);
+
+
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const visibleData = filteredData.slice(
@@ -164,13 +184,12 @@ export default function DaftarProyekPage() {
       projectTitle: item.raw.projectTitle,
       projectType: item.raw.projectType,
       projectDescription: item.raw.projectDescription,
-      status: item.raw.status, // ambil status asli (lebih akurat)
+      status: item.raw.status,
     };
 
     setSelectedData(mapped);
     setIsEditModalOpen(true);
   };
-
 
   // =====================================================
   // UI
@@ -204,7 +223,7 @@ export default function DaftarProyekPage() {
           <>
             {/* SEARCH & FILTER */}
             <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
-              {/* Search */}
+              {/* Search Bar */}
               <div className="relative flex items-center h-10">
                 {!isSearchOpen && (
                   <button
@@ -238,7 +257,7 @@ export default function DaftarProyekPage() {
                 />
               </div>
 
-              {/* FILTER TIPE — dynamically generated from data */}
+              {/* FILTER TIPE — FIXED STATIC OPTIONS */}
               <div className="relative">
                 <select
                   value={filterType}
@@ -248,7 +267,7 @@ export default function DaftarProyekPage() {
                   }}
                   className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
                 >
-                  {typeOptions.map((opt) => (
+                  {TYPE_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
                       {opt}
                     </option>
@@ -263,47 +282,35 @@ export default function DaftarProyekPage() {
             </div>
 
             {/* TABLE */}
-            <div className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full"}`}>
+            <div
+              className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full"
+                }`}
+            >
               <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
                 <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
                   <tr>
-                    <th className="border border-gray-300 px-4 py-2 w-12">NO</th>
-                    <th className="border border-gray-300 px-4 py-2 w-56">EMAIL</th>
-                    <th className="border border-gray-300 px-4 py-2 w-40">NO TELEPON</th>
-                    <th className="border border-gray-300 px-4 py-2 w-56">JUDUL</th>
-                    <th className="border border-gray-300 px-4 py-2 w-48">TIPE</th>
-                    <th className="border border-gray-300 px-4 py-2 w-40">STATUS</th>
-                    <th className="border border-gray-300 px-4 py-2 text-center w-48">AKSI</th>
+                    <th className="border px-4 py-2 border-gray-300 w-12">NO</th>
+                    <th className="border px-4 py-2 border-gray-300 w-56">EMAIL</th>
+                    <th className="border px-4 py-2 border-gray-300 w-40">NO TELEPON</th>
+                    <th className="border px-4 py-2 border-gray-300 w-56">JUDUL</th>
+                    <th className="border px-4 py-2 border-gray-300 w-48">TIPE</th>
+                    <th className="border px-4 py-2 border-gray-300 w-40">STATUS</th>
+                    <th className="border px-4 py-2 border-gray-300 w-48">AKSI</th>
                   </tr>
                 </thead>
-
 
                 <tbody>
                   {visibleData.length > 0 ? (
                     visibleData.map((item) => (
                       <tr key={item.no} className="hover:bg-gray-50">
-
-                        <td className="border border-gray-300 px-4 py-2 text-center w-12">
-                          {item.no}
-                        </td>
-
-                        <td className="border border-gray-300 px-4 py-2 w-56">
-                          {item.email}
-                        </td>
-
-                        <td className="border border-gray-300 px-4 py-2 w-40">
-                          {item.phoneNumber}
-                        </td>
-
-                        <td className="border border-gray-300 px-4 py-2 w-56">
-                          {item.judul}
-                        </td>
-
-                        <td className="border border-gray-300 px-4 py-2 text-center w-48">
+                        <td className="border px-4 py-2 border-gray-300">{item.no}</td>
+                        <td className="border px-4 py-2 border-gray-300">{item.email}</td>
+                        <td className="border px-4 py-2 border-gray-300">{item.phoneNumber}</td>
+                        <td className="border px-4 py-2 border-gray-300">{item.judul}</td>
+                        <td className="border px-4 py-2 border-gray-300">
                           {item.tipeLabel || item.tipe}
                         </td>
-
-                        <td className="border border-gray-300 px-4 py-2 text-center w-40">
+                        <td className="border px-4 py-2 border-gray-300">
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${item.status === "Selesai"
                               ? "bg-green-100 text-green-700"
@@ -316,48 +323,45 @@ export default function DaftarProyekPage() {
                           </span>
                         </td>
 
-                        <td className="border border-gray-300 px-4 py-2 text-center w-48">
+                        {/* ACTION BUTTONS */}
+                        <td className="border px-4 py-2 border-gray-300">
                           <div className="flex justify-center gap-2">
                             <button
                               onClick={() => {
                                 setSelectedDetail(item.raw);
                                 setIsDetailOpen(true);
                               }}
-                              className="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
+                              className="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1 flex items-center gap-1 text-xs font-semibold"
+                            >
                               <FileText size={14} /> Detail
                             </button>
 
                             <button
                               onClick={() => openEdit(item)}
-                              className="bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
+                              className="bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1 flex items-center gap-1 text-xs font-semibold"
+                            >
                               <Edit size={14} /> Edit
                             </button>
 
-                            <button
-                              className="bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1 flex items-center justify-center gap-1 text-xs font-semibold">
+                            <button className="bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1 flex items-center gap-1 text-xs font-semibold">
                               <Trash2 size={14} /> Hapus
                             </button>
                           </div>
                         </td>
-
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td
-                        colSpan={7}
-                        className="text-center py-6 text-gray-500 italic"
-                      >
-                        Tidak ada proyek yang sudah di verifikasi.
+                      <td colSpan={7} className="text-center py-6 text-gray-500 italic">
+                        Tidak ada proyek yang sudah diverifikasi.
                       </td>
                     </tr>
                   )}
                 </tbody>
-
               </table>
 
               {/* PAGINATION */}
-              <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-white-50 rounded-b-lg">
+              <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-white rounded-b-lg">
                 <button
                   onClick={() => {
                     if (currentPage > 1) {
@@ -378,6 +382,7 @@ export default function DaftarProyekPage() {
                 {Array.from({ length: 3 }, (_, i) => {
                   const pageNumber = pageGroup * 3 + (i + 1);
                   if (pageNumber > totalPages) return null;
+
                   return (
                     <button
                       key={pageNumber}
@@ -413,6 +418,7 @@ export default function DaftarProyekPage() {
           </>
         )}
 
+        {/* MODALS */}
         <DetailProjectModal
           isOpen={isDetailOpen}
           onClose={() => setIsDetailOpen(false)}

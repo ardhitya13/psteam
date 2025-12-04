@@ -14,7 +14,7 @@ export default function ModalWrapper({
   isOpen,
   onClose,
   children,
-  width = "max-w-5xl", // DEFAULT LEBAR BESAR
+  width = "max-w-4xl", // DEFAULT LEBAR BESAR
 }: ModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -36,7 +36,7 @@ export default function ModalWrapper({
   return (
     <div
       className={`
-        fixed inset-0 z-[9999] flex items-start justify-center 
+        fixed inset-0 z-[9999] flex items-center justify-center 
         p-6 overflow-y-auto transition-all duration-300
         ${isAnimating ? "bg-black/40 backdrop-blur-sm" : "bg-black/0 backdrop-blur-0"}
       `}
@@ -46,11 +46,12 @@ export default function ModalWrapper({
       <div
         onClick={(e) => e.stopPropagation()}
         className={`
-          w-full ${width}
-          bg-white rounded-2xl shadow-2xl relative
-          transition-all duration-300 transform
-          ${isAnimating ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-5 scale-95"}
-        `}
+       w-full ${width}
+     bg-white rounded-2xl shadow-2xl relative
+       transition-all duration-300 transform
+       max-h-[90vh] overflow-y-auto scrollbar-hide   /* <-- INI WAJIB */
+       ${isAnimating ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-5 scale-95"}
+      `}
       >
         {/* X Button */}
         <button
@@ -61,7 +62,7 @@ export default function ModalWrapper({
         </button>
 
         {/* Content */}
-        <div className="p-10">{children}</div>
+        <div className="px-10 py-6">{children}</div>
       </div>
     </div>
   );
