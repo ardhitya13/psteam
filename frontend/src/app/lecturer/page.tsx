@@ -31,7 +31,7 @@ export default function DosenPage() {
       percent: 80,
       color: "bg-blue-600",
       icon: <Users className="text-blue-700" />,
-      path: "/dosen/penelitian",
+      path: "/lecturer/research",
     },
     {
       title: "Pengabdian",
@@ -39,7 +39,7 @@ export default function DosenPage() {
       percent: 65,
       color: "bg-green-500",
       icon: <BookOpen className="text-green-600" />,
-      path: "/dosen/pengabdian",
+      path: "/lecturer/communityservice",
     },
     {
       title: "Karya Ilmiah",
@@ -47,7 +47,7 @@ export default function DosenPage() {
       percent: 90,
       color: "bg-yellow-500",
       icon: <FileText className="text-yellow-600" />,
-      path: "/dosen/karyailmiah",
+      path: "/lecturer/scientificwork",
     },
     {
       title: "HKI / Paten",
@@ -55,7 +55,7 @@ export default function DosenPage() {
       percent: 50,
       color: "bg-purple-600",
       icon: <ShieldCheck className="text-purple-700" />,
-      path: "/dosen/hki",
+      path: "/lecturer/intellectualproperty",
     },
   ];
 

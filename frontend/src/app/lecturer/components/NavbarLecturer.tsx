@@ -73,7 +73,7 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
               <button
                 onClick={() => {
                   setIsDropdownOpen(false);
-                  router.push("/dosen/profil");
+                  router.push("/lecturer/profil");
                 }}
                 className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-gray-700"
               >

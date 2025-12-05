@@ -58,11 +58,11 @@ export default function SidebarLecturer({
 
   // Menu utama
   const menus = [
-    { name: "Beranda", href: "/dosen", icon: Home },
-    { name: "Penelitian", href: "/dosen/penelitian", icon: FileText },
-    { name: "Pengabdian", href: "/dosen/pengabdian", icon: BookOpen },
-    { name: "Karya Ilmiah", href: "/dosen/karyailmiah", icon: PenTool },
-    { name: "HKI / Paten", href: "/dosen/hki", icon: ShieldCheck },
+    { name: "Beranda", href: "/lecturer", icon: Home },
+    { name: "Penelitian", href: "/lecturer/research", icon: FileText },
+    { name: "Pengabdian", href: "/lecturer/communityservice", icon: BookOpen },
+    { name: "Karya Ilmiah", href: "/lecturer/scientificwork", icon: PenTool },
+    { name: "HKI / Paten", href: "/lecturer/intellectualproperty", icon: ShieldCheck },
   ];
 
   return (
