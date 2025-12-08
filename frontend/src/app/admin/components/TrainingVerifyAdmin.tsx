@@ -7,7 +7,7 @@ import AdminSidebar from "../components/AdminSidebar";
 import {
   getPendingRegistrations,
   updateTrainingStatus,
-} from "../../../lib/apiTraining";
+} from "../../../lib/apiTrainingRegistration";
 
 export default function VerifyTrainingAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

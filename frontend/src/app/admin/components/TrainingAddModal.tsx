@@ -24,10 +24,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
     const [shortDescription, setShortDescription] = useState("");
     const [type, setType] = useState<Training["type"]>("web");
     const [priceNum, setPriceNum] = useState<number | null>(null);
-    // default thumbnail: use uploaded sample path from your environment
-    const [thumbnailUrl, setThumbnailUrl] = useState<string>(
-        "/mnt/data/6e7762b8-5202-4ce1-8ab2-57134e7c7b98.png"
-    );
+    const [thumbnailUrl, setThumbnailUrl] = useState<string>("");
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
     const [description, setDescription] = useState("");
@@ -35,59 +32,73 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
     const [requirements, setRequirements] = useState<string[]>([]);
     const [schedule, setSchedule] = useState<{ batchName: string; startDate: string; endDate: string }[]>([]);
     const [rundown, setRundown] = useState<{ day: string; activity: string }[]>([]);
-    const [organizer, setOrganizer] = useState<string>("PSTeam Academy");
+    const [organizer, setOrganizer] = useState("PSTeam Academy");
 
-    // thumbnail file handler
+    const [duration, setDuration] = useState("");
+    const [location, setLocation] = useState("");
+    const [certificate, setCertificate] = useState("");
+    const [instructor, setInstructor] = useState("");
+
+    // ✅ SUCCESS ALERT (mirip referensi)
+    const [successAlert, setSuccessAlert] = useState(false);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const f = e.target.files?.[0] ?? null;
-        if (!f) return;
-        const url = URL.createObjectURL(f);
-        setThumbnailFile(f);
-        setThumbnailUrl(url);
+        const file = e.target.files?.[0] ?? null;
+        if (!file) return;
+        setThumbnailFile(file);
+        setThumbnailUrl(URL.createObjectURL(file));
     };
 
-    // price input (user types numbers, show formatted)
     const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const digits = onlyDigits(e.target.value);
         const num = digits ? parseInt(digits, 10) : null;
         setPriceNum(num);
     };
 
-    // schedule management
-    const addScheduleRow = () => setSchedule(s => [...s, { batchName: `Batch ${s.length + 1}`, startDate: "", endDate: "" }]);
-    const updateScheduleRow = (idx: number, key: keyof typeof schedule[number], val: string) =>
-        setSchedule(s => s.map((row, i) => i === idx ? { ...row, [key]: val } : row));
-    const removeScheduleRow = (idx: number) => setSchedule(s => s.filter((_, i) => i !== idx));
+    const addScheduleRow = () =>
+        setSchedule((s) => [...s, { batchName: `Batch ${s.length + 1}`, startDate: "", endDate: "" }]);
 
-    // rundown management
-    const addRundownRow = () => setRundown(r => [...r, { day: `Hari ${r.length + 1}`, activity: "" }]);
-    const updateRundownRow = (idx: number, key: keyof typeof rundown[number], val: string) =>
-        setRundown(r => r.map((row, i) => i === idx ? { ...row, [key]: val } : row));
-    const removeRundownRow = (idx: number) => setRundown(r => r.filter((_, i) => i !== idx));
+    const updateScheduleRow = (idx: number, key: keyof (typeof schedule)[number], val: string) =>
+        setSchedule((s) => s.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const removeScheduleRow = (idx: number) =>
+        setSchedule((s) => s.filter((_, i) => i !== idx));
+
+    const addRundownRow = () =>
+        setRundown((r) => [...r, { day: `Hari ${r.length + 1}`, activity: "" }]);
+
+    const updateRundownRow = (idx: number, key: keyof (typeof rundown)[number], val: string) =>
+        setRundown((r) => r.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
+
+    const removeRundownRow = (idx: number) =>
+        setRundown((r) => r.filter((_, i) => i !== idx));
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const payload: Training = {
-            id: Date.now(),
+            id: 0,
             title,
             shortDescription,
             type,
             price: priceNum ?? 0,
-            thumbnail: thumbnailUrl,
+            thumbnail: thumbnailUrl || "/default-thumb.png",
             description,
             costDetails,
             requirements,
             schedule,
             rundown,
             organizer,
+            duration,
+            location,
+            certificate,
+            instructor,
         };
 
-        onAdd(payload);
-        // cleanup temporary object URLs (optional)
-        if (thumbnailFile) {
-            // do not revoke if we want preview later; you may revoke if needed:
-            // URL.revokeObjectURL(thumbnailUrl);
-        }
+        await onAdd(payload);
+
+        // ✅ tampilkan alert sukses (mirip referensi modal)
+        setSuccessAlert(true);
     };
 
     return (
@@ -101,7 +112,8 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Thumbnail + Info */}
+
+                    {/* === Thumbnail, Title, Desc, Price, Type === */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="text-sm font-medium">Thumbnail</label>
@@ -112,18 +124,11 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                 onChange={handleFileChange}
                                 className="mt-1 w-full text-sm"
                             />
-
                             <div className="mt-3 w-full h-40 bg-gray-200 rounded overflow-hidden">
                                 {thumbnailUrl ? (
-                                    <img
-                                        src={thumbnailUrl}
-                                        alt="preview"
-                                        className="w-full h-full object-cover"
-                                    />
+                                    <img src={thumbnailUrl} alt="preview" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="flex items-center justify-center text-xs text-gray-500 h-full">
-                                        No Image
-                                    </div>
+                                    <div className="flex items-center justify-center text-xs text-gray-500 h-full">No Image</div>
                                 )}
                             </div>
                         </div>
@@ -140,9 +145,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                             </div>
 
                             <div>
-                                <label className="text-sm font-medium">
-                                    Deskripsi Singkat
-                                </label>
+                                <label className="text-sm font-medium">Deskripsi Singkat</label>
                                 <input
                                     value={shortDescription}
                                     onChange={(e) => setShortDescription(e.target.value)}
@@ -170,7 +173,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                 <div className="w-44">
                                     <label className="text-sm font-medium">Harga</label>
                                     <input
-                                        value={priceNum === null ? "" : formatRp(priceNum)}
+                                        value={priceNum == null ? "" : formatRp(priceNum)}
                                         onChange={handlePriceInput}
                                         className="mt-1 w-full border rounded px-3 py-2 text-sm"
                                     />
@@ -179,98 +182,288 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                         </div>
                     </div>
 
-                    {/* detailed description */}
-                    <div>
-                        <label className="block text-sm font-medium">Deskripsi Lengkap</label>
-                        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="mt-1 w-full border rounded px-3 py-2 text-sm" />
+                    {/* === New Extra Fields === */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-sm font-medium">Durasi Pelatihan</label>
+                            <input
+                                value={duration}
+                                onChange={(e) => setDuration(e.target.value)}
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                placeholder="Contoh: 8 Minggu"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium">Lokasi</label>
+                            <input
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                placeholder="Contoh: Online (Zoom)"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium">Sertifikat</label>
+                            <input
+                                value={certificate}
+                                onChange={(e) => setCertificate(e.target.value)}
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                placeholder="Contoh: Disediakan setelah kelulusan"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium">Instruktur</label>
+                            <input
+                                value={instructor}
+                                onChange={(e) => setInstructor(e.target.value)}
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                placeholder="Contoh: Tim Fullstack PSTeam"
+                            />
+                        </div>
                     </div>
 
-                    {/* cost & requirements */}
+                    {/* Description */}
+                    <div>
+                        <label className="text-sm font-medium">Deskripsi Lengkap</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={4}
+                            className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                        />
+                    </div>
+
+                    {/* Cost + Requirements */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <div className="flex justify-between items-center">
                                 <label className="text-sm font-medium">Rincian Biaya</label>
-                                <button type="button" onClick={() => setCostDetails(d => [...d, ""])} className="text-sm text-blue-600">+ Tambah</button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCostDetails((d) => [...d, ""])}
+                                    className="text-sm text-blue-600"
+                                >
+                                    + Tambah
+                                </button>
                             </div>
                             <div className="mt-2 space-y-2">
                                 {costDetails.map((c, i) => (
                                     <div key={i} className="flex gap-2">
-                                        <input value={c} onChange={(e) => setCostDetails(d => d.map((val, idx) => idx === i ? e.target.value : val))} className="flex-1 border rounded px-2 py-1 text-sm" />
-                                        <button type="button" onClick={() => setCostDetails(d => d.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-2 rounded text-xs">Hapus</button>
+                                        <input
+                                            value={c}
+                                            onChange={(e) =>
+                                                setCostDetails((d) =>
+                                                    d.map((v, idx) =>
+                                                        idx === i ? e.target.value : v
+                                                    )
+                                                )
+                                            }
+                                            className="flex-1 border rounded px-2 py-1 text-sm"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setCostDetails((d) =>
+                                                    d.filter((_, idx) => idx !== i)
+                                                )
+                                            }
+                                            className="bg-red-500 text-white px-2 rounded text-xs"
+                                        >
+                                            Hapus
+                                        </button>
                                     </div>
                                 ))}
-                                {costDetails.length === 0 && <div className="text-xs text-gray-500 italic">Belum ada rincian biaya.</div>}
                             </div>
                         </div>
 
                         <div>
                             <div className="flex justify-between items-center">
                                 <label className="text-sm font-medium">Syarat Peserta</label>
-                                <button type="button" onClick={() => setRequirements(r => [...r, ""])} className="text-sm text-blue-600">+ Tambah</button>
+                                <button
+                                    type="button"
+                                    onClick={() => setRequirements((r) => [...r, ""])}
+                                    className="text-sm text-blue-600"
+                                >
+                                    + Tambah
+                                </button>
                             </div>
                             <div className="mt-2 space-y-2">
                                 {requirements.map((r, i) => (
                                     <div key={i} className="flex gap-2">
-                                        <input value={r} onChange={(e) => setRequirements(rr => rr.map((val, idx) => idx === i ? e.target.value : val))} className="flex-1 border rounded px-2 py-1 text-sm" />
-                                        <button type="button" onClick={() => setRequirements(rr => rr.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-2 rounded text-xs">Hapus</button>
+                                        <input
+                                            value={r}
+                                            onChange={(e) =>
+                                                setRequirements((rr) =>
+                                                    rr.map((v, idx) =>
+                                                        idx === i ? e.target.value : v
+                                                    )
+                                                )
+                                            }
+                                            className="flex-1 border rounded px-2 py-1 text-sm"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setRequirements((rr) =>
+                                                    rr.filter((_, idx) => idx !== i)
+                                                )
+                                            }
+                                            className="bg-red-500 text-white px-2 rounded text-xs"
+                                        >
+                                            Hapus
+                                        </button>
                                     </div>
                                 ))}
-                                {requirements.length === 0 && <div className="text-xs text-gray-500 italic">Belum ada syarat peserta.</div>}
                             </div>
                         </div>
                     </div>
 
-                    {/* schedule */}
+                    {/* Schedule */}
                     <div>
                         <div className="flex justify-between items-center">
                             <label className="text-sm font-medium">Jadwal Pelaksanaan</label>
-                            <button type="button" onClick={addScheduleRow} className="text-sm text-blue-600">+ Tambah Batch</button>
-                        </div>
-
-                        <div className="mt-2 space-y-2 overflow-x-auto">
-                            {schedule.length === 0 && <div className="text-xs text-gray-500 italic py-2">Belum ada jadwal.</div>}
-                            {schedule.map((s, i) => (
-                                <div key={i} className="flex gap-2 items-end">
-                                    <input value={s.batchName} onChange={(e) => updateScheduleRow(i, "batchName", e.target.value)} className="w-44 border rounded px-2 py-1 text-sm" />
-                                    <input type="date" value={s.startDate} onChange={(e) => updateScheduleRow(i, "startDate", e.target.value)} className="border rounded px-2 py-1 text-sm" />
-                                    <input type="date" value={s.endDate} onChange={(e) => updateScheduleRow(i, "endDate", e.target.value)} className="border rounded px-2 py-1 text-sm" />
-                                    <button type="button" onClick={() => removeScheduleRow(i)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Hapus</button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* rundown */}
-                    <div>
-                        <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium">Rundown Kegiatan</label>
-                            <button type="button" onClick={addRundownRow} className="text-sm text-blue-600">+ Tambah Hari</button>
+                            <button
+                                type="button"
+                                onClick={addScheduleRow}
+                                className="text-sm text-blue-600"
+                            >
+                                + Tambah Batch
+                            </button>
                         </div>
 
                         <div className="mt-2 space-y-2">
-                            {rundown.length === 0 && <div className="text-xs text-gray-500 italic py-2">Belum ada rundown.</div>}
-                            {rundown.map((r, i) => (
-                                <div key={i} className="flex gap-2 items-center">
-                                    <input value={r.day} onChange={(e) => updateRundownRow(i, "day", e.target.value)} className="w-28 border rounded px-2 py-1 text-sm" />
-                                    <input value={r.activity} onChange={(e) => updateRundownRow(i, "activity", e.target.value)} className="flex-1 border rounded px-2 py-1 text-sm" />
-                                    <button type="button" onClick={() => removeRundownRow(i)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Hapus</button>
+                            {schedule.map((s, i) => (
+                                <div key={i} className="flex gap-2 items-end">
+                                    <input
+                                        value={s.batchName}
+                                        onChange={(e) =>
+                                            updateScheduleRow(i, "batchName", e.target.value)
+                                        }
+                                        className="w-44 border rounded px-2 py-1 text-sm"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={s.startDate}
+                                        onChange={(e) =>
+                                            updateScheduleRow(i, "startDate", e.target.value)
+                                        }
+                                        className="border rounded px-2 py-1 text-sm"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={s.endDate}
+                                        onChange={(e) =>
+                                            updateScheduleRow(i, "endDate", e.target.value)
+                                        }
+                                        className="border rounded px-2 py-1 text-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeScheduleRow(i)}
+                                        className="bg-red-500 text-white px-2 py-1 rounded text-xs"
+                                    >
+                                        Hapus
+                                    </button>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* organizer */}
+                    {/* Rundown */}
+                    <div>
+                        <div className="flex justify-between items-center">
+                            <label className="text-sm font-medium">Rundown Kegiatan</label>
+                            <button
+                                type="button"
+                                onClick={addRundownRow}
+                                className="text-sm text-blue-600"
+                            >
+                                + Tambah Hari
+                            </button>
+                        </div>
+
+                        <div className="mt-2 space-y-2">
+                            {rundown.map((r, i) => (
+                                <div key={i} className="flex gap-2 items-center">
+                                    <input
+                                        value={r.day}
+                                        onChange={(e) =>
+                                            updateRundownRow(i, "day", e.target.value)
+                                        }
+                                        className="w-28 border rounded px-2 py-1 text-sm"
+                                    />
+                                    <input
+                                        value={r.activity}
+                                        onChange={(e) =>
+                                            updateRundownRow(i, "activity", e.target.value)
+                                        }
+                                        className="flex-1 border rounded px-2 py-1 text-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeRundownRow(i)}
+                                        className="bg-red-500 text-white px-2 py-1 rounded text-xs"
+                                    >
+                                        Hapus
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Organizer */}
                     <div>
                         <label className="text-sm font-medium">Penyelenggara</label>
-                        <input value={organizer} onChange={(e) => setOrganizer(e.target.value)} className="mt-1 w-full border rounded px-3 py-2 text-sm" />
+                        <input
+                            value={organizer}
+                            onChange={(e) => setOrganizer(e.target.value)}
+                            className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                        />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-3">
-                        <button type="button" onClick={onClose} className="px-4 py-2 border rounded">Batal</button>
-                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Simpan Pelatihan</button>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 border rounded"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 bg-blue-600 text-white rounded"
+                        >
+                            Simpan Pelatihan
+                        </button>
                     </div>
                 </form>
             </div>
+
+            {/* === SUCCESS ALERT (mirip EditProjectModal) === */}
+            {successAlert && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4">
+                    <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
+                        <h3 className="text-lg font-semibold mb-3 text-blue-600">
+                            Berhasil Tersimpan!
+                        </h3>
+                        <p className="text-sm text-gray-700 mb-6">
+                            Pelatihan <b>{title}</b> berhasil ditambahkan.
+                        </p>
+                        <button
+                            onClick={() => {
+                                setSuccessAlert(false);
+                                onClose();
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded text-sm"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

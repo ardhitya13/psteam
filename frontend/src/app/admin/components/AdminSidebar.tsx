@@ -483,12 +483,12 @@ export default function SidebarAdmin({
               </div>
             </div>
 
-            {/* KELOLA DOSEN */}
+            {/* KELOLA USER */}
               <div>
-                <Link href="/admin/lecturers" className="block mx-3 relative">
+                <Link href="/admin/manageuser" className="block mx-3 relative">
                   <div
-                    ref={setRef("kelolaDosen")}
-                    onMouseEnter={() => setHoveredItem("Kelola Dosen")}
+                    ref={setRef("kelolaUser")}
+                    onMouseEnter={() => setHoveredItem("Kelola User")}
                     onMouseLeave={() => setHoveredItem(null)}
                     className="group flex items-center gap-3 py-3 px-3 rounded-md
                  transition-all duration-200 hover:bg-white cursor-pointer"
@@ -501,13 +501,13 @@ export default function SidebarAdmin({
 
                     {isOpen && (
                       <span className="text-white text-[15px] font-semibold transition-colors duration-200 group-hover:text-[#0a3b91]">
-                        Kelola Dosen
+                        Kelola User
                       </span>
                     )}
                   </div>
 
-                  {!isOpen && hoveredItem === "Kelola Dosen" && (
-                    <Tooltip text="Kelola Dosen" targetRef={refs.current["kelolaDosen"]} />
+                  {!isOpen && hoveredItem === "Kelola User" && (
+                    <Tooltip text="Kelola User" targetRef={refs.current["kelolaUser"]} />
                   )}
                 </Link>
               </div>

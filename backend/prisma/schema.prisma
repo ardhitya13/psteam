@@ -7,6 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model user {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  password    String
+  role        String   // admin | dosen | superadmin (manual)
+  createdAt   DateTime @default(now())
+}
+
 model product {
   id           Int      @id @default(autoincrement())
   image        String
@@ -76,11 +85,24 @@ model trainingregistration {
   updatedAt     DateTime @updatedAt
 }
 
-model lectureraccount {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  phone     String?
-  createdAt DateTime @default(now())
+model training {
+  id               Int      @id @default(autoincrement())
+  title            String
+  shortDescription String?
+  type             String   @default("web")     // <-- default sementara
+  price            Int
+  thumbnail        String?
+  description      String?
+  costDetails      Json?
+  requirements     Json?
+  schedule         Json?
+  rundown          Json?
+  organizer        String?  @default("PSTeam Academy")
+  duration         String?
+  location         String?
+  certificate      String?
+  instructor       String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())     // <-- default sementara
 }
+

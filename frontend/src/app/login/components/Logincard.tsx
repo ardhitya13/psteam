@@ -1,47 +1,53 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Logincard() {
   const router = useRouter();
 
   const [role, setRole] = useState("");
-  const [idLearning, setIdLearning] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // 🔥 Akun manual
-  const accounts = [
-    { id: "admin01", pass: "admin123", role: "admin" },
-    { id: "dosen01", pass: "dosen123", role: "dosen" },
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!role) {
-      setError("Silakan pilih jenis user!");
+    if (loading) return;
+    setLoading(true);
+
+    const res = await fetch("http://localhost:4000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, role }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      setError(err.error || "Login gagal");
+      setLoading(false);
       return;
     }
 
-    const found = accounts.find(
-      (acc) =>
-        acc.id === idLearning &&
-        acc.pass === password &&
-        acc.role === role
-    );
 
-    if (!found) {
-      setError("ID Learning, Password, atau Role salah!");
+    const data = await res.json();
+
+    localStorage.setItem("role", data.user.role);
+
+    alert("Login berhasil!");
+
+    if (data.user.role === "superadmin" || data.user.role === "admin") {
+      window.location.href = "/admin";
       return;
     }
 
-    // 🔥 Redirect
-    if (role === "admin") {
-      router.push("/admin");
-    } else if (role === "dosen") {
-      router.push("/lecturer");
+    if (data.user.role === "dosen") {
+      window.location.href = "/lecturer";
+      return;
     }
   };
 
@@ -59,9 +65,10 @@ export default function Logincard() {
         Polibatam Software Team <br /> Politeknik Negeri Batam
       </h1>
 
+
       <form onSubmit={handleSubmit} className="w-full">
 
-        {/* 🔥 Role Dropdown */}
+        {/* ROLE */}
         <div className="mb-3">
           <select
             value={role}
@@ -74,26 +81,34 @@ export default function Logincard() {
           </select>
         </div>
 
-        {/* ID Learning */}
+        {/* Email */}
         <div className="mb-3">
           <input
             type="text"
-            placeholder="ID Learning"
-            value={idLearning}
-            onChange={(e) => setIdLearning(e.target.value)}
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full bg-white text-gray-900 placeholder-gray-400 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
           />
         </div>
 
         {/* Password */}
-        <div className="mb-2">
+        <div className="mb-2 relative">
           <input
-            type="password"
+            type={showPass ? "text" : "password"}
             placeholder="Kata Sandi"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-white text-gray-900 placeholder-gray-400 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+            className="w-full bg-white text-gray-900 placeholder-gray-400 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm pr-12"
           />
+
+          <button
+            type="button"
+            onClick={() => setShowPass(!showPass)}
+            className="absolute top-2 right-3 text-gray-600"
+          >
+            {showPass ? <Eye size={20} /> : <EyeOff size={20} />}
+          </button>
         </div>
 
         {error && (
@@ -102,9 +117,10 @@ export default function Logincard() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md text-sm"
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md text-sm disabled:bg-gray-400"
         >
-          Masuk
+          {loading ? "Loading..." : "Masuk"}
         </button>
       </form>
     </div>

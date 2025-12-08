@@ -8,18 +8,12 @@ import {
   deleteProject,
 } from "../controllers/teamController";
 
-import { uploadTeam } from "../middleware/uploadTeam";   // <-- tambah
-
 const router = Router();
 
-// CREATE PROJECT (banyak foto)
-router.post("/", uploadTeam.array("images"), createTeam);
-
-// ADD MEMBER (foto tunggal)
-router.post("/:id/member", uploadTeam.single("image"), addMember);
-
-// UPDATE MEMBER (foto tunggal)
-router.put("/member/:memberId", uploadTeam.single("image"), updateMember);
+// Tidak perlu multer sama sekali
+router.post("/", createTeam);
+router.post("/:id/member", addMember);
+router.put("/member/:memberId", updateMember);
 
 router.get("/", getTeams);
 router.delete("/member/:memberId", deleteMember);

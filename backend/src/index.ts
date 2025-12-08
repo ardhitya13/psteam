@@ -5,8 +5,13 @@ import fs from "fs";
 
 import teamRoutes from "./routes/teamRoutes";
 import projectSubmissionRoutes from "./routes/projectSubmissionRoutes";
-import trainingRoutes from "./routes/trainingRoutes";
+import trainingRegistrationRoutes from "./routes/trainingRegistrationRoutes"; // routes pendaftaran pelatihan
+import trainingCRUDRoutes from "./routes/trainingCRUDRoutes"; // routes pembuatan pelatihan baru
 import productRoutes from "./routes/productRoutes";
+import userRoutes from "./routes/userRoutes";
+import authRoutes from "./routes/authRoutes";
+
+
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -15,37 +20,19 @@ app.use(cors());
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// =============================================================
-// FIX FINAL: Path upload HARUS dari root backend (bukan __dirname)
-// =============================================================
-const rootPath = process.cwd();         // <--- SELALU benar
-const uploadsPath = path.join(rootPath, "uploads");
-const productUploads = path.join(uploadsPath, "products");
-
-// Buat folder jika belum ada
-if (!fs.existsSync(productUploads)) {
-  fs.mkdirSync(productUploads, { recursive: true });
-}
-
-console.log("📁 Uploads path:", uploadsPath);
-console.log("📁 Products folder:", productUploads);
-
-// =============================================================
-// STATIC SERVE
-// =============================================================
-app.use("/uploads", express.static(uploadsPath));
-
-console.log(`📦 Static URL: http://localhost:${PORT}/uploads`);
-
-// =============================================================
-app.use("/api/team", teamRoutes);
-app.use("/api/submissions", projectSubmissionRoutes);
-app.use("/api/trainings", trainingRoutes);
-app.use("/api/products", productRoutes);
+// ==========================
+app.use("/api/auth", authRoutes); // routes login user
+app.use("/api/users", userRoutes); // routes user
+app.use("/api/team", teamRoutes); // routes team
+app.use("/api/submissions", projectSubmissionRoutes); // routes project
+app.use("/api/training", trainingCRUDRoutes); // routes pembuatan pelatihan
+app.use("/api/registrations", trainingRegistrationRoutes); // routes pendaftaran pelatihan
+app.use("/api/products", productRoutes); // routes product
 
 app.get("/", (req, res) => {
   res.json({ message: "API Running" });
 });
+
 
 // 404
 app.use((req, res) => {

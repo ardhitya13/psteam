@@ -1,89 +1,75 @@
 "use client";
 
-export type TrainingRegistrationPayload = {
-  name: string;
-  email: string;
-  phone: string;
-  trainingTitle: string;
-  trainingType: string;
-  batch: string;
-  notes?: string;
+export type TrainingPayload = {
+  title: string;
+  shortDescription?: string;
+  type: string;
+  price: number;
+  thumbnail?: string;
+  description?: string;
+
+  // Tambahkan field baru
+  duration?: string;
+  location?: string;
+  certificate?: string;
+  instructor?: string;
+  excerpt?: string;
+  specification?: string;
+
+  costDetails?: string[];
+  requirements?: string[];
+  schedule?: { batchName: string; startDate: string; endDate: string }[];
+  rundown?: { day: string; activity: string }[];
+  organizer?: string;
 };
 
-const BASE_URL = "http://localhost:4000/api/trainings";
+const BASE_URL = "http://localhost:4000/api/training";
 
-/* ================================
-   GET ALL (DEBUG / ADMIN)
-================================ */
-export async function getAllRegistrations() {
-  const res = await fetch(`${BASE_URL}`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Gagal mengambil semua pendaftaran");
+/* ==================================
+   GET ALL TRAINING (Landing Page)
+================================== */
+export async function getAllTraining() {
+  const res = await fetch(BASE_URL, { cache: "no-store" });
+  if (!res.ok) throw new Error("Gagal mengambil daftar pelatihan");
   return res.json();
 }
 
-/* ================================
-   GET PENDING (HALAMAN VERIFIKASI)
-================================ */
-export async function getPendingRegistrations() {
-  const res = await fetch(`${BASE_URL}/pending`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Gagal mengambil pendaftaran pending");
-  return res.json();
-}
-
-/* ================================
-   GET APPROVED (HALAMAN PESERTA)
-================================ */
-export async function getApprovedRegistrations() {
-  const res = await fetch(`${BASE_URL}/approved`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Gagal mengambil pendaftaran approved");
-  return res.json();
-}
-
-/* ================================
-   CREATE TRAINING REGISTRATION
-================================ */
-export async function createTrainingRegistration(
-  payload: TrainingRegistrationPayload
-) {
+/* ==================================
+   CREATE TRAINING
+================================== */
+export async function createTraining(payload: TrainingPayload) {
   const res = await fetch(BASE_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Gagal mengirim pendaftaran pelatihan");
+  if (!res.ok) throw new Error("Gagal membuat pelatihan baru");
   return res.json();
 }
 
-/* ================================
-   UPDATE STATUS (APPROVE / REJECT)
-================================ */
-export async function updateTrainingStatus(
-  id: number,
-  status: "approved" | "rejected"
-) {
-  const res = await fetch(`${BASE_URL}/${id}/status`, {
+/* ==================================
+   UPDATE TRAINING
+================================== */
+export async function updateTraining(id: number, payload: TrainingPayload) {
+  const res = await fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ status }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Gagal memperbarui status");
+  if (!res.ok) throw new Error("Gagal mengupdate pelatihan");
   return res.json();
 }
 
-/* ================================
-   DELETE REGISTRATION
-================================ */
-export async function deleteTrainingRegistration(id: number) {
+/* ==================================
+   DELETE TRAINING
+================================== */
+export async function deleteTraining(id: number) {
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
   });
 
-  if (!res.ok) throw new Error("Gagal menghapus pendaftaran");
+  if (!res.ok) throw new Error("Gagal menghapus pelatihan");
   return res.json();
 }

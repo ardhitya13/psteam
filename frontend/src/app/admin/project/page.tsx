@@ -63,33 +63,39 @@ export default function DaftarProyekPage() {
   // LOAD DATA
   // ===========================
   useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await fetch("http://localhost:4000/api/submissions/approved");
-        const json = await res.json();
+  async function loadData() {
+    try {
+      const res = await fetch("http://localhost:4000/api/submissions/approved");
+      const json = await res.json();
 
-        const mapped = json.map((item: any, i: number) => ({
-          no: i + 1,
-          id: item.id,
-          email: item.email,
-          phoneNumber: item.phoneNumber,
-          judul: item.projectTitle,
-          tipeLabel: item.projectType,
-          tipe: normalizeType(item.projectType),
-          status: item.status,
-          raw: item,
-        }));
+      console.log("HASIL API:", json); // Debug biar terlihat
 
-        setData(mapped);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      // 👇 FIX PENTING
+      const list = Array.isArray(json) ? json : json.data ?? [];
+
+      const mapped = list.map((item: any, i: number) => ({
+        no: i + 1,
+        id: item.id,
+        email: item.email,
+        phoneNumber: item.phoneNumber,
+        judul: item.projectTitle,
+        tipeLabel: item.projectType,
+        tipe: normalizeType(item.projectType),
+        status: item.status,
+        raw: item,
+      }));
+
+      setData(mapped);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    loadData();
-  }, []);
+  loadData();
+}, []);
+
 
   // ===========================
   // UPDATE STATUS (EDIT)

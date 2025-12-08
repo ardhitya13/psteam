@@ -13,8 +13,12 @@ type Props = {
 export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
   const [form, setForm] = useState({ ...data });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] =
-    useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // ALERT POPUP
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev: any) => ({ ...prev, [field]: value }));
@@ -35,14 +39,13 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
   };
 
   const handleSubmit = async () => {
-    setMessage(null);
+    setAlert(null);
 
     if (!form.name || !form.name.trim()) {
-      setMessage({ type: "error", text: "Nama tidak boleh kosong." });
+      setAlert({ type: "error", text: "Nama tidak boleh kosong." });
       return;
     }
 
-    // Handle image conversion
     let imageValue = form.image;
     if (typeof imageValue === "string" && imageValue.startsWith("http")) {
       try {
@@ -51,10 +54,9 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
       } catch {}
     }
 
-    // FIX WAJIB — EMAIL HARUS SELALU ADA!
     const sanitized: any = {
       name: form.name.trim(),
-      email: form.email?.trim() || data.email || "", //  ← FIX PALING PENTING
+      email: form.email?.trim() || data.email || "",
       github: form.github?.trim() || null,
       linkedin: form.linkedin?.trim() || null,
       facebook: form.facebook?.trim() || null,
@@ -74,18 +76,19 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
     setLoading(true);
     try {
       await onUpdate({ id: data.id, ...sanitized });
-      setMessage({
+
+      setAlert({
         type: "success",
-        text: "Data anggota berhasil disimpan.",
+        text: "Data anggota berhasil diperbarui!",
       });
 
       setTimeout(() => {
         setLoading(false);
         onClose();
-      }, 600);
+      }, 700);
     } catch (err: any) {
       console.error("Edit error:", err);
-      setMessage({
+      setAlert({
         type: "error",
         text: `Gagal menyimpan: ${err?.message || "Error tidak diketahui"}`,
       });
@@ -117,27 +120,14 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             Edit Anggota Tim
           </h2>
 
-          {message && (
-            <div
-              className={`mb-4 p-3 rounded-md text-sm ${
-                message.type === "success"
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
+          {/* ---------- INLINE MESSAGE (HILANG KALO PAKAI POPUP) ---------- */}
+          {/* message popup dipindah ke bawah */}
 
           {/* FOTO */}
           <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border flex items-center justify-center">
               {form.image ? (
-                <img
-                  src={form.image}
-                  alt="Preview"
-                  className="object-cover w-full h-full"
-                />
+                <img src={form.image} className="object-cover w-full h-full" />
               ) : (
                 <span className="text-gray-400 text-xs">No Image</span>
               )}
@@ -159,9 +149,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
           {/* FORM */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Nama *
-              </label>
+              <label className="text-sm font-medium text-gray-700">Nama *</label>
               <input
                 className={inputClass}
                 value={form.name || ""}
@@ -188,9 +176,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Kategori
-              </label>
+              <label className="text-sm font-medium text-gray-700">Kategori</label>
               <select className={inputClass} value={form.category} disabled>
                 <option value="dosen">Dosen</option>
                 <option value="mahasiswa">Mahasiswa</option>
@@ -244,9 +230,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             )}
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Website
-              </label>
+              <label className="text-sm font-medium text-gray-700">Website</label>
               <input
                 className={inputClass}
                 value={form.website || ""}
@@ -255,9 +239,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                GitHub
-              </label>
+              <label className="text-sm font-medium text-gray-700">GitHub</label>
               <input
                 className={inputClass}
                 value={form.github || ""}
@@ -266,9 +248,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                LinkedIn
-              </label>
+              <label className="text-sm font-medium text-gray-700">LinkedIn</label>
               <input
                 className={inputClass}
                 value={form.linkedin || ""}
@@ -277,9 +257,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Facebook
-              </label>
+              <label className="text-sm font-medium text-gray-700">Facebook</label>
               <input
                 className={inputClass}
                 value={form.facebook || ""}
@@ -288,9 +266,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Instagram
-              </label>
+              <label className="text-sm font-medium text-gray-700">Instagram</label>
               <input
                 className={inputClass}
                 value={form.instagram || ""}
@@ -317,6 +293,35 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
           </div>
         </div>
       </div>
+
+      {/* POPUP ALERT */}
+      {alert && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-[999] p-4">
+          <div className="bg-white w-full max-w-sm rounded-lg shadow-lg p-6 text-center">
+            <h3
+              className={`text-lg font-semibold mb-3 ${
+                alert.type === "success" ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {alert.type === "success" ? "Berhasil!" : "Gagal!"}
+            </h3>
+
+            <p className="text-sm text-gray-700 mb-6">{alert.text}</p>
+
+            <button
+              onClick={() => {
+                if (alert.type === "success") onClose();
+                setAlert(null);
+              }}
+              className={`px-4 py-2 rounded text-white text-sm ${
+                alert.type === "success" ? "bg-green-600" : "bg-red-600"
+              }`}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
