@@ -35,17 +35,18 @@ export default function TrainingParticipantsAdmin() {
 
   // LOAD DATA
   useEffect(() => {
-    fetch("http://localhost:4000/api/trainings/approved")
+    fetch("http://localhost:4000/api/training-registrations/approved")
       .then((r) => r.json())
       .then((data) => {
-        console.log("DATA DARI BACKEND: ", data);
+        console.log("DATA APPROVED:", data);
         setParticipants(Array.isArray(data) ? data : []);
       });
   }, []);
 
+
   // DELETE (dipanggil setelah user klik "Ya, Hapus")
   const deleteNow = async (id: number) => {
-    await fetch(`http://localhost:4000/api/trainings/${id}`, {
+    await fetch(`http://localhost:4000/api/training-registrations/${id}`, {
       method: "DELETE",
     });
 
@@ -87,9 +88,8 @@ export default function TrainingParticipantsAdmin() {
         />
 
         <main
-          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
         >
           {/* TITLE */}
           <div className="text-center mb-8">
@@ -128,10 +128,9 @@ export default function TrainingParticipantsAdmin() {
                 }}
                 placeholder="Cari peserta..."
                 className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10
-                  ${
-                    isSearchOpen
-                      ? "w-56 pl-10 pr-3 opacity-100"
-                      : "w-10 opacity-0 pointer-events-none"
+                  ${isSearchOpen
+                    ? "w-56 pl-10 pr-3 opacity-100"
+                    : "w-10 opacity-0 pointer-events-none"
                   }`}
               />
             </div>
@@ -259,11 +258,10 @@ export default function TrainingParticipantsAdmin() {
                   }
                 }}
                 disabled={currentPage === 1}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === 1
+                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
                     ? "bg-gray-200 text-gray-400"
                     : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+                  }`}
               >
                 &lt;
               </button>
@@ -276,11 +274,10 @@ export default function TrainingParticipantsAdmin() {
                   <button
                     key={pageNumber}
                     onClick={() => setCurrentPage(pageNumber)}
-                    className={`px-2 py-1 rounded text-xs border ${
-                      currentPage === pageNumber
+                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNumber
                         ? "bg-blue-600 text-white"
                         : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                    }`}
+                      }`}
                   >
                     {pageNumber}
                   </button>
@@ -296,11 +293,10 @@ export default function TrainingParticipantsAdmin() {
                   }
                 }}
                 disabled={currentPage === totalPages}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === totalPages
+                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
                     ? "bg-gray-200 text-gray-400"
                     : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+                  }`}
               >
                 &gt;
               </button>

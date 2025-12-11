@@ -32,7 +32,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/team", teamRoutes);
 app.use("/api/submissions", projectSubmissionRoutes);
 app.use("/api/training", trainingCRUDRoutes);
-app.use("/api/registrations", trainingRegistrationRoutes);
+app.use("/api/training-registrations", trainingRegistrationRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/lecturer", lecturerRoutes);
 

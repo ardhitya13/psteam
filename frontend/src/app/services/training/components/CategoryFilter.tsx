@@ -40,7 +40,6 @@ export default function CategoryFilter({
     });
   }, []);
 
-  // 🔹 Pastikan AI selalu di urutan terakhir
   const sortedCategories = [...categories].sort((a, b) => {
     if (a === "Artificial Intelligence") return 1;
     if (b === "Artificial Intelligence") return -1;

@@ -8,25 +8,39 @@ export default function RegisterTrainingModal({ open, course, onClose }: any) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [batch, setBatch] = useState("Batch 1");
+  const [batch, setBatch] = useState("");
   const [notes, setNotes] = useState("");
 
-  // FIX NORMALIZER — pastikan AI selalu terdeteksi
+  // ===============================
+  // CATEGORY NORMALIZER (FINAL FIX)
+  // ===============================
   function normalizeType(category: string) {
     const s = (category || "").toLowerCase();
 
-    // urutan FIX (AI harus dicek dulu)
-    if (s.includes("artificial")) return "ai";
-    if (s.includes("machine")) return "ai";
-    if (s.includes("ai")) return "ai";
+    if (s.includes("artificial") || s.includes("machine") || s.includes("ai"))
+      return "ai";
 
     if (s.includes("web")) return "web";
     if (s.includes("mobile")) return "mobile";
     if (s.includes("iot") || s.includes("internet")) return "iot";
 
-    return "iot";
+    return "iot"; // default fallback
   }
 
+  // ===============================
+  // DYNAMIC BATCH LIST (from backend)
+  // ===============================
+  const batchOptions =
+    course.schedule && Array.isArray(course.schedule) && course.schedule.length > 0
+      ? course.schedule.map((b: any) => b.batchName)
+      : ["Batch 1"];
+
+  // Set default batch (first one)
+  if (!batch) setBatch(batchOptions[0]);
+
+  // ===============================
+  // SUBMIT FORM
+  // ===============================
   const submit = async () => {
     if (!name.trim()) return alert("Nama wajib diisi.");
     if (!email.trim()) return alert("Email wajib diisi.");
@@ -38,26 +52,33 @@ export default function RegisterTrainingModal({ open, course, onClose }: any) {
       email,
       phone,
       trainingTitle: course.title,
-      trainingType: detectedType, // FIX 🔥
+      trainingType: detectedType,
       batch,
       notes,
+      status: "pending",
     };
 
-    // debug log (tidak mengubah UI sama sekali)
-    console.log("CATEGORY:", course.category);
-    console.log("DETECTED TYPE:", detectedType);
-    console.log("PAYLOAD:", payload);
+    console.log("REGISTER PAYLOAD:", payload);
 
-    await fetch("http://localhost:4000/api/trainings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      await fetch("http://localhost:4000/api/training-registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    alert("Pendaftaran berhasil dikirim!");
-    onClose();
+      alert("Pendaftaran berhasil dikirim!");
+      onClose();
+    } catch (err) {
+      console.error("REGISTER ERROR:", err);
+      alert("Gagal mengirim pendaftaran.");
+    }
   };
 
+
+  // ===============================
+  // UI (TIDAK DIUBAH SAMA SEKALI)
+  // ===============================
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white text-black p-6 rounded-lg w-[380px] shadow-lg">
@@ -81,13 +102,17 @@ export default function RegisterTrainingModal({ open, course, onClose }: any) {
           onChange={(e) => setPhone(e.target.value)}
         />
 
+        {/* BATCH SELECT (now dynamic) */}
         <select
           className="w-full border p-2 rounded mb-2"
+          value={batch}
           onChange={(e) => setBatch(e.target.value)}
         >
-          <option>Batch 1</option>
-          <option>Batch 2</option>
-          <option>Batch 3</option>
+          {batchOptions.map((b: string, i: number) => (
+            <option key={i} value={b}>
+              {b}
+            </option>
+          ))}
         </select>
 
         <textarea

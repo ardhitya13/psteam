@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { X } from "lucide-react";
 import { Training } from "./TrainingAdmin";
+import { createTraining } from "../../../lib/apiTraining"; // IMPORT API BARU
 
 type Props = {
     onClose: () => void;
@@ -39,7 +40,6 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
     const [certificate, setCertificate] = useState("");
     const [instructor, setInstructor] = useState("");
 
-    // ✅ SUCCESS ALERT (mirip referensi)
     const [successAlert, setSuccessAlert] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,16 +73,18 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
     const removeRundownRow = (idx: number) =>
         setRundown((r) => r.filter((_, i) => i !== idx));
 
+    /* ============================================================
+       HANDLE SUBMIT — FINAL VERSION (FormData Upload)
+    ============================================================ */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const payload: Training = {
-            id: 0,
+        const payload: any = {
             title,
             shortDescription,
             type,
             price: priceNum ?? 0,
-            thumbnail: thumbnailUrl || "/default-thumb.png",
+            thumbnailFile, // FILE UPLOAD
             description,
             costDetails,
             requirements,
@@ -95,10 +97,15 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
             instructor,
         };
 
-        await onAdd(payload);
+        try {
+            const created = await createTraining(payload); // API BARU
 
-        // ✅ tampilkan alert sukses (mirip referensi modal)
-        setSuccessAlert(true);
+            onAdd(created); // masukkan ke tabel
+            setSuccessAlert(true);
+        } catch (err) {
+            console.error("CREATE TRAINING ERROR:", err);
+            alert("Gagal menyimpan pelatihan.");
+        }
     };
 
     return (
