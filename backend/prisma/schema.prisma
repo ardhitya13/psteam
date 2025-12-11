@@ -8,12 +8,13 @@ datasource db {
 }
 
 model user {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  role        String   // admin | dosen | superadmin (manual)
-  createdAt   DateTime @default(now())
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String           @unique
+  password        String
+  role            String
+  createdAt       DateTime         @default(now())
+  lecturerprofile lecturerprofile?
 }
 
 model product {
@@ -45,10 +46,10 @@ model projectsubmission {
 }
 
 model teammember {
-  id             Int         @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   name           String
   role           String
-  email          String
+  email          String?
   image          String?
   github         String?
   linkedin       String?
@@ -59,20 +60,21 @@ model teammember {
   studyProgram   String?
   education      String?
   specialization String?
-  projectId      Int
-  teamproject    teamproject @relation(fields: [projectId], references: [id], map: "TeamMember_projectId_fkey")
 
-  @@index([projectId], map: "TeamMember_projectId_fkey")
+  projectId      Int
+  project        teamproject @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
 }
 
 model teamproject {
-  id         Int          @id @default(autoincrement())
-  teamTitle  String
-  teammember teammember[]
+  id          Int          @id @default(autoincrement())
+  teamTitle   String
+  teammember  teammember[] // <--- RELASI DITAMBAHKAN
 }
 
 model trainingregistration {
-  id            Int      @id @default(autoincrement())
+  id            Int      @id
   name          String
   email         String
   phone         String
@@ -86,23 +88,45 @@ model trainingregistration {
 }
 
 model training {
-  id               Int      @id @default(autoincrement())
+  id               Int      @id
   title            String
-  shortDescription String?
-  type             String   @default("web")     // <-- default sementara
   price            Int
   thumbnail        String?
   description      String?
-  costDetails      Json?
-  requirements     Json?
-  schedule         Json?
-  rundown          Json?
   organizer        String?  @default("PSTeam Academy")
-  duration         String?
-  location         String?
   certificate      String?
-  instructor       String?
+  costDetails      String?  @db.LongText
   created_at       DateTime @default(now())
-  updated_at       DateTime @default(now())     // <-- default sementara
+  duration         String?
+  instructor       String?
+  location         String?
+  requirements     String?  @db.LongText
+  rundown          String?  @db.LongText
+  schedule         String?  @db.LongText
+  shortDescription String?
+  type             String   @default("web")
+  updated_at       DateTime @default(now()) @updatedAt
 }
 
+model lecturerprofile {
+  id               Int                @id @default(autoincrement())
+  userId           Int                @unique
+  studyProgram     String?
+  specialization   String?
+  imageUrl         String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  educationhistory educationhistory[]
+  user             user               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model educationhistory {
+  id         Int             @id @default(autoincrement())
+  lecturerId Int
+  degree     String?
+  university String?
+  major      String?
+  lecturer   lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+
+  @@index([lecturerId])
+}

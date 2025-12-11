@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { uploadTeam } from "../middleware/uploadTeam";
 import {
   getTeams,
   createTeam,
@@ -10,11 +11,16 @@ import {
 
 const router = Router();
 
-// Tidak perlu multer sama sekali
-router.post("/", createTeam);
-router.post("/:id/member", addMember);
-router.put("/member/:memberId", updateMember);
+// CREATE PROJECT — multiple images
+router.post("/", uploadTeam.array("images"), createTeam);
 
+// ADD MEMBER — single image
+router.post("/:id/member", uploadTeam.single("image"), addMember);
+
+// UPDATE MEMBER — single image
+router.put("/member/:memberId", uploadTeam.single("image"), updateMember);
+
+// GET & DELETE
 router.get("/", getTeams);
 router.delete("/member/:memberId", deleteMember);
 router.delete("/:id", deleteProject);

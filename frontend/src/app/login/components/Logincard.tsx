@@ -33,20 +33,31 @@ export default function Logincard() {
       return;
     }
 
-
     const data = await res.json();
 
-    localStorage.setItem("role", data.user.role);
+    // ============================
+    // ✅ SIMPAN DATA USER SECARA BENAR
+    // ============================
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+      })
+    );
 
     alert("Login berhasil!");
 
+    // Redirect sesuai role
     if (data.user.role === "superadmin" || data.user.role === "admin") {
       window.location.href = "/admin";
       return;
     }
 
     if (data.user.role === "dosen") {
-      window.location.href = "/lecturer";
+      window.location.href = "/lecturer/profil";
       return;
     }
   };
@@ -54,20 +65,14 @@ export default function Logincard() {
   return (
     <div className="flex flex-col items-center">
       {/* Logo */}
-      <img
-        src="/logopsteam1.png"
-        alt="Logo Polibatam"
-        className="w-28 mb-3"
-      />
+      <img src="/logopsteam1.png" alt="Logo Polibatam" className="w-28 mb-3" />
 
       {/* Title */}
       <h1 className="text-center text-[15px] text-gray-700 font-medium leading-tight mb-6">
         Polibatam Software Team <br /> Politeknik Negeri Batam
       </h1>
 
-
       <form onSubmit={handleSubmit} className="w-full">
-
         {/* ROLE */}
         <div className="mb-3">
           <select

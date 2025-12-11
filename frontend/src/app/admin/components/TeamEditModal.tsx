@@ -14,11 +14,20 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
   const [form, setForm] = useState({ ...data });
   const [loading, setLoading] = useState(false);
 
-  // ALERT POPUP
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  //-------------------------------------------
+  // FIX: AGAR GAMBAR LAMA BISA MUNCUL
+  //-------------------------------------------
+  const fixImage = (img?: string) => {
+    if (!img) return "";
+    if (img.startsWith("data:image")) return img; // preview base64
+    if (img.startsWith("http")) return img; // sudah URL lengkap
+    return "http://localhost:4000" + img; // path dari backend
+  };
 
   const handleChange = (field: string, value: string) => {
     setForm((prev: any) => ({ ...prev, [field]: value }));
@@ -30,9 +39,11 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
 
     const reader = new FileReader();
     reader.onload = () => {
+      // Simpan base64 untuk preview, backend akan tetap menerima file binary
       setForm((prev: any) => ({
         ...prev,
         image: reader.result as string,
+        imageFile: file,
       }));
     };
     reader.readAsDataURL(file);
@@ -46,6 +57,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
       return;
     }
 
+    // Jika image berupa URL lengkap → ambil pathname
     let imageValue = form.image;
     if (typeof imageValue === "string" && imageValue.startsWith("http")) {
       try {
@@ -56,7 +68,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
 
     const sanitized: any = {
       name: form.name.trim(),
-      email: form.email?.trim() || data.email || "",
+      email: form.email?.trim() || "",
       github: form.github?.trim() || null,
       linkedin: form.linkedin?.trim() || null,
       facebook: form.facebook?.trim() || null,
@@ -66,6 +78,7 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
       education: form.education?.trim() || null,
       specialization: form.specialization?.trim() || null,
       image: imageValue || null,
+      imageFile: form.imageFile || null, // untuk upload file baru
     };
 
     delete sanitized.id;
@@ -120,14 +133,14 @@ export default function EditTeamModal({ data, onClose, onUpdate }: Props) {
             Edit Anggota Tim
           </h2>
 
-          {/* ---------- INLINE MESSAGE (HILANG KALO PAKAI POPUP) ---------- */}
-          {/* message popup dipindah ke bawah */}
-
           {/* FOTO */}
           <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border flex items-center justify-center">
               {form.image ? (
-                <img src={form.image} className="object-cover w-full h-full" />
+                <img
+                  src={fixImage(form.image)}
+                  className="object-cover w-full h-full"
+                />
               ) : (
                 <span className="text-gray-400 text-xs">No Image</span>
               )}
