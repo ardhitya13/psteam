@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, ChevronDown, Trash } from "lucide-react";
+import { Search, ChevronDown, Eye, Trash } from "lucide-react";
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
+import DetailTrainingModal from "./TrainingDetailModal";
 
 type Participant = {
   id: number;
@@ -20,25 +21,72 @@ type Participant = {
   };
 };
 
+export type Training = {
+  id: number;
+  title: string;
+  shortDescription?: string;
+  type: "web" | "mobile" | "iot" | "ai" | string;
+  price: number;
+  thumbnail?: string;
+  description?: string;
+  costDetails?: string[];
+  requirements?: string[];
+  schedule?: { batchName: string; startDate: string; endDate: string }[];
+  rundown?: { day: string; activity: string }[];
+  organizer?: string;
+  duration?: string;
+  location?: string;
+  certificate?: string;
+  instructor?: string;
+};
 
 export default function TrainingParticipantsAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
   const [participants, setParticipants] = useState<Participant[]>([]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [pageGroup, setPageGroup] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // 🔵 MODAL KONFIRMASI DELETE
+  const [detailData, setDetailData] = useState<Training | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
 
-  // LOAD DATA
+  async function showDetail(trainingId: number) {
+    try {
+      const res = await fetch(`http://localhost:4000/api/training/${trainingId}`);
+      const data = await res.json();
+
+      // NORMALIZE JSON FIELDS
+      const normalized = {
+        ...data,
+        costDetails: Array.isArray(data.costDetails)
+          ? data.costDetails
+          : JSON.parse(data.costDetails || "[]"),
+
+        requirements: Array.isArray(data.requirements)
+          ? data.requirements
+          : JSON.parse(data.requirements || "[]"),
+
+        schedule: Array.isArray(data.schedule)
+          ? data.schedule
+          : JSON.parse(data.schedule || "[]"),
+
+        rundown: Array.isArray(data.rundown)
+          ? data.rundown
+          : JSON.parse(data.rundown || "[]"),
+      };
+
+      setDetailData(normalized);
+    } catch (err) {
+      console.error("Failed loading training detail:", err);
+      alert("Gagal memuat detail pelatihan.");
+    }
+  }
+
+  // LOAD DATA APPROVED
   useEffect(() => {
     fetch("http://localhost:4000/api/training-registrations/approved")
       .then((r) => r.json())
@@ -48,8 +96,7 @@ export default function TrainingParticipantsAdmin() {
       });
   }, []);
 
-
-  // DELETE (dipanggil setelah user klik "Ya, Hapus")
+  // DELETE
   const deleteNow = async (id: number) => {
     await fetch(`http://localhost:4000/api/training-registrations/${id}`, {
       method: "DELETE",
@@ -59,11 +106,12 @@ export default function TrainingParticipantsAdmin() {
     setConfirmDelete(null);
   };
 
-  // FILTER
+  // FILTERING
   const filtered = participants.filter((p) => {
+    const s = searchTerm.toLowerCase();
     const matchSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.email.toLowerCase().includes(searchTerm.toLowerCase());
+      p.name.toLowerCase().includes(s) ||
+      p.email.toLowerCase().includes(s);
 
     const matchType =
       selectedType === "all" ? true : p.training.type === selectedType;
@@ -129,18 +177,17 @@ export default function TrainingParticipantsAdmin() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onBlur={() => {
-                  if (searchTerm.trim() === "") setIsSearchOpen(false);
+                  if (!searchTerm.trim()) setIsSearchOpen(false);
                 }}
                 placeholder="Cari peserta..."
-                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10
-                  ${isSearchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
+                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${isSearchOpen
+                  ? "w-56 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
                   }`}
               />
             </div>
 
-            {/* FILTER TIPE */}
+            {/* FILTER TYPE */}
             <div className="relative">
               <select
                 value={selectedType}
@@ -172,7 +219,6 @@ export default function TrainingParticipantsAdmin() {
                   </option>
                 ))}
               </select>
-
               <ChevronDown
                 size={16}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
@@ -213,38 +259,37 @@ export default function TrainingParticipantsAdmin() {
                         {startIndex + i + 1}
                       </td>
 
-                      <td className="border px-4 py-2 border-gray-300 font-semibold">
+                      <td className="px-4 py-3 border border-gray-300 font-semibold">
                         {p.name}
                       </td>
 
-                      <td className="border px-4 py-2 border-gray-300">
-                        {p.email}
-                      </td>
-
-                      <td className="border px-4 py-2 border-gray-300">
-                        {p.phone}
-                      </td>
-
+                      <td className="border px-4 py-2 border-gray-300">{p.email}</td>
+                      <td className="border px-4 py-2 border-gray-300">{p.phone}</td>
                       <td className="border px-4 py-2 border-gray-300">
                         {p.training.title}
                       </td>
-
-                      <td className="border px-4 py-2 border-gray-300 capitalize">
+                      <td className="px-4 py-3 border border-gray-300 capitalize">
                         {p.training.type}
                       </td>
+                      <td className="border px-4 py-2 border-gray-300">{p.batch}</td>
 
+                      {/* ACTION BUTTONS */}
                       <td className="border px-4 py-2 border-gray-300">
-                        {p.batch}
-                      </td>
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => showDetail(p.training.id)}
+                            className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md flex items-center gap-1"
+                          >
+                            <Eye size={14} /> Detail
+                          </button>
 
-                      {/* DELETE BUTTON */}
-                      <td className="border px-4 py-2 border-gray-300">
-                        <button
-                          onClick={() => setConfirmDelete(p)}
-                          className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
-                        >
-                          <Trash size={14} />Hapus
-                        </button>
+                          <button
+                            onClick={() => setConfirmDelete(p)}
+                            className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
+                          >
+                            <Trash size={14} /> Hapus
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -264,8 +309,8 @@ export default function TrainingParticipantsAdmin() {
                 }}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
                   }`}
               >
                 &lt;
@@ -280,8 +325,8 @@ export default function TrainingParticipantsAdmin() {
                     key={pageNumber}
                     onClick={() => setCurrentPage(pageNumber)}
                     className={`px-2 py-1 rounded text-xs border ${currentPage === pageNumber
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-300 text-gray-800"
                       }`}
                   >
                     {pageNumber}
@@ -299,8 +344,8 @@ export default function TrainingParticipantsAdmin() {
                 }}
                 disabled={currentPage === totalPages}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
                   }`}
               >
                 &gt;
@@ -310,7 +355,7 @@ export default function TrainingParticipantsAdmin() {
         </main>
       </div>
 
-      {/* 🔴 MODAL DELETE */}
+      {/* DELETE MODAL */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
@@ -339,6 +384,14 @@ export default function TrainingParticipantsAdmin() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* DETAIL MODAL */}
+      {detailData && (
+        <DetailTrainingModal
+          data={detailData!}
+          onClose={() => setDetailData(null)}
+        />
       )}
     </div>
   );

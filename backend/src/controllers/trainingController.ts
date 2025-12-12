@@ -278,3 +278,29 @@ export const deleteRegistration = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete registration" });
   }
 };
+
+export const getTrainingById = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+
+    const t = await prisma.training.findUnique({
+      where: { id },
+    });
+
+    if (!t) return res.status(404).json({ error: "Training not found" });
+
+    // Parse JSON fields
+    const training = {
+      ...t,
+      costDetails: safeParseMaybeJSON(t.costDetails),
+      requirements: safeParseMaybeJSON(t.requirements),
+      schedule: safeParseMaybeJSON(t.schedule),
+      rundown: safeParseMaybeJSON(t.rundown),
+    };
+
+    res.json(training);
+  } catch (err) {
+    console.error("getTrainingById error:", err);
+    res.status(500).json({ error: "Failed to fetch training detail" });
+  }
+};

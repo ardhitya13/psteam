@@ -7,7 +7,8 @@ import {
   createTraining,
   getAllTraining,
   updateTraining,
-  deleteTraining
+  deleteTraining,
+  getTrainingById,
 } from "../controllers/trainingController";
 
 const router = express.Router();
@@ -30,5 +31,6 @@ router.get("/", getAllTraining);
 router.post("/", upload.single("thumbnail"), createTraining);
 router.put("/:id", upload.single("thumbnail"), updateTraining);
 router.delete("/:id", deleteTraining);
+router.get("/:id", getTrainingById); 
 
 export default router;
