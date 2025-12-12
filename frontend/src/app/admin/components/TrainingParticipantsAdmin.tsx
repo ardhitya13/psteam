@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Trash } from "lucide-react";
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
@@ -11,10 +11,15 @@ type Participant = {
   name: string;
   email: string;
   phone: string;
-  trainingTitle: string;
-  trainingType: "web" | "mobile" | "iot" | "ai";
   batch: string;
+
+  training: {
+    id: number;
+    title: string;
+    type: "web" | "mobile" | "iot" | "ai" | string;
+  };
 };
+
 
 export default function TrainingParticipantsAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -61,7 +66,7 @@ export default function TrainingParticipantsAdmin() {
       p.email.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchType =
-      selectedType === "all" ? true : p.trainingType === selectedType;
+      selectedType === "all" ? true : p.training.type === selectedType;
 
     return matchSearch && matchType;
   });
@@ -221,11 +226,11 @@ export default function TrainingParticipantsAdmin() {
                       </td>
 
                       <td className="border px-4 py-2 border-gray-300">
-                        {p.trainingTitle}
+                        {p.training.title}
                       </td>
 
                       <td className="border px-4 py-2 border-gray-300 capitalize">
-                        {p.trainingType}
+                        {p.training.type}
                       </td>
 
                       <td className="border px-4 py-2 border-gray-300">
@@ -236,9 +241,9 @@ export default function TrainingParticipantsAdmin() {
                       <td className="border px-4 py-2 border-gray-300">
                         <button
                           onClick={() => setConfirmDelete(p)}
-                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                          className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
                         >
-                          Hapus
+                          <Trash size={14} />Hapus
                         </button>
                       </td>
                     </tr>

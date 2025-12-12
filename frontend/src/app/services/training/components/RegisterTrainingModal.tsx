@@ -45,14 +45,11 @@ export default function RegisterTrainingModal({ open, course, onClose }: any) {
     if (!name.trim()) return alert("Nama wajib diisi.");
     if (!email.trim()) return alert("Email wajib diisi.");
 
-    const detectedType = normalizeType(course.category);
-
     const payload = {
       name,
       email,
       phone,
-      trainingTitle: course.title,
-      trainingType: detectedType,
+      trainingId: course.id,
       batch,
       notes,
       status: "pending",

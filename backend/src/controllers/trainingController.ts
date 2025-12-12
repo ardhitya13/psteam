@@ -180,6 +180,7 @@ export const getRegistrations = async (req: Request, res: Response) => {
   try {
     const regs = await prisma.trainingregistration.findMany({
       orderBy: { id: "desc" },
+      include: { training: true },
     });
 
     res.json(regs);
@@ -194,6 +195,7 @@ export const getPendingRegistrations = async (req: Request, res: Response) => {
     const regs = await prisma.trainingregistration.findMany({
       where: { status: "pending" },
       orderBy: { id: "desc" },
+      include: { training: true },
     });
 
     res.json(regs);
@@ -208,6 +210,7 @@ export const getApprovedRegistrations = async (req: Request, res: Response) => {
     const regs = await prisma.trainingregistration.findMany({
       where: { status: "approved" },
       orderBy: { id: "desc" },
+      include: { training: true },
     });
 
     res.json(regs);
@@ -226,8 +229,7 @@ export const createRegistration = async (req: Request, res: Response) => {
         name: data.name,
         email: data.email,
         phone: data.phone,
-        trainingTitle: data.trainingTitle,
-        trainingType: data.trainingType,
+        trainingId: Number(data.trainingId),
         batch: data.batch,
         notes: data.notes || "",
         status: "pending",

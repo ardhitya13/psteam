@@ -46,24 +46,26 @@ export default function VerifyTrainingAdmin() {
   // LOAD DATA
   // ========================
   async function load() {
-    const res = await getPendingRegistrations();
+  const res = await getPendingRegistrations();
 
-    // 🔥 FIX WAJIB: data HARUS dimapping agar trainingType selalu ada
-    const mapped = res.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      email: item.email,
-      phone: item.phone,
-      trainingTitle: item.trainingTitle,
-      trainingType: item.trainingType ?? "", // FIX 🔥
-      batch: item.batch,
-      notes: item.notes,
-      status: item.status,
-    }));
+  const mapped = res.map((item: any) => ({
+    id: item.id,
+    name: item.name,
+    email: item.email,
+    phone: item.phone,
+    batch: item.batch,
+    notes: item.notes,
+    status: item.status,
 
-    setData(mapped);
-    setLoading(false);
-  }
+    // 🔥 Data training dari relasi
+    trainingTitle: item.training?.title ?? "-",
+    trainingType: item.training?.type ?? "-",
+  }));
+
+  setData(mapped);
+  setLoading(false);
+}
+
 
   useEffect(() => {
     load();
