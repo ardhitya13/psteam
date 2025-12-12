@@ -77,22 +77,23 @@ export default function LecturersTable() {
   }, []);
 
   // =============================================================
-  // EDIT HANDLER — FIXED TOTAL
+  // EDIT HANDLER (FINAL FIX)
   // =============================================================
   const handleEditLecturer = async (updated: Lecturer) => {
     try {
-      // 1️⃣ UPDATE PROFILE (studyProgram + specialization)
-      await updateLecturerProfile(
-        updated.id,
-        JSON.stringify({
-          studyProgram: updated.studyProgram,
-          specialization: updated.specialization,
-        })
-      );
+      // ========================================
+      // 1️⃣ UPDATE PROFILE (TANPA JSON.stringify)
+      // ========================================
+      await updateLecturerProfile(updated.id, {
+        studyProgram: updated.studyProgram,
+        specialization: updated.specialization,
+      });
 
+      // ========================================
+      // 2️⃣ DELETE EDUCATION THAT WAS REMOVED
+      // ========================================
       const original = lecturers.find((l) => l.id === updated.id);
 
-      // 2️⃣ DELETE EDUCATION THAT WAS REMOVED
       if (original) {
         for (const edu of original.educationHistory) {
           const stillExists = updated.educationHistory.some((e) => e.id === edu.id);
@@ -102,9 +103,11 @@ export default function LecturersTable() {
         }
       }
 
-      // 3️⃣ ADD OR UPDATE EDUCATION
+      // ========================================
+      // 3️⃣ ADD / UPDATE EDUCATION
+      // ========================================
       for (const edu of updated.educationHistory) {
-        // Skip empty rows
+        // Lewati baris kosong
         if (!edu.degree && !edu.university && !edu.major) continue;
 
         if (!edu.id) {
@@ -199,7 +202,7 @@ export default function LecturersTable() {
             </p>
           </div>
 
-          {/* SEARCH BAR */}
+          {/* SEARCH */}
           <div className="w-full flex justify-end mb-6">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -308,12 +311,13 @@ export default function LecturersTable() {
                         </td>
                       </tr>
 
-                      {/* EXPANDED DETAIL */}
+                      {/* DETAIL EXPAND */}
                       {expandedId === lect.id && (
                         <tr>
                           <td colSpan={5} className="p-0 border">
                             <div className="p-6 bg-[#f5f7fb]">
-                              {/* Card Informasi Pribadi */}
+                              
+                              {/* INFO PRIBADI */}
                               <div className="bg-white p-6 rounded-lg shadow border mb-6">
                                 <div className="flex items-center gap-6">
                                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-300 bg-white">
@@ -341,7 +345,7 @@ export default function LecturersTable() {
                                 </div>
                               </div>
 
-                              {/* Riwayat Pendidikan */}
+                              {/* RIWAYAT */}
                               <div className="bg-white p-6 rounded-lg shadow border">
                                 <h3 className="text-xl font-bold mb-3 text-[#0a3b91]">
                                   Riwayat Pendidikan

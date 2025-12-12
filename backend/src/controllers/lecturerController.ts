@@ -38,14 +38,16 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
       where: { id: userId },
     });
 
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
       include: { educationhistory: true },
     });
 
-    // CREATE EMPTY PROFILE IF NOT EXISTS
+    // CREATE PROFILE IF NOT EXISTS
     if (!profile) {
       await prisma.lecturerprofile.create({
         data: {
@@ -56,6 +58,7 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
         },
       });
 
+      // Fetch again after created
       profile = await prisma.lecturerprofile.findUnique({
         where: { userId },
         include: { educationhistory: true },

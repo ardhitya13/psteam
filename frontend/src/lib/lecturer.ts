@@ -29,9 +29,9 @@ async function safeFetch(url: string, options: RequestInit = {}) {
   return data;
 }
 
-// ==========================================
-// FIX: GET ALL LECTURERS (TAMBAHKAN INI!)
-// ==========================================
+// ========================================================
+// GET ALL
+// ========================================================
 export function getAllLecturers() {
   return safeFetch(`${BASE_URL}`);
 }
@@ -40,13 +40,24 @@ export function getLecturerProfile(userId: number) {
   return safeFetch(`${BASE_URL}/${userId}`);
 }
 
+// ========================================================
+// UPDATE PROFILE (AUTO DETECT PHOTO / NON-PHOTO)
+// ========================================================
 export function updateLecturerProfile(userId: number, data: any) {
-  return safeFetch(`${BASE_URL}/${userId}`, {
-    method: "PUT",
-    body: data,
-  });
+  const isForm = data instanceof FormData;
+
+  return safeFetch(
+    `${BASE_URL}/${userId}${isForm ? "/photo" : ""}`,
+    {
+      method: "PUT",
+      body: isForm ? data : JSON.stringify(data),
+    }
+  );
 }
 
+// ========================================================
+// EDUCATION CRUD
+// ========================================================
 export function addEducation(userId: number, data: any) {
   return safeFetch(`${BASE_URL}/${userId}/education`, {
     method: "POST",
