@@ -77,23 +77,22 @@ export default function LecturersTable() {
   }, []);
 
   // =============================================================
-  // EDIT HANDLER (FINAL FIX)
+  // EDIT HANDLER — FIXED TOTAL
   // =============================================================
   const handleEditLecturer = async (updated: Lecturer) => {
     try {
-      // ========================================
-      // 1️⃣ UPDATE PROFILE (TANPA JSON.stringify)
-      // ========================================
-      await updateLecturerProfile(updated.id, {
-        studyProgram: updated.studyProgram,
-        specialization: updated.specialization,
-      });
+      // 1️⃣ UPDATE PROFILE (studyProgram + specialization)
+      await updateLecturerProfile(
+        updated.id,
+        JSON.stringify({
+          studyProgram: updated.studyProgram,
+          specialization: updated.specialization,
+        })
+      );
 
-      // ========================================
-      // 2️⃣ DELETE EDUCATION THAT WAS REMOVED
-      // ========================================
       const original = lecturers.find((l) => l.id === updated.id);
 
+      // 2️⃣ DELETE EDUCATION THAT WAS REMOVED
       if (original) {
         for (const edu of original.educationHistory) {
           const stillExists = updated.educationHistory.some((e) => e.id === edu.id);
@@ -103,11 +102,9 @@ export default function LecturersTable() {
         }
       }
 
-      // ========================================
-      // 3️⃣ ADD / UPDATE EDUCATION
-      // ========================================
+      // 3️⃣ ADD OR UPDATE EDUCATION
       for (const edu of updated.educationHistory) {
-        // Lewati baris kosong
+        // Skip empty rows
         if (!edu.degree && !edu.university && !edu.major) continue;
 
         if (!edu.id) {
@@ -202,7 +199,7 @@ export default function LecturersTable() {
             </p>
           </div>
 
-          {/* SEARCH */}
+          {/* SEARCH BAR */}
           <div className="w-full flex justify-end mb-6">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -240,7 +237,7 @@ export default function LecturersTable() {
                 className="text-black bg-white rounded-md px-5 py-2"
               >
                 {[10, 20, 30].map((n) => (
-                  <option key={n}>{n} / halaman</option>
+                  <option key={n}>{n} /  halaman</option>
                 ))}
               </select>
             </div>
@@ -251,11 +248,11 @@ export default function LecturersTable() {
             <table className="min-w-full text-sm text-gray-800 border-collapse">
               <thead className="bg-[#eaf0fa] font-semibold uppercase">
                 <tr>
-                  <th className="py-3 px-4 border w-16">No</th>
-                  <th className="py-3 px-4 border">Nama</th>
-                  <th className="py-3 px-4 border">Program Studi</th>
-                  <th className="py-3 px-4 border">Email</th>
-                  <th className="py-3 px-4 border">Aksi</th>
+                  <th className="py-3 px-4 border border-gray-300 w-16">No</th>
+                  <th className="py-3 px-4 border border-gray-300">Nama</th>
+                  <th className="py-3 px-4 border border-gray-300">Program Studi</th>
+                  <th className="py-3 px-4 border border-gray-300">Email</th>
+                  <th className="py-3 px-4 border border-gray-300">Aksi</th>
                 </tr>
               </thead>
 
@@ -265,10 +262,10 @@ export default function LecturersTable() {
 
                   return (
                     <React.Fragment key={lect.id}>
-                      <tr className="border hover:bg-blue-50">
+                      <tr className="border border-gray-300 hover:bg-blue-50">
                         <td className="py-3 px-4 text-center">{indexNumber}</td>
 
-                        <td className="py-3 px-4 flex items-center gap-3">
+                        <td className="py-3.5 px-4 flex items-center gap-3 border border-gray-200">
                           <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 border">
                             <img
                               src={lect.imageUrl}
@@ -284,16 +281,16 @@ export default function LecturersTable() {
                           </div>
                         </td>
 
-                        <td className="py-3 px-4">{lect.studyProgram}</td>
-                        <td className="py-3 px-4">{lect.email}</td>
+                        <td className="py-3 px-4 border border-gray-300">{lect.studyProgram}</td>
+                        <td className="py-3 px-4 border border-gray-300">{lect.email}</td>
 
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-3 px-4 text-center border border-gray-300">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => toggleExpand(lect.id)}
                               className="px-3 py-1 bg-blue-100 rounded-md text-blue-700 flex gap-1"
                             >
-                              <Users size={14} />
+                              <Users className="pt-1" size={15} />
                               Detail
                             </button>
 
@@ -304,20 +301,19 @@ export default function LecturersTable() {
                               }}
                               className="px-3 py-1 bg-yellow-500 text-white rounded-md flex gap-1"
                             >
-                              <Edit size={14} />
+                              <Edit className="pt-1" size={15} />
                               Edit
                             </button>
                           </div>
                         </td>
                       </tr>
 
-                      {/* DETAIL EXPAND */}
+                      {/* EXPANDED DETAIL */}
                       {expandedId === lect.id && (
                         <tr>
-                          <td colSpan={5} className="p-0 border">
+                          <td colSpan={5} className="p-0 border border-gray-300">
                             <div className="p-6 bg-[#f5f7fb]">
-                              
-                              {/* INFO PRIBADI */}
+                              {/* Card Informasi Pribadi */}
                               <div className="bg-white p-6 rounded-lg shadow border mb-6">
                                 <div className="flex items-center gap-6">
                                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-300 bg-white">
@@ -345,7 +341,7 @@ export default function LecturersTable() {
                                 </div>
                               </div>
 
-                              {/* RIWAYAT */}
+                              {/* Riwayat Pendidikan */}
                               <div className="bg-white p-6 rounded-lg shadow border">
                                 <h3 className="text-xl font-bold mb-3 text-[#0a3b91]">
                                   Riwayat Pendidikan

@@ -1,3 +1,4 @@
+// controllers/lecturerController.ts
 import { Request, Response } from "express";
 import { prisma } from "../db";
 
@@ -10,7 +11,10 @@ export const getAllLecturers = async (req: Request, res: Response) => {
       where: { role: "dosen" },
       include: {
         lecturerprofile: {
-          include: { educationhistory: true },
+          include: {
+            educationhistory: true,
+            research: true,
+          },
         },
       },
       orderBy: { id: "asc" },
@@ -38,16 +42,14 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
       where: { id: userId },
     });
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
-      include: { educationhistory: true },
+      include: { educationhistory: true, research: true },
     });
 
-    // CREATE PROFILE IF NOT EXISTS
+    // CREATE EMPTY PROFILE IF NOT EXISTS
     if (!profile) {
       await prisma.lecturerprofile.create({
         data: {
@@ -58,10 +60,9 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
         },
       });
 
-      // Fetch again after created
       profile = await prisma.lecturerprofile.findUnique({
         where: { userId },
-        include: { educationhistory: true },
+        include: { educationhistory: true, research: true },
       });
     }
 
@@ -177,5 +178,77 @@ export const deleteEducationHistory = async (req: Request, res: Response) => {
   } catch (err) {
     console.error("DELETE EDUCATION ERR:", err);
     return res.status(500).json({ error: "Failed to delete education" });
+  }
+};
+
+// =============================================================
+// ADD RESEARCH
+// =============================================================
+export const addResearch = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+
+  try {
+    let profile = await prisma.lecturerprofile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      profile = await prisma.lecturerprofile.create({
+        data: { userId },
+      });
+    }
+
+    const r = await prisma.research.create({
+      data: {
+        lecturerId: profile.id,
+        title: req.body.title,
+        year: Number(req.body.year),
+      },
+    });
+
+    return res.json(r);
+  } catch (err) {
+    console.error("ADD RESEARCH ERR:", err);
+    return res.status(500).json({ error: "Failed to add research" });
+  }
+};
+
+// =============================================================
+// UPDATE RESEARCH
+// =============================================================
+export const updateResearch = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+
+  try {
+    const updated = await prisma.research.update({
+      where: { id },
+      data: {
+        title: req.body.title,
+        year: Number(req.body.year),
+      },
+    });
+
+    return res.json(updated);
+  } catch (err) {
+    console.error("UPDATE RESEARCH ERR:", err);
+    return res.status(500).json({ error: "Failed to update research" });
+  }
+};
+
+// =============================================================
+// DELETE RESEARCH
+// =============================================================
+export const deleteResearch = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+
+  try {
+    await prisma.research.delete({
+      where: { id },
+    });
+
+    return res.json({ message: "Deleted" });
+  } catch (err) {
+    console.error("DELETE RESEARCH ERR:", err);
+    return res.status(500).json({ error: "Failed to delete research" });
   }
 };

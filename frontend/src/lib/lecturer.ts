@@ -29,9 +29,9 @@ async function safeFetch(url: string, options: RequestInit = {}) {
   return data;
 }
 
-// ========================================================
-// GET ALL
-// ========================================================
+// ==========================================
+// GET ALL / PROFILE / UPDATE
+// ==========================================
 export function getAllLecturers() {
   return safeFetch(`${BASE_URL}`);
 }
@@ -40,24 +40,16 @@ export function getLecturerProfile(userId: number) {
   return safeFetch(`${BASE_URL}/${userId}`);
 }
 
-// ========================================================
-// UPDATE PROFILE (AUTO DETECT PHOTO / NON-PHOTO)
-// ========================================================
 export function updateLecturerProfile(userId: number, data: any) {
-  const isForm = data instanceof FormData;
-
-  return safeFetch(
-    `${BASE_URL}/${userId}${isForm ? "/photo" : ""}`,
-    {
-      method: "PUT",
-      body: isForm ? data : JSON.stringify(data),
-    }
-  );
+  return safeFetch(`${BASE_URL}/${userId}`, {
+    method: "PUT",
+    body: data,
+  });
 }
 
-// ========================================================
-// EDUCATION CRUD
-// ========================================================
+// ==========================================
+// CRUD EDUCATION (TIDAK DIUBAH)
+// ==========================================
 export function addEducation(userId: number, data: any) {
   return safeFetch(`${BASE_URL}/${userId}/education`, {
     method: "POST",
@@ -74,6 +66,29 @@ export function updateEducation(id: number, data: any) {
 
 export function deleteEducation(id: number) {
   return safeFetch(`${BASE_URL}/education/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// ==========================================
+// CRUD RESEARCH (PATHS FIXED)
+// ==========================================
+export function addResearch(userId: number, data: any) {
+  return safeFetch(`${BASE_URL}/lecturer/${userId}/research`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateResearch(id: number, data: any) {
+  return safeFetch(`${BASE_URL}/research/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteResearch(id: number) {
+  return safeFetch(`${BASE_URL}/research/${id}`, {
     method: "DELETE",
   });
 }
