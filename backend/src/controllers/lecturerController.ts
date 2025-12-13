@@ -1,10 +1,9 @@
-// controllers/lecturerController.ts
 import { Request, Response } from "express";
 import { prisma } from "../db";
 
-// =============================================================
-// GET ALL LECTURERS
-// =============================================================
+/* =============================================================
+   GET ALL LECTURERS
+   ============================================================= */
 export const getAllLecturers = async (req: Request, res: Response) => {
   try {
     const lecturers = await prisma.user.findMany({
@@ -13,7 +12,7 @@ export const getAllLecturers = async (req: Request, res: Response) => {
         lecturerprofile: {
           include: {
             educationhistory: true,
-            research: true,
+            research: true, // 🔥 FIX PENTING
           },
         },
       },
@@ -27,9 +26,9 @@ export const getAllLecturers = async (req: Request, res: Response) => {
   }
 };
 
-// =============================================================
-// GET ONE LECTURER PROFILE
-// =============================================================
+/* =============================================================
+   GET ONE LECTURER PROFILE
+   ============================================================= */
 export const getLecturerProfile = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
@@ -42,27 +41,31 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
       where: { id: userId },
     });
 
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
-      include: { educationhistory: true, research: true },
+      include: {
+        educationhistory: true,
+        research: true, // 🔥 FIX PENTING
+      },
     });
 
-    // CREATE EMPTY PROFILE IF NOT EXISTS
+    // CREATE PROFILE IF NOT EXISTS
     if (!profile) {
-      await prisma.lecturerprofile.create({
+      profile = await prisma.lecturerprofile.create({
         data: {
           userId,
           studyProgram: "",
           specialization: "",
           imageUrl: null,
         },
-      });
-
-      profile = await prisma.lecturerprofile.findUnique({
-        where: { userId },
-        include: { educationhistory: true, research: true },
+        include: {
+          educationhistory: true,
+          research: true,
+        },
       });
     }
 
@@ -73,9 +76,9 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
   }
 };
 
-// =============================================================
-// UPDATE PROFILE
-// =============================================================
+/* =============================================================
+   UPDATE PROFILE
+   ============================================================= */
 export const updateLecturerProfile = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.params.userId);
@@ -107,9 +110,9 @@ export const updateLecturerProfile = async (req: Request, res: Response) => {
   }
 };
 
-// =============================================================
-// ADD EDUCATION
-// =============================================================
+/* =============================================================
+   ADD EDUCATION (TIDAK DIUBAH)
+   ============================================================= */
 export const addEducationHistory = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
@@ -140,9 +143,9 @@ export const addEducationHistory = async (req: Request, res: Response) => {
   }
 };
 
-// =============================================================
-// UPDATE EDUCATION
-// =============================================================
+/* =============================================================
+   UPDATE EDUCATION
+   ============================================================= */
 export const updateEducationHistory = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -163,9 +166,9 @@ export const updateEducationHistory = async (req: Request, res: Response) => {
   }
 };
 
-// =============================================================
-// DELETE EDUCATION
-// =============================================================
+/* =============================================================
+   DELETE EDUCATION
+   ============================================================= */
 export const deleteEducationHistory = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -181,9 +184,9 @@ export const deleteEducationHistory = async (req: Request, res: Response) => {
   }
 };
 
-// =============================================================
-// ADD RESEARCH
-// =============================================================
+/* =============================================================
+   ADD RESEARCH (PASTI MASUK KE PROFILE)
+   ============================================================= */
 export const addResearch = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
@@ -198,24 +201,24 @@ export const addResearch = async (req: Request, res: Response) => {
       });
     }
 
-    const r = await prisma.research.create({
+    const research = await prisma.research.create({
       data: {
-        lecturerId: profile.id,
+        lecturerId: profile.id, // 🔥 PENTING
         title: req.body.title,
         year: Number(req.body.year),
       },
     });
 
-    return res.json(r);
+    return res.json(research);
   } catch (err) {
     console.error("ADD RESEARCH ERR:", err);
     return res.status(500).json({ error: "Failed to add research" });
   }
 };
 
-// =============================================================
-// UPDATE RESEARCH
-// =============================================================
+/* =============================================================
+   UPDATE RESEARCH
+   ============================================================= */
 export const updateResearch = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -235,9 +238,9 @@ export const updateResearch = async (req: Request, res: Response) => {
   }
 };
 
-// =============================================================
-// DELETE RESEARCH
-// =============================================================
+/* =============================================================
+   DELETE RESEARCH
+   ============================================================= */
 export const deleteResearch = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 

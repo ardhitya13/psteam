@@ -73,42 +73,41 @@ model teamproject {
 }
 
 model trainingregistration {
-  id            Int      @id @default(autoincrement())
-  name          String
-  email         String
-  phone         String
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String
+  phone String
 
-  trainingId    Int
-  training      training?     @relation(fields: [trainingId], references: [id])
+  trainingId Int
+  training   training? @relation(fields: [trainingId], references: [id])
 
-  batch         String
-  notes         String?
-  status        String   @default("pending")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  batch     String
+  notes     String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
 model training {
-  id               Int      @id @default(autoincrement())
+  id               Int                    @id @default(autoincrement())
   title            String
   price            Int
   thumbnail        String?
   description      String?
-  organizer        String?  @default("PSTeam Academy")
+  organizer        String?                @default("PSTeam Academy")
   certificate      String?
-  costDetails      String?  @db.LongText
-  created_at       DateTime @default(now())
+  costDetails      String?                @db.LongText
+  created_at       DateTime               @default(now())
   duration         String?
   instructor       String?
   location         String?
-  requirements     String?  @db.LongText
-  rundown          String?  @db.LongText
-  schedule         String?  @db.LongText
+  requirements     String?                @db.LongText
+  rundown          String?                @db.LongText
+  schedule         String?                @db.LongText
   shortDescription String?
-  type             String   @default("web")
-  updated_at       DateTime @default(now()) @updatedAt
-  registrations   trainingregistration[]   // relasi balik (one-to-many)
+  type             String                 @default("web")
+  updated_at       DateTime               @default(now()) @updatedAt
+  registrations    trainingregistration[] // relasi balik (one-to-many)
 }
 
 model lecturerprofile {
@@ -120,6 +119,7 @@ model lecturerprofile {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @default(now()) @updatedAt
   educationhistory educationhistory[]
+  research         research[]
   user             user               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -132,4 +132,17 @@ model educationhistory {
   lecturer   lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
 
   @@index([lecturerId])
+}
+
+model research {
+  id    Int    @id @default(autoincrement())
+  title String
+  year  Int
+
+  // RELATION
+  lecturerId Int
+  lecturer   lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

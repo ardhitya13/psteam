@@ -1,5 +1,4 @@
-// routes/lecturer.ts
-import { Router } from "express";
+import { Router, json } from "express";
 import {
   getAllLecturers,
   getLecturerProfile,
@@ -22,15 +21,20 @@ router.get("/", getAllLecturers);
 // GET ONE PROFILE
 router.get("/:userId", getLecturerProfile);
 
-// UPDATE WITH PHOTO (DOSEN SENDIRI)
+// ===========================
+// UPDATE PROFIL + FOTO (Dosen sendiri)
+// ===========================
 router.put(
   "/:userId/photo",
   uploadLecturer.single("photo"),
   updateLecturerProfile
 );
 
-// UPDATE WITHOUT PHOTO (ADMIN EDIT RIWAYAT DOSEN)
-router.put("/:userId", updateLecturerProfile);
+// ===========================
+// UPDATE PROFIL TANPA FOTO (Admin)
+// ===========================
+// FIX TERPENTING: Paksa baca JSON
+router.put("/:userId", json(), updateLecturerProfile);
 
 // EDUCATION CRUD
 router.post("/:userId/education", addEducationHistory);
