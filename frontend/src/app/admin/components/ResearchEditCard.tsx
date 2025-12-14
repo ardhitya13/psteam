@@ -1,10 +1,12 @@
-// components/EditResearchCard.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import ModalWrapper from "./ModalWrapper";
-import { X } from "lucide-react";
+import { createPortal } from "react-dom";
 
+/* =========================
+   TYPES
+========================= */
 type ResearchItem = {
   id?: number;
   title: string;
@@ -34,6 +36,9 @@ interface Props {
   onSubmit: (payload: { lecId: number; researchList: ResearchItem[] }) => void;
 }
 
+/* =========================
+   COMPONENT
+========================= */
 export default function EditResearchCard({
   isOpen,
   onClose,
@@ -46,10 +51,16 @@ export default function EditResearchCard({
     lecturer: LecturerInfo;
   } | null>(null);
 
+  /* ALERT STATE */
   const [successAlert, setSuccessAlert] = useState(false);
-  const [successTitle, setSuccessTitle] = useState<string>("");
+  const [successTitle, setSuccessTitle] = useState("");
 
-  // LOAD DEFAULT
+  const [deleteAlert, setDeleteAlert] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
+  /* =========================
+     LOAD DEFAULT
+  ========================= */
   useEffect(() => {
     if (defaultData) {
       setForm({
@@ -67,22 +78,27 @@ export default function EditResearchCard({
           specialization: defaultData.specialization,
         },
       });
-    } else {
-      setForm(null);
     }
   }, [defaultData]);
 
-  // RESET ON CLOSE
+  /* =========================
+     RESET
+  ========================= */
   useEffect(() => {
     if (!isOpen) {
       setForm(null);
       setSuccessAlert(false);
+      setDeleteAlert(false);
+      setDeleteIndex(null);
       setSuccessTitle("");
     }
   }, [isOpen]);
 
   if (!isOpen || !form) return null;
 
+  /* =========================
+     HANDLERS
+  ========================= */
   function addResearchRow() {
     setForm((prev) =>
       prev && {
@@ -95,7 +111,11 @@ export default function EditResearchCard({
     );
   }
 
-  function updateResearchRow(index: number, key: keyof ResearchItem, value: any) {
+  function updateResearchRow(
+    index: number,
+    key: keyof ResearchItem,
+    value: any
+  ) {
     setForm((prev) => {
       if (!prev) return prev;
       const updated = [...prev.researchList];
@@ -104,14 +124,26 @@ export default function EditResearchCard({
     });
   }
 
-  function removeResearchRow(index: number) {
+  function askDelete(index: number) {
+    setDeleteIndex(index);
+    setDeleteAlert(true);
+  }
+
+  function confirmDelete() {
+    if (deleteIndex === null) return;
+
     setForm((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        researchList: prev.researchList.filter((_, i) => i !== index),
+        researchList: prev.researchList.filter(
+          (_, i) => i !== deleteIndex
+        ),
       };
     });
+
+    setDeleteAlert(false);
+    setDeleteIndex(null);
   }
 
   function submit(e: React.FormEvent) {
@@ -127,113 +159,212 @@ export default function EditResearchCard({
       return;
     }
 
-    // trigger parent update (parent must NOT close the modal immediately)
     onSubmit({
       lecId: form.lecId,
       researchList: clean,
     });
 
-    // show internal success alert — modal stays open until user taps OK
     setSuccessTitle(clean[0]?.title || "Penelitian");
     setSuccessAlert(true);
   }
 
+  /* =========================
+     RENDER
+  ========================= */
   return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl bg-white text-black max-h-[90vh] overflow-y-auto scrollbar-hide">
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={() => {
+        if (successAlert || deleteAlert) return;
+        onClose();
+      }}
+      lockScroll={successAlert || deleteAlert}
+    >
+      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl text-black">
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-6 relative">
-          <h2 className="text-2xl font-bold text-gray-900 w-full text-center">Edit Penelitian Dosen</h2>
-          <button onClick={onClose} className="absolute right-2 top-0 p-2">
-            <X size={22} className="text-gray-700" />
-          </button>
-        </div>
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Edit Penelitian Dosen
+        </h2>
 
-        {/* PERSONAL INFO */}
+        {/* INFO */}
         <div className="border rounded-xl p-4 bg-gray-50 mb-6">
-          <h3 className="text-lg font-bold mb-3 text-gray-800">Informasi Pribadi</h3>
+          <h3 className="text-lg font-bold mb-3">Informasi Pribadi</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ReadOnly label="Nama" value={form.lecturer.name} />
             <ReadOnly label="Email" value={form.lecturer.email} />
-            <ReadOnly label="Program Studi" value={form.lecturer.studyProgram} />
-            <ReadOnly label="Spesialisasi" value={form.lecturer.specialization} />
+            <ReadOnly
+              label="Program Studi"
+              value={form.lecturer.studyProgram}
+            />
+            <ReadOnly
+              label="Spesialisasi"
+              value={form.lecturer.specialization}
+            />
           </div>
         </div>
 
-        {/* LIST FORM */}
-        <form onSubmit={submit} className="pb-10">
+        <form onSubmit={submit}>
           <div className="border bg-gray-50 rounded-xl p-5 shadow mb-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">Daftar Penelitian</h3>
-              <button type="button" onClick={addResearchRow} className="text-blue-600 hover:text-blue-800 font-semibold">+ Tambah Penelitian</button>
+              <h3 className="text-lg font-bold">Daftar Penelitian</h3>
+              <button
+                type="button"
+                onClick={addResearchRow}
+                className="text-blue-600 font-semibold"
+              >
+                + Tambah Penelitian
+              </button>
             </div>
 
-            {form.researchList.length === 0 && <p className="text-gray-500 italic mt-4">Belum ada penelitian.</p>}
-
             {form.researchList.map((r, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-lg shadow mt-4 grid grid-cols-1 gap-4">
-                <div>
-                  <label className="text-sm font-semibold">Judul Penelitian</label>
-                  <textarea
-                    className="border rounded-lg p-2 w-full min-h-[56px]"
-                    value={r.title}
-                    onChange={(e) => updateResearchRow(idx, "title", e.target.value)}
+              <div
+                key={idx}
+                className="bg-white p-4 rounded-lg shadow mt-4"
+              >
+                <label className="text-sm font-semibold">
+                  Judul Penelitian
+                </label>
+                <textarea
+                  className="border rounded-lg p-2 w-full mt-1"
+                  value={r.title}
+                  onChange={(e) =>
+                    updateResearchRow(idx, "title", e.target.value)
+                  }
+                />
+
+                <div className="flex items-center gap-4 mt-3">
+                  <input
+                    type="number"
+                    min={1900}
+                    className="border rounded-lg p-2 w-32"
+                    value={r.year}
+                    onChange={(e) =>
+                      updateResearchRow(
+                        idx,
+                        "year",
+                        Number(e.target.value)
+                      )
+                    }
                   />
-                </div>
 
-                <div className="flex items-center gap-4">
-                  <div>
-                    <label className="text-sm font-semibold">Tahun</label>
-                    <input
-                      type="number"
-                      min={1900}
-                      max={2100}
-                      className="border rounded-lg p-2 w-32"
-                      value={r.year}
-                      onChange={(e) => updateResearchRow(idx, "year", Number(e.target.value))}
-                    />
-                  </div>
-
-                  <button type="button" onClick={() => removeResearchRow(idx)} className="ml-auto bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Hapus</button>
+                  <button
+                    type="button"
+                    onClick={() => askDelete(idx)}
+                    className="ml-auto bg-red-500 text-white px-3 py-1 rounded"
+                  >
+                    Hapus
+                  </button>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="flex justify-end gap-4">
-            <button type="button" onClick={onClose} className="px-6 py-3 bg-gray-300 rounded-lg">Batal</button>
-            <button type="submit" className="px-8 py-3 bg-blue-600 text-white rounded-lg">Simpan Perubahan</button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 bg-gray-300 rounded-lg"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg"
+            >
+              Simpan
+            </button>
           </div>
         </form>
 
-        {/* SUCCESS ALERT (inside modal) */}
+        {/* SUCCESS ALERT */}
         {successAlert && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
-              <h3 className="text-lg font-semibold mb-3 text-blue-600">Perubahan Berhasil!</h3>
-              <p className="text-sm text-gray-700 mb-6">Penelitian <b>{successTitle}</b> berhasil diperbarui.</p>
-              <button
-                onClick={() => {
-                  setSuccessAlert(false);
-                  onClose();
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded text-sm"
-              >
-                OK
-              </button>
-            </div>
-          </div>
+          <Alert
+            title="Berhasil!"
+            message={`Penelitian "${successTitle}" berhasil diperbarui.`}
+            onOk={() => {
+              setSuccessAlert(false);
+              onClose();
+            }}
+          />
+        )}
+
+        {/* DELETE ALERT */}
+        {deleteAlert && (
+          <Alert
+            danger
+            title="Hapus Data?"
+            message="Penelitian ini akan dihapus."
+            onCancel={() => setDeleteAlert(false)}
+            onOk={confirmDelete}
+          />
         )}
       </div>
     </ModalWrapper>
   );
 }
 
+/* =========================
+   HELPERS
+========================= */
 function ReadOnly({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <label className="text-sm font-semibold text-gray-700">{label}</label>
-      <input disabled value={value || "-"} className="mt-1 w-full px-4 py-2 rounded-lg bg-gray-200 text-gray-700 border border-gray-300" />
+      <label className="text-sm font-semibold">{label}</label>
+      <input
+        disabled
+        value={value || "-"}
+        className="w-full bg-gray-200 border rounded px-3 py-2"
+      />
     </div>
+  );
+}
+
+function Alert({
+  title,
+  message,
+  onOk,
+  onCancel,
+  danger,
+}: any) {
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-lg p-6 text-center w-full max-w-sm">
+        <h3
+          className={`font-bold mb-2 ${
+            danger ? "text-red-600" : "text-blue-600"
+          }`}
+        >
+          {title}
+        </h3>
+        <p className="mb-4">{message}</p>
+        <div className="flex justify-center gap-3">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-300 rounded"
+            >
+              Batal
+            </button>
+          )}
+          <button
+            onClick={onOk}
+            className={`px-4 py-2 rounded text-white ${
+              danger ? "bg-red-600" : "bg-blue-600"
+            }`}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }

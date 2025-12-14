@@ -62,12 +62,7 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
           </div>
         </a>
 
-        {/* TITLE */}
-        <h1 className="font-bold text-[#0a3b91] text-lg select-none">
-          <span className="font-medium text-gray-600 ml-1 hidden sm:inline">
-            Dashboard Dosen
-          </span>
-        </h1>
+        {/* ❌ TITLE DIHAPUS (Dashboard Dosen) */}
 
         {/* PROFILE DROPDOWN */}
         <div className="relative" ref={dropdownRef}>

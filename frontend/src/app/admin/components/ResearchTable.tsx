@@ -1,4 +1,3 @@
-// components/ResearchTable.tsx
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
@@ -56,7 +55,16 @@ export default function ResearchTable() {
     | null
   >(null);
 
-  // load data
+  // =============================================================
+  // PAGINATION STATE
+  // =============================================================
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageGroup, setPageGroup] = useState<number>(0);
+
+  // =============================================================
+  // LOAD DATA
+  // =============================================================
   async function loadLecturers() {
     try {
       const res = await getAllLecturers();
@@ -69,8 +77,12 @@ export default function ResearchTable() {
           email: lec.email || "-",
           studyProgram: profile.studyProgram || "-",
           specialization: profile.specialization || "-",
-          imageUrl: profile.imageUrl ? `http://localhost:4000${profile.imageUrl}` : "/no-photo.png",
-          research: Array.isArray(profile.research) ? profile.research : [],
+          imageUrl: profile.imageUrl
+            ? `http://localhost:4000${profile.imageUrl}`
+            : "/no-photo.png",
+          research: Array.isArray(profile.research)
+            ? profile.research
+            : [],
         } as Lecturer;
       });
 
@@ -87,15 +99,19 @@ export default function ResearchTable() {
     loadLecturers();
   }, []);
 
-  // CREATE / UPDATE / DELETE (SAMA DENGAN EDUCATION LOGIC)
-  async function handleUpdateResearch(payload: { lecId: number; researchList: ResearchItem[] }) {
+  // =============================================================
+  // CREATE / UPDATE / DELETE RESEARCH
+  // =============================================================
+  async function handleUpdateResearch(payload: {
+    lecId: number;
+    researchList: ResearchItem[];
+  }) {
     const { lecId, researchList } = payload;
 
     try {
       const lecturer = lecturers.find((l) => l.id === lecId);
       const original = lecturer?.research || [];
 
-      // DELETE items removed
       for (const old of original) {
         const stillExists = researchList.some((r) => r.id === old.id);
         if (!stillExists && old.id) {
@@ -103,7 +119,6 @@ export default function ResearchTable() {
         }
       }
 
-      // ADD or UPDATE
       for (const item of researchList) {
         if (!item.title.trim()) continue;
 
@@ -120,18 +135,16 @@ export default function ResearchTable() {
         }
       }
 
-      // refresh table
       await loadLecturers();
-
-      // DO NOT close the modal here — leave that to modal's OK button so alert remains visible
-      // setIsEditOpen(false); <-- intentionally omitted
-      // setEditPayload(null); <-- intentionally omitted
     } catch (err) {
       console.error("UPDATE RESEARCH ERROR:", err);
       alert("Gagal menyimpan penelitian.");
     }
   }
 
+  // =============================================================
+  // FILTER (SAMA DENGAN LECTURERSTABLE)
+  // =============================================================
   const filteredLecturers = useMemo(() => {
     if (!searchQuery.trim()) return lecturers;
 
@@ -144,6 +157,25 @@ export default function ResearchTable() {
         (l.email || "").toLowerCase().includes(q)
     );
   }, [searchQuery, lecturers]);
+
+  // =============================================================
+  // PAGINATION LOGIC
+  // =============================================================
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredLecturers.length / itemsPerPage)
+  );
+
+  const startIndex = currentPage * itemsPerPage - itemsPerPage;
+  const paginated = filteredLecturers.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setPageGroup(0);
+  }, [itemsPerPage, searchQuery]);
 
   if (loading) {
     return (
@@ -158,46 +190,112 @@ export default function ResearchTable() {
     year: new Date().getFullYear(),
   });
 
+  // =============================================================
+  // UI
+  // =============================================================
   return (
     <div className="min-h-screen bg-[#f5f7fb]">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <div className="flex flex-1">
-        <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <AdminSidebar
+          isOpen={isSidebarOpen}
+          toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
 
-        <main className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"}`}>
+        <main
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
+            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          }`}
+        >
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-black uppercase">Daftar Penelitian Dosen</h1>
-            <p className="text-gray-600 text-sm">Detail penelitian dosen — edit melalui modal.</p>
+            <h1 className="text-3xl font-bold text-black uppercase">
+              Daftar Penelitian Dosen
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Detail penelitian dosen — edit melalui modal.
+            </p>
           </div>
 
+          {/* SEARCH BAR */}
           <div className="flex justify-end mb-6">
             <div className="relative flex items-center h-10">
               {!searchOpen && (
-                <button onClick={() => { setSearchOpen(true); setTimeout(() => document.getElementById("searchInput")?.focus(), 50); }} className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-md absolute left-0">
+                <button
+                  onClick={() => {
+                    setSearchOpen(true);
+                    setTimeout(
+                      () =>
+                        document
+                          .getElementById("searchInput")
+                          ?.focus(),
+                      50
+                    );
+                  }}
+                  className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-md absolute left-0"
+                >
                   <Search size={18} />
                 </button>
               )}
 
-              <input id="searchInput" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onBlur={() => { if (!searchQuery.trim()) setSearchOpen(false); }} placeholder="Cari nama / prodi..." className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${searchOpen ? "w-56 pl-10 pr-3 opacity-100" : "w-10 opacity-0 pointer-events-none"}`} />
+              <input
+                id="searchInput"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onBlur={() => {
+                  if (!searchQuery.trim()) setSearchOpen(false);
+                }}
+                placeholder="Cari nama / prodi / email..."
+                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${
+                  searchOpen
+                    ? "w-56 pl-10 pr-3 opacity-100"
+                    : "w-10 opacity-0 pointer-events-none"
+                }`}
+              />
             </div>
+
+            <select
+              value={itemsPerPage}
+              onChange={(e) =>
+                setItemsPerPage(Number(e.target.value))
+              }
+              className="ml-3 text-black bg-white rounded-md px-6 py-2"
+            >
+              {[10, 20, 30].map((n) => (
+                <option key={n}>{n} / halaman</option>
+              ))}
+            </select>
           </div>
 
+          {/* TABLE */}
           <div className="bg-white shadow-md rounded-lg border border-gray-300 overflow-hidden">
             <table className="min-w-full text-sm text-gray-800">
               <thead className="bg-blue-50 font-semibold uppercase">
                 <tr>
-                  <th className="px-4 py-3 border border-gray-300 w-16">No</th>
-                  <th className="px-4 py-3 border border-gray-300">Nama</th>
-                  <th className="px-4 py-3 border border-gray-300">Program Studi</th>
-                  <th className="px-4 py-3 border border-gray-300">Email</th>
-                  <th className="px-4 py-3 border border-gray-300">Aksi</th>
+                  <th className="px-4 py-3 border border-gray-300 w-16">
+                    No
+                  </th>
+                  <th className="px-4 py-3 border border-gray-300">
+                    Nama
+                  </th>
+                  <th className="px-4 py-3 border border-gray-300">
+                    Program Studi
+                  </th>
+                  <th className="px-4 py-3 border border-gray-300">
+                    Email
+                  </th>
+                  <th className="px-4 py-3 border border-gray-300">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredLecturers.map((lec, index) => (
-                  <React.Fragment key={lec.id}>
+                {paginated.map((lec, index) => {
+                  const indexNumber = startIndex + index + 1;
+
+                  return (
+                    <React.Fragment key={lec.id}>
                     <tr className="hover:bg-blue-50">
                       <td className="py-3 px-4 text-center border border-gray-300">{index + 1}</td>
 
@@ -290,9 +388,70 @@ export default function ResearchTable() {
                       </tr>
                     )}
                   </React.Fragment>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
+
+            {/* PAGINATION */}
+            <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
+              <button
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage((prev) => prev - 1);
+                    setPageGroup(
+                      Math.floor((currentPage - 2) / 3)
+                    );
+                  }
+                }}
+                disabled={currentPage === 1}
+                className={`px-2 py-1 rounded border text-xs ${
+                  currentPage === 1
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300"
+                }`}
+              >
+                &lt;
+              </button>
+
+              {Array.from({ length: 3 }, (_, i) => {
+                const pageNum = pageGroup * 3 + (i + 1);
+                if (pageNum > totalPages) return null;
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-2 py-1 rounded text-xs border ${
+                      currentPage === pageNum
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-300"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage((prev) => prev + 1);
+                    setPageGroup(
+                      Math.floor(currentPage / 3)
+                    );
+                  }
+                }}
+                disabled={currentPage === totalPages}
+                className={`px-2 py-1 rounded border text-xs ${
+                  currentPage === totalPages
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300"
+                }`}
+              >
+                &gt;
+              </button>
+            </div>
           </div>
 
           {/* MODAL */}
@@ -310,3 +469,6 @@ export default function ResearchTable() {
     </div>
   );
 }
+
+                  
+          

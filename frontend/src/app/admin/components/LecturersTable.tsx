@@ -77,34 +77,29 @@ export default function LecturersTable() {
   }, []);
 
   // =============================================================
-  // EDIT HANDLER — FIXED TOTAL
+  // EDIT HANDLER
   // =============================================================
   const handleEditLecturer = async (updated: Lecturer) => {
     try {
-      // 1️⃣ UPDATE PROFILE (studyProgram + specialization)
-      await updateLecturerProfile(
-        updated.id,
-        JSON.stringify({
-          studyProgram: updated.studyProgram,
-          specialization: updated.specialization,
-        })
-      );
+      await updateLecturerProfile(updated.id, {
+        studyProgram: updated.studyProgram,
+        specialization: updated.specialization,
+      });
 
       const original = lecturers.find((l) => l.id === updated.id);
 
-      // 2️⃣ DELETE EDUCATION THAT WAS REMOVED
       if (original) {
         for (const edu of original.educationHistory) {
-          const stillExists = updated.educationHistory.some((e) => e.id === edu.id);
+          const stillExists = updated.educationHistory.some(
+            (e) => e.id === edu.id
+          );
           if (!stillExists && edu.id) {
             await deleteEducation(edu.id);
           }
         }
       }
 
-      // 3️⃣ ADD OR UPDATE EDUCATION
       for (const edu of updated.educationHistory) {
-        // Skip empty rows
         if (!edu.degree && !edu.university && !edu.major) continue;
 
         if (!edu.id) {
@@ -123,8 +118,6 @@ export default function LecturersTable() {
       }
 
       await loadLecturers();
-      setIsEditOpen(false);
-      setSelectedLecturer(null);
     } catch (err) {
       console.error("UPDATE ERROR:", err);
       alert("Gagal menyimpan perubahan riwayat dosen.");
@@ -140,6 +133,7 @@ export default function LecturersTable() {
 
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageGroup, setPageGroup] = useState<number>(0);
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -160,20 +154,19 @@ export default function LecturersTable() {
   }, [lecturers, searchTerm]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-
-  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const startIndex = currentPage * itemsPerPage - itemsPerPage;
   const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
+    setPageGroup(0);
   }, [itemsPerPage, searchTerm]);
 
   const toggleExpand = (id: number) =>
     setExpandedId((prev) => (prev === id ? null : id));
 
   // =============================================================
-  // UI RENDER
+  // UI
   // =============================================================
   return (
     <div className="min-h-screen w-full bg-[#f5f7fb] flex flex-col">
@@ -186,9 +179,8 @@ export default function LecturersTable() {
         />
 
         <main
-          className={`flex-1 transition-all duration-300 px-8 py-6 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          } mt-[85px]`}
+          className={`flex-1 transition-all duration-300 px-8 py-6 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            } mt-[85px]`}
         >
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-black uppercase">
@@ -223,10 +215,9 @@ export default function LecturersTable() {
                     if (!searchTerm.trim()) setIsSearchOpen(false);
                   }}
                   className={`transition-all duration-300 rounded-md border bg-white text-sm 
-                    ${
-                      isSearchOpen
-                        ? "w-64 pl-10 pr-3 py-2 opacity-100 z-30"
-                        : "w-10 opacity-0 pointer-events-none"
+                    ${isSearchOpen
+                      ? "w-64 pl-10 pr-3 py-2 opacity-100 z-30"
+                      : "w-10 opacity-0 pointer-events-none"
                     }`}
                 />
               </div>
@@ -234,10 +225,10 @@ export default function LecturersTable() {
               <select
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="text-black bg-white rounded-md px-5 py-2"
+                className="text-black bg-white rounded-md px-6 py-2"
               >
                 {[10, 20, 30].map((n) => (
-                  <option key={n}>{n} /  halaman</option>
+                  <option key={n}>{n} / halaman</option>
                 ))}
               </select>
             </div>
@@ -250,7 +241,9 @@ export default function LecturersTable() {
                 <tr>
                   <th className="py-3 px-4 border border-gray-300 w-16">No</th>
                   <th className="py-3 px-4 border border-gray-300">Nama</th>
-                  <th className="py-3 px-4 border border-gray-300">Program Studi</th>
+                  <th className="py-3 px-4 border border-gray-300">
+                    Program Studi
+                  </th>
                   <th className="py-3 px-4 border border-gray-300">Email</th>
                   <th className="py-3 px-4 border border-gray-300">Aksi</th>
                 </tr>
@@ -387,17 +380,72 @@ export default function LecturersTable() {
                 })}
               </tbody>
             </table>
+
+            {/* PAGINATION */}
+            <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-gray-50 rounded-b-lg">
+              <button
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage((prev) => prev - 1);
+                    setPageGroup(Math.floor((currentPage - 2) / 3));
+                  }
+                }}
+                disabled={currentPage === 1}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300"
+                  }`}
+              >
+                &lt;
+              </button>
+
+              {Array.from({ length: 3 }, (_, i) => {
+                const pageNum = pageGroup * 3 + (i + 1);
+                if (pageNum > totalPages) return null;
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-300"
+                      }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage((prev) => prev + 1);
+                    setPageGroup(Math.floor(currentPage / 3));
+                  }
+                }}
+                disabled={currentPage === totalPages}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-gray-100 hover:bg-gray-300"
+                  }`}
+              >
+                &gt;
+              </button>
+            </div>
           </div>
 
           {isEditOpen && selectedLecturer && (
             <EditLecturerModal
               isOpen={isEditOpen}
+              defaultData={selectedLecturer}
               onClose={() => {
                 setIsEditOpen(false);
                 setSelectedLecturer(null);
               }}
-              defaultData={selectedLecturer}
-              onSubmit={handleEditLecturer}
+              onSubmit={async (updated) => {
+                await handleEditLecturer(updated);
+              }}
             />
           )}
         </main>

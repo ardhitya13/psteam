@@ -120,6 +120,9 @@ model lecturerprofile {
   updatedAt        DateTime           @default(now()) @updatedAt
   educationhistory educationhistory[]
   research         research[]
+  communityservice communityservice[]
+  scientificwork   scientificwork[]
+  intellectualproperty intellectualproperty[]
   user             user               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -138,11 +141,45 @@ model research {
   id    Int    @id @default(autoincrement())
   title String
   year  Int
-
-  // RELATION
   lecturerId Int
   lecturer   lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model communityservice {
+  id          Int              @id @default(autoincrement())
+  lecturerId Int
+  title       String
+  year        Int
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  lecturer    lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+
+}
+
+model scientificwork {
+  id          Int              @id @default(autoincrement())
+  lecturerId  Int
+  title       String
+  type        String
+  year        Int
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  lecturer    lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+}
+
+model intellectualproperty {
+  id          Int      @id @default(autoincrement())
+  lecturerId  Int
+  title       String
+  type        String
+  year        Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lecturer lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
 }
