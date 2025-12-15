@@ -16,7 +16,7 @@ export default function UserAddModal({
     email: string;
     password: string;
     role: string;
-  }) => void;
+  }) => Promise<void>;
 }) {
   const [loggedRole, setLoggedRole] = useState("");
 
@@ -31,26 +31,37 @@ export default function UserAddModal({
   const [successAlert, setSuccessAlert] = useState(false);
 
   useEffect(() => {
-    const r = localStorage.getItem("role");
-    if (r) setLoggedRole(r);
+    const user = localStorage.getItem("user");
+    if (!user) return;
+
+    try {
+      const parsed = JSON.parse(user);
+      setLoggedRole(parsed.role);
+    } catch {
+      setLoggedRole("");
+    }
   }, []);
 
   const handleChange = (key: string, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    onSubmit(form);
-    setSuccessAlert(true);
+    try {
+      await onSubmit(form);
+      setSuccessAlert(true);
 
-    setForm({
-      name: "",
-      role: "dosen",
-      email: "",
-      password: "",
-    });
+      setForm({
+        name: "",
+        role: "dosen",
+        email: "",
+        password: "",
+      });
+    } catch (err: any) {
+      alert(err.message || "Gagal menambahkan user");
+    }
   };
 
   return (
@@ -58,7 +69,6 @@ export default function UserAddModal({
       <h2 className="text-xl font-bold mb-8 text-black">Tambah User</h2>
 
       <form onSubmit={submit} className="space-y-8">
-
         {/* BARIS 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -70,8 +80,7 @@ export default function UserAddModal({
               placeholder="Nama lengkap"
               value={form.name}
               onChange={(e) => handleChange("name", e.target.value)}
-              className="mt-2 w-full border rounded-lg px-4 py-3 text-sm 
-                         bg-white text-black placeholder-gray-400"
+              className="mt-2 w-full border rounded-lg px-4 py-3 text-sm bg-white text-black"
             />
           </div>
 
@@ -83,8 +92,7 @@ export default function UserAddModal({
               value={form.role}
               onChange={(e) => handleChange("role", e.target.value)}
               disabled={loggedRole !== "superadmin"}
-              className="mt-2 w-full border rounded-lg px-4 py-3 text-sm 
-                         bg-white text-black"
+              className="mt-2 w-full border rounded-lg px-4 py-3 text-sm bg-white text-black"
             >
               <option value="admin">Admin</option>
               <option value="dosen">Dosen</option>
@@ -110,8 +118,7 @@ export default function UserAddModal({
               placeholder="email@gmail.com"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
-              className="mt-2 w-full border rounded-lg px-4 py-3 text-sm 
-                         bg-white text-black placeholder-gray-400"
+              className="mt-2 w-full border rounded-lg px-4 py-3 text-sm bg-white text-black"
             />
           </div>
 
@@ -126,8 +133,7 @@ export default function UserAddModal({
                 placeholder="Minimal 8 karakter"
                 value={form.password}
                 onChange={(e) => handleChange("password", e.target.value)}
-                className="mt-2 w-full border rounded-lg px-4 py-3 text-sm pr-12
-                           bg-white text-black placeholder-gray-400"
+                className="mt-2 w-full border rounded-lg px-4 py-3 text-sm pr-12 bg-white text-black"
               />
 
               <button
@@ -159,7 +165,6 @@ export default function UserAddModal({
         </div>
       </form>
 
-      {/* ALERT SUCCESS */}
       {successAlert && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">

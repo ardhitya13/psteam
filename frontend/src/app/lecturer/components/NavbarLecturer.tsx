@@ -4,6 +4,7 @@ import { Menu, LogOut, User, KeyRound } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { logout } from "../../../lib/logout";
 
 export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
   const router = useRouter();
@@ -17,14 +18,12 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
 
   // LOAD USER DATA FROM LOCAL STORAGE
   useEffect(() => {
-    const n = localStorage.getItem("userName") || "";
-    const sp = localStorage.getItem("userStudyProgram") || "";
-    const img = localStorage.getItem("userPhoto") || "";
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-    setName(n);
-    setStudyProgram(sp);
-    setPhoto(img);
-    setInitial(n ? n.charAt(0).toUpperCase() : "U");
+    setName(user.name || "");
+    setStudyProgram(user.studyProgram || "");
+    setPhoto(user.photo || "");
+    setInitial(user.name ? user.name.charAt(0).toUpperCase() : "U");
   }, []);
 
   // CLOSE DROPDOWN WHEN CLICK OUTSIDE
@@ -41,9 +40,9 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const logout = () => {
-    localStorage.clear();
-    router.push("/");
+  // 🔐 LOGOUT JWT (FINAL)
+  const handleLogout = () => {
+    logout(router);
   };
 
   return (
@@ -61,8 +60,6 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
             />
           </div>
         </a>
-
-        {/* ❌ TITLE DIHAPUS (Dashboard Dosen) */}
 
         {/* PROFILE DROPDOWN */}
         <div className="relative" ref={dropdownRef}>
@@ -122,7 +119,7 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
 
               {/* LOGOUT */}
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-gray-50"
               >
                 <LogOut size={16} className="mr-2" />

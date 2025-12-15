@@ -5,14 +5,15 @@ import NavbarLecturer from "../components/NavbarLecturer";
 import SidebarLecturer from "../components/SidebarLecturer";
 import { motion } from "framer-motion";
 import { KeyRound } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ChangePasswordPage() {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   const handleChangePassword = async () => {
@@ -26,24 +27,35 @@ export default function ChangePasswordPage() {
       return;
     }
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-
-      const res = await fetch("http://localhost:4000/api/auth/change-password", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          oldPassword,
-          newPassword,
-        }),
-      });
+      const res = await fetch(
+        "http://localhost:4000/api/auth/change-password",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ JWT
+          },
+          body: JSON.stringify({
+            oldPassword,
+            newPassword,
+          }),
+        }
+      );
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Gagal mengganti password");
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal mengganti password");
+      }
 
       alert("Password berhasil diperbarui!");
       setOldPassword("");
@@ -69,12 +81,11 @@ export default function ChangePasswordPage() {
           isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
         } mt-[85px]`}
       >
-        {/* CARD */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-3xl shadow-lg p-8 border border-gray-200 max-w-2xl mx-auto"
+          className="bg-white rounded-3xl shadow-lg p-8 border max-w-2xl mx-auto"
         >
           <div className="flex items-center gap-3 mb-6">
             <KeyRound size={32} className="text-[#0a3b91]" />
@@ -83,53 +94,34 @@ export default function ChangePasswordPage() {
             </h1>
           </div>
 
-          {/* Old Password */}
-          <div className="mb-5">
-            <label className="text-sm font-medium text-gray-700">
-              Password Lama
-            </label>
-            <input
-              type="password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              className="mt-1 w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0a3b91]"
-              placeholder="Masukkan password lama"
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password Lama"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+            className="w-full mb-4 border rounded-xl px-4 py-3"
+          />
 
-          {/* New Password */}
-          <div className="mb-5">
-            <label className="text-sm font-medium text-gray-700">
-              Password Baru
-            </label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="mt-1 w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0a3b91]"
-              placeholder="Masukkan password baru"
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password Baru"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full mb-4 border rounded-xl px-4 py-3"
+          />
 
-          {/* Confirm Password */}
-          <div className="mb-7">
-            <label className="text-sm font-medium text-gray-700">
-              Konfirmasi Password Baru
-            </label>
-            <input
-              type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              className="mt-1 w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0a3b91]"
-              placeholder="Konfirmasi password baru"
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Konfirmasi Password Baru"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className="w-full mb-6 border rounded-xl px-4 py-3"
+          />
 
-          {/* BUTTON */}
           <button
             onClick={handleChangePassword}
             disabled={loading}
-            className="w-full bg-[#0a3b91] hover:bg-blue-800 text-white py-3 rounded-xl font-semibold shadow-md transition"
+            className="w-full bg-[#0a3b91] text-white py-3 rounded-xl font-semibold"
           >
             {loading ? "Memproses..." : "Update Password"}
           </button>

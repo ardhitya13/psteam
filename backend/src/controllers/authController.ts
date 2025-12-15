@@ -1,16 +1,24 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { prisma } from "../db";
+import { AuthRequest } from "../middleware/authMiddleware";
 
-// =============================================================
-// LOGIN
-// =============================================================
-export const login = async (req: Request, res: Response) => {
+const JWT_SECRET = process.env.JWT_SECRET;
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+export const login = async (req: AuthRequest, res: Response) => {
   try {
     const { email, password, role } = req.body;
 
     if (!email || !password || !role) {
-      return res.status(400).json({ error: "Email, password, dan role wajib diisi" });
+      return res.status(400).json({ error: "Data tidak lengkap" });
+    }
+
+    if (!JWT_SECRET) {
+      return res.status(500).json({ error: "JWT_SECRET belum diset" });
     }
 
     const user = await prisma.user.findUnique({
@@ -18,7 +26,22 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(401).json({ error: "Email tidak terdaftar" });
+      return res.status(401).json({ error: "Email tidak ditemukan" });
+    }
+
+    /* =====================================================
+       VALIDASI ROLE (FIX SUPERADMIN)
+       - Pilih admin → boleh admin & superadmin
+       - Pilih dosen → hanya dosen
+       ===================================================== */
+    if (role === "admin") {
+      if (user.role !== "admin" && user.role !== "superadmin") {
+        return res.status(403).json({ error: "Role tidak sesuai" });
+      }
+    } else {
+      if (user.role !== role) {
+        return res.status(403).json({ error: "Role tidak sesuai" });
+      }
     }
 
     const valid = await bcrypt.compare(password, user.password);
@@ -26,15 +49,17 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Password salah" });
     }
 
-    // RULE LOGIN:
-    if (user.role === "superadmin" && role === "admin") {
-      // allowed
-    } else if (user.role !== role) {
-      return res.status(401).json({ error: "Role tidak sesuai!" });
-    }
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: user.role,
+      },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-    return res.json({
-      message: "Login sukses",
+    res.json({
+      token,
       user: {
         id: user.id,
         name: user.name,
@@ -42,53 +67,47 @@ export const login = async (req: Request, res: Response) => {
         role: user.role,
       },
     });
-
-  } catch (err: any) {
-    console.error("LOGIN ERROR:", err);
-    return res.status(500).json({ error: err.message });
+  } catch (error: any) {
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({ error: "Terjadi kesalahan pada server" });
   }
 };
 
-// =============================================================
-// CHANGE PASSWORD
-// =============================================================
-export const changePassword = async (req: Request, res: Response) => {
+/* =========================================================
+   CHANGE PASSWORD (JWT PROTECTED)
+   ========================================================= */
+export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, oldPassword, newPassword } = req.body;
+    const userId = req.user!.id;
+    const { oldPassword, newPassword } = req.body;
 
-    // Validasi input
-    if (!userId || !oldPassword || !newPassword) {
-      return res.status(400).json({ error: "Semua field wajib diisi" });
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: "Data tidak lengkap" });
     }
 
-    // Ambil user
     const user = await prisma.user.findUnique({
-      where: { id: Number(userId) },
+      where: { id: userId },
     });
 
     if (!user) {
       return res.status(404).json({ error: "User tidak ditemukan" });
     }
 
-    // Cek password lama
-    const match = await bcrypt.compare(oldPassword, user.password);
-    if (!match) {
-      return res.status(400).json({ error: "Password lama salah" });
+    const valid = await bcrypt.compare(oldPassword, user.password);
+    if (!valid) {
+      return res.status(401).json({ error: "Password lama salah" });
     }
 
-    // Hash password baru
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    // Update password
     await prisma.user.update({
-      where: { id: Number(userId) },
+      where: { id: userId },
       data: { password: hashed },
     });
 
-    return res.json({ message: "Password berhasil diperbarui!" });
-
-  } catch (err: any) {
-    console.error("CHANGE PASSWORD ERROR:", err);
-    return res.status(500).json({ error: err.message });
+    res.json({ message: "Password berhasil diubah" });
+  } catch (error: any) {
+    console.error("CHANGE PASSWORD ERROR:", error);
+    res.status(500).json({ error: "Terjadi kesalahan pada server" });
   }
 };
