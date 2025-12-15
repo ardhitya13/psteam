@@ -311,7 +311,7 @@ export default function CommunityServiceTable() {
                         <td className="py-3 px-4 border border-gray-300 text-center">
                           <div className="flex justify-center gap-2">
                             <button
-                              className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md flex gap-1"
+                              className="px-3 py-1 bg-blue-100 font-semibold rounded-md text-blue-700 flex gap-1 hover:bg-blue-200"
                               onClick={() =>
                                 setExpandedId(
                                   expandedId === lec.id ? null : lec.id
@@ -322,7 +322,7 @@ export default function CommunityServiceTable() {
                             </button>
 
                             <button
-                              className="px-3 py-1 bg-yellow-500 text-white rounded-md flex gap-1"
+                              className="px-3 py-1 bg-yellow-500 text-white font-semibold rounded-md flex gap-1 hover:bg-yellow-500"
                               onClick={() => {
                                 setEditPayload({
                                   lecId: lec.id,

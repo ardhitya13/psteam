@@ -325,21 +325,21 @@ export default function DaftarProyekPage() {
                                 setSelectedDetail(item.raw);
                                 setIsDetailOpen(true);
                               }}
-                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
+                              className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
                             >
                               <FileText size={14} /> Detail
                             </button>
 
                             <button
                               onClick={() => openEdit(item)}
-                              className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
+                              className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition"
                             >
                               <IconEdit size={14} /> Edit
                             </button>
 
                             <button
                               onClick={() => setConfirmDelete(item)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
+                              className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                             >
                               <Trash2 size={14} /> Hapus
                             </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Edit, Users, Search } from "lucide-react";
+import { Edit2, Users, Search } from "lucide-react";
 
 import EditLecturerModal from "./LecturerEditModal";
 import AdminNavbar from "./AdminNavbar";
@@ -281,7 +281,7 @@ export default function LecturersTable() {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => toggleExpand(lect.id)}
-                              className="px-3 py-1 bg-blue-100 rounded-md text-blue-700 flex gap-1"
+                              className="px-3 py-1 bg-blue-100 font-semibold rounded-md text-blue-700 flex gap-1 hover:bg-blue-200"
                             >
                               <Users className="pt-1" size={15} />
                               Detail
@@ -292,9 +292,9 @@ export default function LecturersTable() {
                                 setSelectedLecturer(lect);
                                 setIsEditOpen(true);
                               }}
-                              className="px-3 py-1 bg-yellow-500 text-white rounded-md flex gap-1"
+                              className="px-3 py-1 bg-yellow-500 text-white font-semibold rounded-md flex gap-1 hover:bg-yellow-600"
                             >
-                              <Edit className="pt-1" size={15} />
+                              <Edit2 className="pt-1" size={15} />
                               Edit
                             </button>
                           </div>

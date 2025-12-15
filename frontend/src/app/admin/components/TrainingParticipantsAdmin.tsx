@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, ChevronDown, Eye, Trash } from "lucide-react";
+import { Search, ChevronDown, FileText, Trash2 } from "lucide-react";
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
@@ -278,16 +278,16 @@ export default function TrainingParticipantsAdmin() {
                         <div className="flex justify-center gap-2">
                           <button
                             onClick={() => showDetail(p.training.id)}
-                            className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md flex items-center gap-1"
-                          >
-                            <Eye size={14} /> Detail
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                         >
+                            <FileText size={14} /> Detail
                           </button>
 
                           <button
                             onClick={() => setConfirmDelete(p)}
-                            className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
+                            className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                           >
-                            <Trash size={14} /> Hapus
+                            <Trash2 size={14} /> Hapus
                           </button>
                         </div>
                       </td>
@@ -377,7 +377,7 @@ export default function TrainingParticipantsAdmin() {
 
               <button
                 onClick={() => deleteNow(confirmDelete.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded text-sm"
+                className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
               >
                 Ya, Hapus
               </button>

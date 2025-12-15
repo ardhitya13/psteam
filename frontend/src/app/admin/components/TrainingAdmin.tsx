@@ -5,9 +5,9 @@ import {
   Search,
   PlusCircle,
   ChevronDown,
-  Eye,
-  Trash,
+  FileText,
   Edit,
+  Trash2,
 } from "lucide-react";
 
 import AdminNavbar from "./AdminNavbar";
@@ -311,27 +311,27 @@ export default function TrainingAdmin() {
                           Rp {Number(t.price || 0).toLocaleString()}
                         </td>
 
-                        <td className="border border-gray-300 px-4 py-3">
-                          <div className="flex gap-2">
+                        <td className="border border-gray-300 px-4 py-3 text-center">
+                          <div className="inline-flex justify-center gap-2 whitespace">
                             <button
                               onClick={() => setDetailData(t)}
-                              className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md flex items-center gap-1"
+                              className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
                             >
-                              <Eye size={14} /> Detail
+                              <FileText size={14} /> Detail
                             </button>
 
                             <button
                               onClick={() => setEditData(t)}
-                              className="bg-yellow-400 text-white px-3 py-1 rounded-md flex items-center gap-1"
+                              className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition "
                             >
                               <Edit size={14} /> Edit
                             </button>
 
                             <button
                               onClick={() => setConfirmDelete(t)}
-                              className="bg-red-500 text-white px-3 py-1 rounded-md flex items-center gap-1"
+                              className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                             >
-                              <Trash size={14} /> Hapus
+                              <Trash2 size={14} /> Hapus
                             </button>
                           </div>
                         </td>

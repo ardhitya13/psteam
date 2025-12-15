@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, ChevronDown, Eye } from "lucide-react";
+import { Search, ChevronDown, Trash2, FileText, Check } from "lucide-react";
 
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
@@ -288,24 +288,24 @@ export default function VerifyTrainingAdmin() {
                           {p.trainingId && (
                             <button
                               onClick={() => showDetail(p.trainingId)}
-                              className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md flex items-center gap-1 text-xs"
-                            >
-                              <Eye size={14} /> Detail
+                               className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                          >
+                              <FileText size={14} /> Detail
                             </button>
                           )}
 
                           <button
                             onClick={() => setConfirmAccept(p)}
-                            className="bg-blue-600 text-white px-3 py-1 text-xs rounded"
+                            className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition"
                           >
-                            Terima
+                            <Check size={14} /> Terima
                           </button>
 
                           <button
                             onClick={() => setConfirmReject(p)}
-                            className="bg-red-600 text-white px-3 py-1 text-xs rounded"
+                            className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                           >
-                            Tolak
+                          <Trash2 size={14} /> Tolak
                           </button>
                         </div>
                       </td>
