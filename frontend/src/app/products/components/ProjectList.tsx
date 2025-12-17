@@ -5,9 +5,16 @@ import ProjectCard, { ProductCardItem } from "./ProjectCard";
 import CategoryFilter from "./CategoryFilter";
 import { getAllProducts } from "../../../lib/apiProducts";
 
-const BASE_URL = "http://localhost:4000"; // FIX PENTING
+const BASE_URL = "http://localhost:4000";
 
-export default function ProjectList() {
+// ============================
+//   TAMBAHKAN PROPS DI SINI
+// ============================
+type ProjectListProps = {
+  initialShow?: number; // default = tampil semua
+};
+
+export default function ProjectList({ initialShow = 9999 }: ProjectListProps) {
   const [projects, setProjects] = useState<ProductCardItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,9 +34,7 @@ export default function ProjectList() {
 
         const normalized: ProductCardItem[] = items.map((p: any) => ({
           id: p.id,
-          image: p.image
-            ? `${BASE_URL}${p.image}` // 🔥 FIX WAJIB
-            : "/placeholder.png",
+          image: p.image ? `${BASE_URL}${p.image}` : "/placeholder.png",
           title: p.title,
           category: p.category,
           academicYear: p.academicYear,
@@ -41,7 +46,8 @@ export default function ProjectList() {
             : "",
         }));
 
-        setProjects(normalized);
+        // 🔥 BATAS JUMLAH PRODUK YANG DITAMPILKAN DI HOMEPAGE
+        setProjects(normalized.slice(0, initialShow));
       } catch (err) {
         console.error("Error load:", err);
         setProjects([]);
@@ -49,7 +55,7 @@ export default function ProjectList() {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [initialShow]); // 🔥 wajib supaya HomePage bisa kontrol display
 
   /* ================================
         RESET SAAT GANTI KATEGORI
@@ -84,7 +90,6 @@ export default function ProjectList() {
         onSelect={setSelectedCategory}
       />
 
-      {/* LOADING */}
       {loading ? (
         <p className="text-center text-gray-500 py-10">
           Loading data produk...

@@ -8,12 +8,13 @@ datasource db {
 }
 
 model user {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  password    String
-  role        String   // admin | dosen | superadmin (manual)
-  createdAt   DateTime @default(now())
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String           @unique
+  password        String
+  role            String
+  createdAt       DateTime         @default(now())
+  lecturerprofile lecturerprofile?
 }
 
 model product {
@@ -48,7 +49,7 @@ model teammember {
   id             Int         @id @default(autoincrement())
   name           String
   role           String
-  email          String
+  email          String?
   image          String?
   github         String?
   linkedin       String?
@@ -60,9 +61,9 @@ model teammember {
   education      String?
   specialization String?
   projectId      Int
-  teamproject    teamproject @relation(fields: [projectId], references: [id], map: "TeamMember_projectId_fkey")
+  project        teamproject @relation(fields: [projectId], references: [id])
 
-  @@index([projectId], map: "TeamMember_projectId_fkey")
+  @@index([projectId])
 }
 
 model teamproject {
@@ -72,37 +73,113 @@ model teamproject {
 }
 
 model trainingregistration {
-  id            Int      @id @default(autoincrement())
-  name          String
-  email         String
-  phone         String
-  trainingTitle String
-  trainingType  String
-  batch         String
-  notes         String?
-  status        String   @default("pending")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String
+  phone String
+
+  trainingId Int
+  training   training? @relation(fields: [trainingId], references: [id])
+
+  batch     String
+  notes     String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model training {
-  id               Int      @id @default(autoincrement())
+  id               Int                    @id @default(autoincrement())
   title            String
-  shortDescription String?
-  type             String   @default("web")     // <-- default sementara
   price            Int
   thumbnail        String?
   description      String?
-  costDetails      Json?
-  requirements     Json?
-  schedule         Json?
-  rundown          Json?
-  organizer        String?  @default("PSTeam Academy")
-  duration         String?
-  location         String?
+  organizer        String?                @default("PSTeam Academy")
   certificate      String?
+  costDetails      String?                @db.LongText
+  created_at       DateTime               @default(now())
+  duration         String?
   instructor       String?
-  created_at       DateTime @default(now())
-  updated_at       DateTime @default(now())     // <-- default sementara
+  location         String?
+  requirements     String?                @db.LongText
+  rundown          String?                @db.LongText
+  schedule         String?                @db.LongText
+  shortDescription String?
+  type             String                 @default("web")
+  updated_at       DateTime               @default(now()) @updatedAt
+  registrations    trainingregistration[] // relasi balik (one-to-many)
 }
 
+model lecturerprofile {
+  id               Int                @id @default(autoincrement())
+  userId           Int                @unique
+  studyProgram     String?
+  specialization   String?
+  imageUrl         String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @default(now()) @updatedAt
+  educationhistory educationhistory[]
+  research         research[]
+  communityservice communityservice[]
+  scientificwork   scientificwork[]
+  intellectualproperty intellectualproperty[]
+  user             user               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model educationhistory {
+  id         Int             @id @default(autoincrement())
+  lecturerId Int
+  degree     String?
+  university String?
+  major      String?
+  lecturer   lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+
+  @@index([lecturerId])
+}
+
+model research {
+  id    Int    @id @default(autoincrement())
+  title String
+  year  Int
+  lecturerId Int
+  lecturer   lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model communityservice {
+  id          Int              @id @default(autoincrement())
+  lecturerId Int
+  title       String
+  year        Int
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  lecturer    lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+
+}
+
+model scientificwork {
+  id          Int              @id @default(autoincrement())
+  lecturerId  Int
+  title       String
+  type        String
+  year        Int
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  lecturer    lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+}
+
+model intellectualproperty {
+  id          Int      @id @default(autoincrement())
+  lecturerId  Int
+  title       String
+  type        String
+  year        Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lecturer lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+}

@@ -11,6 +11,29 @@ type Props = {
   onUpdate: (data: Training) => void;
 };
 
+/* =====================================================
+   DOUBLE SAFE JSON PARSER
+===================================================== */
+function parseArray(input: any) {
+  if (!input) return [];
+  if (Array.isArray(input)) return input;
+
+  try {
+    const first = JSON.parse(input);
+    if (Array.isArray(first)) return first;
+    if (typeof first === "string") return JSON.parse(first);
+    return [];
+  } catch (e) {
+    return [];
+  }
+}
+
+const fixImage = (img?: string) => {
+  if (!img) return "/default-thumb.png";
+  if (img.startsWith("http")) return img;
+  return "http://localhost:4000" + img;
+};
+
 function formatRp(n: number | null) {
   if (n == null) return "";
   return "Rp " + n.toLocaleString("id-ID");
@@ -23,37 +46,32 @@ function onlyDigits(s: string) {
 export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // ================================
-  // STATE
-  // ================================
+  /* ======================================
+     🔥 NORMALISASI DATA ARRAY DARI DB
+  ====================================== */
+  const [costDetails, setCostDetails] = useState<string[]>(parseArray(data.costDetails));
+  const [requirements, setRequirements] = useState<string[]>(parseArray(data.requirements));
+  const [schedule, setSchedule] = useState<any[]>(parseArray(data.schedule));
+  const [rundown, setRundown] = useState<any[]>(parseArray(data.rundown));
+
+  // BASIC
   const [title, setTitle] = useState(data.title);
   const [shortDescription, setShortDescription] = useState(data.shortDescription ?? "");
-  const [type, setType] = useState<Training["type"]>(data.type);
+  const [type, setType] = useState(data.type);
   const [priceNum, setPriceNum] = useState<number | null>(data.price ?? null);
 
-  const [thumbnailUrl, setThumbnailUrl] = useState(data.thumbnail ?? "");
+  const [thumbnailUrl, setThumbnailUrl] = useState(fixImage(data.thumbnail));
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
   const [description, setDescription] = useState(data.description ?? "");
-  const [costDetails, setCostDetails] = useState<string[]>(data.costDetails ?? []);
-  const [requirements, setRequirements] = useState<string[]>(data.requirements ?? []);
-
-  const [schedule, setSchedule] = useState(data.schedule ?? []);
-  const [rundown, setRundown] = useState(data.rundown ?? []);
   const [organizer, setOrganizer] = useState(data.organizer ?? "");
-
-  // NEW FIELDS (harus sama AddModal)
   const [duration, setDuration] = useState(data.duration ?? "");
   const [location, setLocation] = useState(data.location ?? "");
   const [certificate, setCertificate] = useState(data.certificate ?? "");
   const [instructor, setInstructor] = useState(data.instructor ?? "");
 
-  // SUCCESS ALERT
   const [successAlert, setSuccessAlert] = useState(false);
 
-  // ================================
-  // HANDLERS
-  // ================================
   const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = onlyDigits(e.target.value);
     const num = digits ? parseInt(digits, 10) : null;
@@ -63,12 +81,11 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
     if (!f) return;
-
     setThumbnailFile(f);
     setThumbnailUrl(URL.createObjectURL(f));
   };
 
-  // SCHEDULE
+  // SCHEDULE HANDLER
   const updateSchedule = (i: number, key: any, val: string) =>
     setSchedule((s) => s.map((row, idx) => (idx === i ? { ...row, [key]: val } : row)));
 
@@ -78,7 +95,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
   const removeSchedule = (idx: number) =>
     setSchedule((s) => s.filter((_, i) => i !== idx));
 
-  // RUNDOWN
+  // RUNDOWN HANDLER
   const updateRundown = (i: number, key: any, val: string) =>
     setRundown((r) => r.map((row, idx) => (idx === i ? { ...row, [key]: val } : row)));
 
@@ -88,18 +105,19 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
   const removeRundown = (idx: number) =>
     setRundown((r) => r.filter((_, i) => i !== idx));
 
-  // ================================
-  // SUBMIT UPDATE
-  // ================================
+  /* ===========================================
+     🔥 SUBMIT
+  =========================================== */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const payload = {
+      id: data.id,
       title,
       shortDescription,
       type,
       price: priceNum ?? 0,
-      thumbnail: thumbnailUrl,
+      thumbnail: data.thumbnail,
       description,
       costDetails,
       requirements,
@@ -110,14 +128,12 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
       location,
       certificate,
       instructor,
+      thumbnailFile: thumbnailFile ?? null,
     };
 
     try {
       const updated = await updateTraining(data.id, payload);
-
       onUpdate(updated);
-
-      // Jangan tutup modal dulu — tampilkan alert sukses
       setSuccessAlert(true);
     } catch (err) {
       console.error("updateTraining error:", err);
@@ -125,15 +141,13 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
     }
   };
 
-  // ================================
-  // COMPONENT RENDER
-  // ================================
+  /* ===========================================
+     🔥 RENDER
+  =========================================== */
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
-      {/* BACKDROP */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
-      {/* MODAL CONTENT */}
       <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh] p-6">
 
         {/* HEADER */}
@@ -142,10 +156,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
           <button onClick={onClose} className="p-2"><X /></button>
         </div>
 
-        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* THUMBNAIL + BASIC INFO */}
+          {/* THUMBNAIL */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium">Thumbnail (file)</label>
@@ -158,17 +171,12 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
               />
 
               <div className="mt-3 w-full h-40 bg-gray-200 rounded overflow-hidden">
-                {thumbnailUrl ? (
-                  <img src={thumbnailUrl} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex items-center justify-center text-xs text-gray-500 h-full">
-                    No Image
-                  </div>
-                )}
+                <img src={thumbnailUrl} className="w-full h-full object-cover" />
               </div>
             </div>
 
             <div className="md:col-span-2 space-y-2">
+              {/* title */}
               <div>
                 <label className="text-sm font-medium">Judul</label>
                 <input
@@ -179,6 +187,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                 />
               </div>
 
+              {/* short desc */}
               <div>
                 <label className="text-sm font-medium">Deskripsi Singkat</label>
                 <input
@@ -188,6 +197,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                 />
               </div>
 
+              {/* type + price */}
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="text-sm font-medium">Tipe</label>
@@ -215,7 +225,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             </div>
           </div>
 
-          {/* EXTRA FIELDS */}
+          {/* EXTRA */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">Durasi</label>
@@ -265,10 +275,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             />
           </div>
 
-          {/* COST DETAILS & REQUIREMENTS */}
+          {/* COST DETAILS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            {/* COST DETAILS */}
             <div>
               <div className="flex justify-between items-center">
                 <label className="text-sm font-medium">Rincian Biaya</label>
@@ -404,7 +413,6 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             <div className="mt-2 space-y-2">
               {rundown.map((r, i) => (
                 <div key={i} className="flex gap-2 items-center">
-
                   <input
                     value={r.day}
                     onChange={(e) => updateRundown(i, "day", e.target.value)}
@@ -424,7 +432,6 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                   >
                     Hapus
                   </button>
-
                 </div>
               ))}
             </div>
@@ -440,7 +447,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             />
           </div>
 
-          {/* ACTION BUTTONS */}
+          {/* BUTTONS */}
           <div className="flex justify-end gap-3 pt-3">
             <button type="button" onClick={onClose} className="px-4 py-2 border rounded">
               Batal
@@ -453,9 +460,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
         </form>
       </div>
 
-      {/* ======================== */}
-      {/* SUCCESS ALERT (POPUP) */}
-      {/* ======================== */}
+      {/* SUCCESS ALERT */}
       {successAlert && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">

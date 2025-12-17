@@ -2,6 +2,9 @@
 
 const API_URL = "http://localhost:4000/api/team";
 
+/* =====================================================
+   HANDLE RESPONSE
+===================================================== */
 async function handleResponse(res: Response) {
   const type = res.headers.get("content-type") || "";
 
@@ -16,44 +19,30 @@ async function handleResponse(res: Response) {
   return type.includes("json") ? res.json() : res.text();
 }
 
-// =====================================================
-// GET ALL PROJECTS
-// =====================================================
+/* =====================================================
+   GET ALL PROJECTS
+===================================================== */
 export async function getAllProjects() {
   const res = await fetch(API_URL, { cache: "no-store" });
   return handleResponse(res);
 }
 
-// =====================================================
-// CREATE PROJECT  (MULTIPLE IMAGES FIXED)
-// =====================================================
+/* =====================================================
+   CREATE PROJECT (MULTIPLE MEMBERS + FILES)
+===================================================== */
 export async function createProject(data: any) {
   const form = new FormData();
 
+  // TITLE
   form.append("teamTitle", data.teamTitle);
 
-  (data.teamMembers || []).forEach((m: any, i: number) => {
-    form.append(`teamMembers[${i}][name]`, m.name || "");
-    form.append(`teamMembers[${i}][role]`, m.role || "");
-    form.append(`teamMembers[${i}][email]`, m.email || "");
-    form.append(`teamMembers[${i}][category]`, m.category || "");
-    form.append(`teamMembers[${i}][studyProgram]`, m.studyProgram || "");
-    form.append(`teamMembers[${i}][education]`, m.education || "");
-    form.append(`teamMembers[${i}][specialization]`, m.specialization || "");
-    form.append(`teamMembers[${i}][github]`, m.github || "");
-    form.append(`teamMembers[${i}][linkedin]`, m.linkedin || "");
-    form.append(`teamMembers[${i}][facebook]`, m.facebook || "");
-    form.append(`teamMembers[${i}][instagram]`, m.instagram || "");
-    form.append(`teamMembers[${i}][website]`, m.website || "");
+  // MEMBERS JSON
+  form.append("teamMembers", JSON.stringify(data.teamMembers));
 
-    // ===============================
-    // FIX BASE64 → BLOB
-    // ===============================
-    if (m.image && typeof m.image === "string" && m.image.startsWith("data:image")) {
-      // BLOB must be fetched with await → THIS FUNCTION MUST BE ASYNC
-      form.append("images", dataURLtoBlob(m.image), `member-${i}.png`);
-    } else {
-      form.append("images", "");
+  // FILES (WAJIB SAMA: field name = "images")
+  data.teamMembers.forEach((m: any, i: number) => {
+    if (m.imageFile instanceof File) {
+      form.append("images", m.imageFile, `member-${i}.png`);
     }
   });
 
@@ -65,32 +54,22 @@ export async function createProject(data: any) {
   return handleResponse(res);
 }
 
-// =============== HELPER: BASE64 → BLOB (WITHOUT await) ===============
-function dataURLtoBlob(dataURL: string): Blob {
-  const arr = dataURL.split(",");
-  const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-
-  while (n--) u8arr[n] = bstr.charCodeAt(n);
-  return new Blob([u8arr], { type: mime });
-}
-
-// =====================================================
-// ADD MEMBER
-// =====================================================
+/* =====================================================
+   ADD MEMBER (SINGLE FILE)
+===================================================== */
 export async function addMember(projectId: number, member: any) {
   const form = new FormData();
 
-  Object.keys(member).forEach((k) => {
-    if (k !== "image") form.append(k, (member as any)[k] ?? "");
+  // TEXT FIELDS ONLY
+  Object.keys(member).forEach((key) => {
+    if (key !== "image" && key !== "imageFile" && member[key] != null) {
+      form.append(key, member[key]);
+    }
   });
 
-  if (member.image && typeof member.image === "string" && member.image.startsWith("data:image")) {
-    form.append("image", dataURLtoBlob(member.image), "member.png");
-  } else {
-    form.append("image", "");
+  // FILE FIELD (WAJIB NAMANYA "image")
+  if (member.imageFile instanceof File) {
+    form.append("image", member.imageFile, "member.png");
   }
 
   const res = await fetch(`${API_URL}/${projectId}/member`, {
@@ -101,18 +80,21 @@ export async function addMember(projectId: number, member: any) {
   return handleResponse(res);
 }
 
-// =====================================================
-// UPDATE MEMBER
-// =====================================================
+/* =====================================================
+   UPDATE MEMBER (WITH OPTIONAL IMAGE FILE)
+===================================================== */
 export async function updateMember(memberId: number, data: any) {
   const form = new FormData();
 
-  Object.keys(data).forEach((k) => {
-    if (k !== "image" && data[k] != null) form.append(k, data[k]);
+  Object.keys(data).forEach((key) => {
+    if (key !== "image" && key !== "imageFile" && data[key] != null) {
+      form.append(key, data[key]);
+    }
   });
 
-  if (data.image && typeof data.image === "string" && data.image.startsWith("data:image")) {
-    form.append("image", dataURLtoBlob(data.image), "update.png");
+  // Gambar baru dikirim jika user upload file
+  if (data.imageFile instanceof File) {
+    form.append("image", data.imageFile, "update.png");
   }
 
   const res = await fetch(`${API_URL}/member/${memberId}`, {
@@ -123,9 +105,9 @@ export async function updateMember(memberId: number, data: any) {
   return handleResponse(res);
 }
 
-// =====================================================
-// DELETE MEMBER
-// =====================================================
+/* =====================================================
+   DELETE MEMBER
+===================================================== */
 export async function deleteMember(memberId: number) {
   const res = await fetch(`${API_URL}/member/${memberId}`, {
     method: "DELETE",
@@ -134,9 +116,9 @@ export async function deleteMember(memberId: number) {
   return handleResponse(res);
 }
 
-// =====================================================
-// DELETE PROJECT
-// =====================================================
+/* =====================================================
+   DELETE PROJECT
+===================================================== */
 export async function deleteProject(projectId: number) {
   const res = await fetch(`${API_URL}/${projectId}`, {
     method: "DELETE",

@@ -1,13 +1,38 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Trash2, FileText, Check } from "lucide-react";
+
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
+import DetailTrainingModal from "../components/TrainingDetailModal";
+
 import {
   getPendingRegistrations,
   updateTrainingStatus,
 } from "../../../lib/apiTrainingRegistration";
+
+// ========================
+// TYPE
+// ========================
+export type Training = {
+  id: number;
+  title: string;
+  shortDescription?: string;
+  type: "web" | "mobile" | "iot" | "ai" | string;
+  price: number;
+  thumbnail?: string;
+  description?: string;
+  costDetails?: string[];
+  requirements?: string[];
+  schedule?: { batchName: string; startDate: string; endDate: string }[];
+  rundown?: { day: string; activity: string }[];
+  organizer?: string;
+  duration?: string;
+  location?: string;
+  certificate?: string;
+  instructor?: string;
+};
 
 export default function VerifyTrainingAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -26,6 +51,9 @@ export default function VerifyTrainingAdmin() {
   const [confirmAccept, setConfirmAccept] = useState<any>(null);
   const [confirmReject, setConfirmReject] = useState<any>(null);
 
+  // 🔵 Modal detail
+  const [detailData, setDetailData] = useState<Training | null>(null);
+
   // ========================
   // NORMALIZER TYPE
   // ========================
@@ -36,10 +64,40 @@ export default function VerifyTrainingAdmin() {
     if (s.includes("web")) return "web";
     if (s.includes("mobile")) return "mobile";
     if (s.includes("iot") || s.includes("internet")) return "iot";
-    if (s.includes("ai") || s.includes("machine") || s.includes("artificial"))
-      return "ai";
+    if (s.includes("ai") || s.includes("machine")) return "ai";
 
     return s;
+  }
+
+  // ========================
+  // SHOW DETAIL
+  // ========================
+  async function showDetail(trainingId: number) {
+    try {
+      const res = await fetch(`http://localhost:4000/api/training/${trainingId}`);
+      const data = await res.json();
+
+      const normalized: Training = {
+        ...data,
+        costDetails: Array.isArray(data.costDetails)
+          ? data.costDetails
+          : JSON.parse(data.costDetails || "[]"),
+        requirements: Array.isArray(data.requirements)
+          ? data.requirements
+          : JSON.parse(data.requirements || "[]"),
+        schedule: Array.isArray(data.schedule)
+          ? data.schedule
+          : JSON.parse(data.schedule || "[]"),
+        rundown: Array.isArray(data.rundown)
+          ? data.rundown
+          : JSON.parse(data.rundown || "[]"),
+      };
+
+      setDetailData(normalized);
+    } catch (err) {
+      console.error("Failed loading training detail:", err);
+      alert("Gagal memuat detail pelatihan.");
+    }
   }
 
   // ========================
@@ -48,17 +106,18 @@ export default function VerifyTrainingAdmin() {
   async function load() {
     const res = await getPendingRegistrations();
 
-    // 🔥 FIX WAJIB: data HARUS dimapping agar trainingType selalu ada
     const mapped = res.map((item: any) => ({
       id: item.id,
       name: item.name,
       email: item.email,
       phone: item.phone,
-      trainingTitle: item.trainingTitle,
-      trainingType: item.trainingType ?? "", // FIX 🔥
       batch: item.batch,
       notes: item.notes,
       status: item.status,
+
+      trainingId: item.training?.id ?? null,
+      trainingTitle: item.training?.title ?? "-",
+      trainingType: item.training?.type ?? "-",
     }));
 
     setData(mapped);
@@ -75,13 +134,13 @@ export default function VerifyTrainingAdmin() {
   const approveNow = async (id: number) => {
     await updateTrainingStatus(id, "approved");
     setConfirmAccept(null);
-    load(); // refresh pending
+    load();
   };
 
   const rejectNow = async (id: number) => {
     await updateTrainingStatus(id, "rejected");
     setConfirmReject(null);
-    load(); // refresh pending
+    load();
   };
 
   // ========================
@@ -117,8 +176,9 @@ export default function VerifyTrainingAdmin() {
         />
 
         <main
-          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-            }`}
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
+            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          }`}
         >
           {/* TITLE */}
           <div className="text-center mb-10">
@@ -152,10 +212,11 @@ export default function VerifyTrainingAdmin() {
                 onBlur={() => {
                   if (!searchTerm.trim()) setIsSearchOpen(false);
                 }}
-                className={`transition-all duration-300 h-10 border bg-white rounded-md shadow-sm text-sm ${isSearchOpen
+                className={`transition-all duration-300 h-10 border bg-white rounded-md shadow-sm text-sm ${
+                  isSearchOpen
                     ? "w-60 pl-10 pr-3 opacity-100"
                     : "w-10 opacity-0 pointer-events-none"
-                  }`}
+                }`}
                 placeholder="Cari peserta..."
               />
             </div>
@@ -206,11 +267,15 @@ export default function VerifyTrainingAdmin() {
                 ) : (
                   pageItems.map((p: any, i: number) => (
                     <tr key={p.id} className="hover:bg-blue-50">
-                      <td className="border px-4 py-2 border-gray-300">{startIndex + i + 1}</td>
+                      <td className="border px-4 py-2 border-gray-300">
+                        {startIndex + i + 1}
+                      </td>
                       <td className="border px-4 py-2 border-gray-300">{p.name}</td>
                       <td className="border px-4 py-2 border-gray-300">{p.email}</td>
                       <td className="border px-4 py-2 border-gray-300">{p.phone}</td>
-                      <td className="border px-4 py-2 border-gray-300">{p.trainingTitle}</td>
+                      <td className="border px-4 py-2 border-gray-300">
+                        {p.trainingTitle}
+                      </td>
 
                       <td className="border px-4 py-2 border-gray-300 capitalize">
                         {normalizeType(p.trainingType || "")}
@@ -218,18 +283,29 @@ export default function VerifyTrainingAdmin() {
 
                       <td className="border px-4 py-2 border-gray-300">
                         <div className="inline-flex gap-2">
+
+                          {/* DETAIL BUTTON */}
+                          {p.trainingId && (
+                            <button
+                              onClick={() => showDetail(p.trainingId)}
+                               className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                          >
+                              <FileText size={14} /> Detail
+                            </button>
+                          )}
+
                           <button
                             onClick={() => setConfirmAccept(p)}
-                            className="bg-blue-600 text-white px-3 py-1 text-xs rounded"
+                            className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition"
                           >
-                            Terima
+                            <Check size={14} /> Terima
                           </button>
 
                           <button
                             onClick={() => setConfirmReject(p)}
-                            className="bg-red-600 text-white px-3 py-1 text-xs rounded"
+                            className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                           >
-                            Tolak
+                          <Trash2 size={14} /> Tolak
                           </button>
                         </div>
                       </td>
@@ -250,10 +326,11 @@ export default function VerifyTrainingAdmin() {
                   }
                 }}
                 disabled={currentPage === 1}
-                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                className={`px-2 py-1 rounded border text-xs ${
+                  currentPage === 1
                     ? "bg-gray-200 text-gray-400"
                     : "bg-gray-100 hover:bg-gray-300"
-                  }`}
+                }`}
               >
                 &lt;
               </button>
@@ -267,10 +344,11 @@ export default function VerifyTrainingAdmin() {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
+                    className={`px-2 py-1 rounded text-xs border ${
+                      currentPage === pageNum
                         ? "bg-blue-600 text-white"
                         : "bg-gray-100 hover:bg-gray-300"
-                      }`}
+                    }`}
                   >
                     {pageNum}
                   </button>
@@ -286,10 +364,11 @@ export default function VerifyTrainingAdmin() {
                   }
                 }}
                 disabled={currentPage === totalPages}
-                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                className={`px-2 py-1 rounded border text-xs ${
+                  currentPage === totalPages
                     ? "bg-gray-200 text-gray-400"
                     : "bg-gray-100 hover:bg-gray-300"
-                  }`}
+                }`}
               >
                 &gt;
               </button>
@@ -354,6 +433,14 @@ export default function VerifyTrainingAdmin() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* DETAIL MODAL */}
+      {detailData && (
+        <DetailTrainingModal
+          data={detailData}
+          onClose={() => setDetailData(null)}
+        />
       )}
     </div>
   );

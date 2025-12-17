@@ -15,6 +15,25 @@ import {
 import type { Course } from "./CourseCardHorizontal";
 import RegisterTrainingModal from "./RegisterTrainingModal";
 
+// =====================================================
+// 🔥 NORMALIZER UNIVERSAL UNTUK ARRAY
+// =====================================================
+function parseArray(value: any) {
+  if (!value) return [];
+
+  // Kalau sudah array
+  if (Array.isArray(value)) return value;
+
+  // Kalau string JSON array
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch (e) {}
+
+  // Fallback: split string biasa
+  return String(value).split("|");
+}
+
 export default function CourseDetailModal({
   open,
   course,
@@ -35,21 +54,13 @@ export default function CourseDetailModal({
 
   if (!open || !course) return null;
 
-  // English variable names
-  const scheduleRaw = course.description?.match(/📅 (.*)/)?.[1] || "-";
-  const durationRaw = course.description?.match(/🕒 (.*)/)?.[1] || "-";
-  const locationRaw = course.description?.match(/📍 (.*)/)?.[1] || "-";
-  const certificateRaw = course.description?.match(/🎓 (.*)/)?.[1] || "-";
-  const instructorRaw = course.description?.match(/👨‍🏫 (.*)/)?.[1] || "-";
-
-  const cleanText = (text: string) =>
-    text
-      .replace(/Jadwal Pelaksanaan:\s*/i, "")
-      .replace(/Durasi:\s*/i, "")
-      .replace(/Lokasi:\s*/i, "")
-      .replace(/Sertifikat:\s*/i, "")
-      .replace(/Instruktur:\s*/i, "")
-      .trim();
+  // ================================
+  // NORMALISASI DATA BENAR
+  // ================================
+  const safeCostDetails = parseArray(course.costDetails);
+  const safeRequirements = parseArray(course.requirements);
+  const safeSchedule = parseArray(course.schedule);
+  const safeRundown = parseArray(course.rundown);
 
   return (
     <>
@@ -95,19 +106,24 @@ export default function CourseDetailModal({
 
               <div className="mt-5 space-y-2 text-gray-700 text-sm">
                 <p className="flex items-center gap-2">
-                  <FaCalendarAlt className="text-blue-600" /> {cleanText(scheduleRaw)}
+                  <FaCalendarAlt className="text-blue-600" />
+                  {course.duration || "-"}
                 </p>
                 <p className="flex items-center gap-2">
-                  <FaClock className="text-blue-600" /> {cleanText(durationRaw)}
+                  <FaClock className="text-blue-600" />
+                  {course.duration || "-"}
                 </p>
                 <p className="flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-blue-600" /> {cleanText(locationRaw)}
+                  <FaMapMarkerAlt className="text-blue-600" />
+                  {course.location || "-"}
                 </p>
                 <p className="flex items-center gap-2">
-                  <FaCertificate className="text-blue-600" /> {cleanText(certificateRaw)}
+                  <FaCertificate className="text-blue-600" />
+                  {course.certificate || "-"}
                 </p>
                 <p className="flex items-center gap-2">
-                  <FaUserTie className="text-blue-600" /> {cleanText(instructorRaw)}
+                  <FaUserTie className="text-blue-600" />
+                  {course.instructor || "-"}
                 </p>
               </div>
 
@@ -121,15 +137,13 @@ export default function CourseDetailModal({
 
             {/* Right */}
             <div className="md:col-span-2 text-gray-800 space-y-8">
-
               {/* Deskripsi */}
               <section>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   🧾 Deskripsi Pelatihan
                 </h3>
                 <p className="text-sm leading-relaxed whitespace-pre-line">
-                  {course.description?.split("\n\n")[1] ||
-                    "Deskripsi lengkap tidak tersedia untuk pelatihan ini."}
+                  {course.description || "Deskripsi tidak tersedia."}
                 </p>
               </section>
 
@@ -139,80 +153,84 @@ export default function CourseDetailModal({
                   💰 Rincian Biaya
                 </h3>
                 <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
-                  <li>Biaya pendaftaran & sertifikat</li>
-                  <li>Modul pembelajaran digital</li>
-                  <li>Penggunaan lab (offline)</li>
-                  <li>Coffee break & makan siang</li>
+                  {safeCostDetails.length
+                    ? safeCostDetails.map((c, i) => <li key={i}>{c}</li>)
+                    : "−"}
                 </ul>
               </section>
 
-              {/* Syarat Peserta */}
+              {/* Syarat */}
               <section>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   📋 Syarat Peserta
                 </h3>
                 <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
-                  <li>Terbuka untuk umum</li>
-                  <li>Laptop pribadi</li>
-                  <li>Internet stabil</li>
+                  {safeRequirements.length
+                    ? safeRequirements.map((r, i) => <li key={i}>{r}</li>)
+                    : "−"}
                 </ul>
               </section>
 
-              {/* Jadwal Pelaksanaan */}
+              {/* Jadwal */}
               <section>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   🗓️ Jadwal Pelaksanaan
                 </h3>
-
                 <table className="w-full text-sm border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                   <thead className="bg-blue-100 text-gray-800">
                     <tr>
-                      <th className="px-3 py-2 text-left">Batch</th>
-                      <th className="px-3 py-2 text-left">Tanggal Mulai</th>
-                      <th className="px-3 py-2 text-left">Tanggal Selesai</th>
+                      <th className="px-3 py-2">Batch</th>
+                      <th className="px-3 py-2">Tanggal Mulai</th>
+                      <th className="px-3 py-2">Tanggal Selesai</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-3 py-2">Batch 1</td>
-                      <td className="px-3 py-2">10 Februari 2025</td>
-                      <td className="px-3 py-2">5 April 2025</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="px-3 py-2">Batch 2</td>
-                      <td className="px-3 py-2">20 Mei 2025</td>
-                      <td className="px-3 py-2">15 Juli 2025</td>
-                    </tr>
+                  <tbody>
+                    {safeSchedule.length ? (
+                      safeSchedule.map((s, i) => (
+                        <tr key={i} className="border-t">
+                          <td className="px-3 py-2">{s.batchName}</td>
+                          <td className="px-3 py-2">{s.startDate}</td>
+                          <td className="px-3 py-2">{s.endDate}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="py-3 text-center text-gray-500">
+                          Belum ada jadwal
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </section>
 
-              {/* Rundown Kegiatan */}
+              {/* Rundown */}
               <section>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   📅 Rundown Kegiatan
                 </h3>
-
                 <table className="w-full text-sm border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                   <thead className="bg-blue-100 text-gray-800">
                     <tr>
-                      <th className="px-3 py-2 text-left">Hari</th>
-                      <th className="px-3 py-2 text-left">Kegiatan</th>
+                      <th className="px-3 py-2">Hari</th>
+                      <th className="px-3 py-2">Kegiatan</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-3 py-2">Hari 1</td>
-                      <td className="px-3 py-2">Orientasi</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="px-3 py-2">Hari 2</td>
-                      <td className="px-3 py-2">Pengenalan Tools</td>
-                    </tr>
-                    <tr>
-                      <td className="px-3 py-2">Hari 3</td>
-                      <td className="px-3 py-2">Materi Inti</td>
-                    </tr>
+                  <tbody>
+                    {safeRundown.length ? (
+                      safeRundown.map((r, i) => (
+                        <tr key={i} className="border-t">
+                          <td className="px-3 py-2">{r.day}</td>
+                          <td className="px-3 py-2">{r.activity}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={2} className="py-3 text-center text-gray-500">
+                          Belum ada rundown
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </section>
@@ -223,22 +241,21 @@ export default function CourseDetailModal({
                   🏫 Penyelenggara
                 </h3>
                 <p className="text-sm text-gray-700">
-                  Diselenggarakan oleh <b>PSTeam Academy</b> bekerja sama dengan{" "}
-                  <b>Politeknik Negeri Batam</b>.
+                  {course.organizer || "Tidak ada data penyelenggara."}
                 </p>
               </section>
 
               {/* Tombol */}
               <div className="pt-4 flex gap-3">
                 <button
-                  className="px-5 py-2.5 bg-gradient-to-r from-blue-800 to-blue-500 text-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-[1.03] active:scale-[0.98]"
+                  className="px-5 py-2.5 bg-gradient-to-r from-blue-800 to-blue-500 text-white rounded-lg shadow-md"
                   onClick={() => setRegisterOpen(true)}
                 >
                   Daftar Sekarang
                 </button>
 
                 <button
-                  className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:border-blue-400 hover:text-blue-600"
+                  className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg"
                   onClick={onClose}
                 >
                   Tutup

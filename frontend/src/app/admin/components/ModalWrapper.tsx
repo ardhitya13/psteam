@@ -7,61 +7,69 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children?: React.ReactNode;
-  width?: string; // optional custom width
+  width?: string;
+  lockScroll?: boolean;
 }
 
 export default function ModalWrapper({
   isOpen,
   onClose,
   children,
-  width = "max-w-4xl", // DEFAULT LEBAR BESAR
+  width = "max-w-4xl",
+  lockScroll = false,
 }: ModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  /* ANIMASI MASUK & KELUAR */
+  /* =========================
+     OPEN / CLOSE ANIMATION
+  ========================= */
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
       setTimeout(() => setIsAnimating(true), 20);
-    } else if (!isOpen && isVisible) {
+    } else if (isVisible) {
       setIsAnimating(false);
-      const timeout = setTimeout(() => setIsVisible(false), 300);
-      return () => clearTimeout(timeout);
+      const t = setTimeout(() => setIsVisible(false), 300);
+      return () => clearTimeout(t);
     }
-  }, [isOpen]);
+  }, [isOpen, isVisible]);
 
   if (!isVisible) return null;
 
   return (
     <div
-      className={`
-        fixed inset-0 z-[9999] flex items-center justify-center 
-        p-6 overflow-y-auto transition-all duration-300
-        ${isAnimating ? "bg-black/40 backdrop-blur-sm" : "bg-black/0 backdrop-blur-0"}
-      `}
       onClick={onClose}
+      className={`
+        fixed inset-0 z-[9999]
+        flex items-center justify-center
+        bg-black/40 backdrop-blur-sm
+        transition-opacity duration-300
+        ${isAnimating ? "opacity-100" : "opacity-0"}
+      `}
     >
-      {/* Card Modal */}
+      {/* MODAL CARD */}
       <div
         onClick={(e) => e.stopPropagation()}
         className={`
-       w-full ${width}
-     bg-white rounded-2xl shadow-2xl relative
-       transition-all duration-300 transform
-       max-h-[90vh] overflow-y-auto scrollbar-hide   /* <-- INI WAJIB */
-       ${isAnimating ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-5 scale-95"}
-      `}
+          w-full ${width}
+          bg-white rounded-2xl shadow-2xl
+          relative
+          max-h-[90vh]
+          ${lockScroll ? "overflow-hidden" : "overflow-y-auto scrollbar-hide"}
+          transition-all duration-300
+          ${isAnimating ? "scale-100 opacity-100" : "scale-95 opacity-0"}
+        `}
       >
-        {/* X Button */}
+        {/* CLOSE BUTTON */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 rounded-full bg-white shadow hover:bg-gray-100 text-gray-600 transition"
+          className="absolute top-4 right-4 p-1 rounded-full bg-white shadow hover:bg-gray-100 text-gray-600"
         >
           <X size={22} />
         </button>
 
-        {/* Content */}
+        {/* CONTENT */}
         <div className="px-10 py-6">{children}</div>
       </div>
     </div>

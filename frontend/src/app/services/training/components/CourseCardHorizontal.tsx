@@ -5,6 +5,9 @@ import React, { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+// ===============================
+// FINAL COURSE TYPE (SAMA DENGAN DARI ADMIN)
+// ===============================
 export type Course = {
   id: number;
   title: string;
@@ -12,7 +15,28 @@ export type Course = {
   excerpt: string;
   price: number;
   img: string;
-  description?: string;
+
+  description: string;
+
+  costDetails: string[];
+  requirements: string[];
+
+  schedule: {
+    batchName: string;
+    startDate: string;
+    endDate: string;
+  }[];
+
+  rundown: {
+    day: string;
+    activity: string;
+  }[];
+
+  organizer: string;
+  duration: string;
+  location: string;
+  certificate: string;
+  instructor: string;
 };
 
 export default function CourseCardHorizontal({
@@ -45,9 +69,15 @@ export default function CourseCardHorizontal({
 
       <div className="flex flex-col justify-between flex-1 p-5 text-left">
         <div data-aos="fade-right" data-aos-delay="200">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">{course.title}</h3>
-          <p className="text-sm text-gray-600 mt-1 line-clamp-3">{course.excerpt}</p>
-          <p className="text-sm text-gray-500 mt-3 font-medium italic">{course.category}</p>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            {course.title}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+            {course.excerpt}
+          </p>
+          <p className="text-sm text-gray-500 mt-3 font-medium italic">
+            {course.category}
+          </p>
         </div>
 
         <div
@@ -64,8 +94,6 @@ export default function CourseCardHorizontal({
               className="bg-gradient-to-r from-blue-800 to-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 focus:outline-none active:scale-[0.98] select-none"
               onClick={(e) => {
                 e.stopPropagation();
-                // debug log: pastikan course yang dikirim lengkap
-                console.log("CourseCard: onDaftar called with course:", course);
                 onDaftar(course);
               }}
             >

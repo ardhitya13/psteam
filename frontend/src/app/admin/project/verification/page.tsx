@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FileText, Search, ChevronDown } from "lucide-react";
+import { FileText, Search, ChevronDown, Check,Trash2 } from "lucide-react";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminSidebar from "../../components/AdminSidebar";
 import ProjectDetailModal from "../../components/ProjectVerifyDetailModal";
@@ -197,7 +197,7 @@ export default function VerifikasiProyekPage() {
                           setSelectedData(item);
                           setIsModalOpen(true);
                         }}
-                        className="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded"
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
                       >
                         <FileText size={14} /> Detail
                       </button>
@@ -208,17 +208,17 @@ export default function VerifikasiProyekPage() {
                         {/* 🔵 TERIMA */}
                         <button
                           onClick={() => setConfirmAccept(item)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded"
+                          className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition"
                         >
-                          Terima
+                          <Check size={14} /> Terima
                         </button>
 
                         {/* 🔴 TOLAK */}
                         <button
                           onClick={() => setConfirmReject(item)}
-                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-1 rounded"
+                          className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                         >
-                          Tolak
+                         <Trash2 size={14} /> Tolak
                         </button>
                       </div>
                     </td>
@@ -322,7 +322,7 @@ export default function VerifikasiProyekPage() {
 
               <button
                 onClick={() => approveNow(confirmAccept.id)}
-                className="px-4 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+                className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition"
               >
                 Ya, Terima
               </button>
@@ -353,7 +353,7 @@ export default function VerifikasiProyekPage() {
 
               <button
                 onClick={() => rejectNow(confirmReject.id)}
-                className="px-4 py-2 rounded bg-red-600 text-white text-sm hover:bg-red-700"
+                className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
               >
                 Ya, Tolak
               </button>

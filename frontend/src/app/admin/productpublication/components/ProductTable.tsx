@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { FileText, Edit as IconEdit, Trash2 } from "lucide-react";
 import { ProductItem } from "./ProductManager";
 
 const API_URL = "http://localhost:4000";
@@ -107,27 +108,27 @@ export default function ProductTable({
                   </td>
 
                   {/* AKSI */}
-                  <td className="border border-gray-300 px-4 py-2 text-center">
-                    <div className="inline-flex items-center gap-2 whitespace-nowrap">
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    <div className="inline-flex justify-center gap-2 whitespace">
                       <button
                         onClick={() => onDetail(p)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
                       >
-                        Detail
+                        <FileText size={14} /> Detail
                       </button>
 
                       <button
                         onClick={() => onEdit(p)}
-                        className="px-3 py-1 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition"
+                        className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition "
                       >
-                        Edit
+                       <IconEdit size={14} /> Edit
                       </button>
 
                       <button
                         onClick={() => onDelete(p.id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+                        className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                       >
-                        Hapus
+                        <Trash2 size={14} /> Hapus
                       </button>
                     </div>
                   </td>

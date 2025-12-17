@@ -2,35 +2,75 @@
 
 import { useState } from "react";
 import LayoutAdmin from "../LayoutAdmin";
+import { useRouter } from "next/navigation";
 
 export default function ChangePasswordPage() {
+  const router = useRouter();
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage("");
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setMessage("All fields are required!");
+      setMessage("Semua field wajib diisi!");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage("New password and confirmation do not match!");
+      setMessage("Password baru dan konfirmasi tidak cocok!");
       return;
     }
 
-    setMessage("Password successfully changed!");
-    setOldPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        "http://localhost:4000/api/auth/change-password",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ JWT
+          },
+          body: JSON.stringify({
+            oldPassword,
+            newPassword,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.error || "Gagal mengganti password");
+        return;
+      }
+
+      setMessage("Password berhasil diubah!");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      setMessage("Server tidak merespons");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <LayoutAdmin>
-      {/* Centered layout and larger width */}
       <div className="flex items-center justify-center min-h-screen bg-gray-50 px-8 py-10">
         <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-4xl border border-gray-200">
           <h1 className="text-2xl font-semibold mb-10 text-gray-800 text-center">
@@ -44,7 +84,7 @@ export default function ChangePasswordPage() {
               </label>
               <input
                 type="password"
-                className="w-full border border-gray-300 rounded-md p-3 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                className="w-full border border-gray-300 rounded-md p-3 text-sm"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
               />
@@ -56,7 +96,7 @@ export default function ChangePasswordPage() {
               </label>
               <input
                 type="password"
-                className="w-full border border-gray-300 rounded-md p-3 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                className="w-full border border-gray-300 rounded-md p-3 text-sm"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
@@ -68,7 +108,7 @@ export default function ChangePasswordPage() {
               </label>
               <input
                 type="password"
-                className="w-full border border-gray-300 rounded-md p-3 text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                className="w-full border border-gray-300 rounded-md p-3 text-sm"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -76,16 +116,17 @@ export default function ChangePasswordPage() {
 
             <button
               type="submit"
-              className="w-full bg-[#1E40AF] text-white font-medium py-3 rounded-md hover:bg-blue-700 transition text-sm"
+              disabled={loading}
+              className="w-full bg-[#1E40AF] text-white py-3 rounded-md"
             >
-              Save Changes
+              {loading ? "Menyimpan..." : "Save Changes"}
             </button>
           </form>
 
           {message && (
             <p
               className={`mt-8 text-center text-sm font-medium ${
-                message.includes("successfully")
+                message.includes("berhasil")
                   ? "text-green-600"
                   : "text-red-600"
               }`}

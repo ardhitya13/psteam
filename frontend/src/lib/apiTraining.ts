@@ -1,75 +1,113 @@
+// src/lib/apiTraining.ts
 "use client";
 
-export type TrainingPayload = {
-  title: string;
-  shortDescription?: string;
-  type: string;
-  price: number;
-  thumbnail?: string;
-  description?: string;
+const API_URL = "http://localhost:4000/api/training";
 
-  // Tambahkan field baru
-  duration?: string;
-  location?: string;
-  certificate?: string;
-  instructor?: string;
-  excerpt?: string;
-  specification?: string;
+/* =====================================================
+   HANDLE RESPONSE
+===================================================== */
+async function handleResponse(res: Response) {
+  const type = res.headers.get("content-type") || "";
 
-  costDetails?: string[];
-  requirements?: string[];
-  schedule?: { batchName: string; startDate: string; endDate: string }[];
-  rundown?: { day: string; activity: string }[];
-  organizer?: string;
-};
+  if (!res.ok) {
+    const text = type.includes("json")
+      ? JSON.stringify(await res.json())
+      : await res.text();
 
-const BASE_URL = "http://localhost:4000/api/training";
+    throw new Error(`Request failed (${res.status}): ${text}`);
+  }
 
-/* ==================================
-   GET ALL TRAINING (Landing Page)
-================================== */
-export async function getAllTraining() {
-  const res = await fetch(BASE_URL, { cache: "no-store" });
-  if (!res.ok) throw new Error("Gagal mengambil daftar pelatihan");
-  return res.json();
+  return type.includes("json") ? res.json() : res.text();
 }
 
-/* ==================================
-   CREATE TRAINING
-================================== */
-export async function createTraining(payload: TrainingPayload) {
-  const res = await fetch(BASE_URL, {
+/* =====================================================
+   CREATE TRAINING (WITH FILE UPLOAD)
+===================================================== */
+export async function createTraining(data: any) {
+  const form = new FormData();
+
+  // TEXT FIELDS
+  form.append("title", data.title);
+  form.append("shortDescription", data.shortDescription || "");
+  form.append("type", data.type);
+  form.append("price", String(data.price));
+  form.append("description", data.description || "");
+  form.append("organizer", data.organizer || "");
+  form.append("duration", data.duration || "");
+  form.append("location", data.location || "");
+  form.append("certificate", data.certificate || "");
+  form.append("instructor", data.instructor || "");
+
+  // ARRAY → JSON STRING (backend expects STRING)
+  form.append("costDetails", JSON.stringify(data.costDetails || []));
+  form.append("requirements", JSON.stringify(data.requirements || []));
+  form.append("schedule", JSON.stringify(data.schedule || []));
+  form.append("rundown", JSON.stringify(data.rundown || []));
+
+  // FILE (SAME FORMAT AS TEAM)
+  if (data.thumbnailFile instanceof File) {
+    form.append("thumbnail", data.thumbnailFile, "thumbnail.png");
+  }
+
+  const res = await fetch(API_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: form,
   });
 
-  if (!res.ok) throw new Error("Gagal membuat pelatihan baru");
-  return res.json();
+  return handleResponse(res);
 }
 
-/* ==================================
-   UPDATE TRAINING
-================================== */
-export async function updateTraining(id: number, payload: TrainingPayload) {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+/* =====================================================
+   GET ALL TRAININGS
+===================================================== */
+export async function getAllTraining() {
+  const res = await fetch(API_URL, { cache: "no-store" });
+  return handleResponse(res);
+}
+
+/* =====================================================
+   UPDATE TRAINING (WITH OPTIONAL FILE)
+===================================================== */
+export async function updateTraining(id: number, data: any) {
+  const form = new FormData();
+
+  form.append("title", data.title);
+  form.append("shortDescription", data.shortDescription || "");
+  form.append("type", data.type);
+  form.append("price", String(data.price));
+  form.append("description", data.description || "");
+
+  form.append("organizer", data.organizer || "");
+  form.append("duration", data.duration || "");
+  form.append("location", data.location || "");
+  form.append("certificate", data.certificate || "");
+  form.append("instructor", data.instructor || "");
+
+  form.append("costDetails", JSON.stringify(data.costDetails || []));
+  form.append("requirements", JSON.stringify(data.requirements || []));
+  form.append("schedule", JSON.stringify(data.schedule || []));
+  form.append("rundown", JSON.stringify(data.rundown || []));
+
+  // Only upload a new file if user selected one
+  if (data.thumbnailFile instanceof File) {
+    form.append("thumbnail", data.thumbnailFile, "thumbnail-update.png");
+  }
+
+  const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: form,
   });
 
-  if (!res.ok) throw new Error("Gagal mengupdate pelatihan");
-  return res.json();
+  return handleResponse(res);
 }
 
-/* ==================================
+/* =====================================================
    DELETE TRAINING
-================================== */
+===================================================== */
 export async function deleteTraining(id: number) {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+  const res = await fetch(`${API_URL}/${id}`, {
     method: "DELETE",
   });
 
-  if (!res.ok) throw new Error("Gagal menghapus pelatihan");
-  return res.json();
+  return handleResponse(res);
 }

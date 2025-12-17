@@ -1,51 +1,104 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, FileText, Trash2 } from "lucide-react";
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
+import DetailTrainingModal from "./TrainingDetailModal";
 
 type Participant = {
   id: number;
   name: string;
   email: string;
   phone: string;
-  trainingTitle: string;
-  trainingType: "web" | "mobile" | "iot" | "ai";
   batch: string;
+
+  training: {
+    id: number;
+    title: string;
+    type: "web" | "mobile" | "iot" | "ai" | string;
+  };
+};
+
+export type Training = {
+  id: number;
+  title: string;
+  shortDescription?: string;
+  type: "web" | "mobile" | "iot" | "ai" | string;
+  price: number;
+  thumbnail?: string;
+  description?: string;
+  costDetails?: string[];
+  requirements?: string[];
+  schedule?: { batchName: string; startDate: string; endDate: string }[];
+  rundown?: { day: string; activity: string }[];
+  organizer?: string;
+  duration?: string;
+  location?: string;
+  certificate?: string;
+  instructor?: string;
 };
 
 export default function TrainingParticipantsAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
   const [participants, setParticipants] = useState<Participant[]>([]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [pageGroup, setPageGroup] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // 🔵 MODAL KONFIRMASI DELETE
+  const [detailData, setDetailData] = useState<Training | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
 
-  // LOAD DATA
+  async function showDetail(trainingId: number) {
+    try {
+      const res = await fetch(`http://localhost:4000/api/training/${trainingId}`);
+      const data = await res.json();
+
+      // NORMALIZE JSON FIELDS
+      const normalized = {
+        ...data,
+        costDetails: Array.isArray(data.costDetails)
+          ? data.costDetails
+          : JSON.parse(data.costDetails || "[]"),
+
+        requirements: Array.isArray(data.requirements)
+          ? data.requirements
+          : JSON.parse(data.requirements || "[]"),
+
+        schedule: Array.isArray(data.schedule)
+          ? data.schedule
+          : JSON.parse(data.schedule || "[]"),
+
+        rundown: Array.isArray(data.rundown)
+          ? data.rundown
+          : JSON.parse(data.rundown || "[]"),
+      };
+
+      setDetailData(normalized);
+    } catch (err) {
+      console.error("Failed loading training detail:", err);
+      alert("Gagal memuat detail pelatihan.");
+    }
+  }
+
+  // LOAD DATA APPROVED
   useEffect(() => {
-    fetch("http://localhost:4000/api/trainings/approved")
+    fetch("http://localhost:4000/api/training-registrations/approved")
       .then((r) => r.json())
       .then((data) => {
-        console.log("DATA DARI BACKEND: ", data);
+        console.log("DATA APPROVED:", data);
         setParticipants(Array.isArray(data) ? data : []);
       });
   }, []);
 
-  // DELETE (dipanggil setelah user klik "Ya, Hapus")
+  // DELETE
   const deleteNow = async (id: number) => {
-    await fetch(`http://localhost:4000/api/trainings/${id}`, {
+    await fetch(`http://localhost:4000/api/training-registrations/${id}`, {
       method: "DELETE",
     });
 
@@ -53,14 +106,15 @@ export default function TrainingParticipantsAdmin() {
     setConfirmDelete(null);
   };
 
-  // FILTER
+  // FILTERING
   const filtered = participants.filter((p) => {
+    const s = searchTerm.toLowerCase();
     const matchSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.email.toLowerCase().includes(searchTerm.toLowerCase());
+      p.name.toLowerCase().includes(s) ||
+      p.email.toLowerCase().includes(s);
 
     const matchType =
-      selectedType === "all" ? true : p.trainingType === selectedType;
+      selectedType === "all" ? true : p.training.type === selectedType;
 
     return matchSearch && matchType;
   });
@@ -87,9 +141,8 @@ export default function TrainingParticipantsAdmin() {
         />
 
         <main
-          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
         >
           {/* TITLE */}
           <div className="text-center mb-8">
@@ -124,19 +177,17 @@ export default function TrainingParticipantsAdmin() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onBlur={() => {
-                  if (searchTerm.trim() === "") setIsSearchOpen(false);
+                  if (!searchTerm.trim()) setIsSearchOpen(false);
                 }}
                 placeholder="Cari peserta..."
-                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10
-                  ${
-                    isSearchOpen
-                      ? "w-56 pl-10 pr-3 opacity-100"
-                      : "w-10 opacity-0 pointer-events-none"
+                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${isSearchOpen
+                  ? "w-56 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
                   }`}
               />
             </div>
 
-            {/* FILTER TIPE */}
+            {/* FILTER TYPE */}
             <div className="relative">
               <select
                 value={selectedType}
@@ -168,7 +219,6 @@ export default function TrainingParticipantsAdmin() {
                   </option>
                 ))}
               </select>
-
               <ChevronDown
                 size={16}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
@@ -209,38 +259,37 @@ export default function TrainingParticipantsAdmin() {
                         {startIndex + i + 1}
                       </td>
 
-                      <td className="border px-4 py-2 border-gray-300 font-semibold">
+                      <td className="px-4 py-3 border border-gray-300 font-semibold">
                         {p.name}
                       </td>
 
+                      <td className="border px-4 py-2 border-gray-300">{p.email}</td>
+                      <td className="border px-4 py-2 border-gray-300">{p.phone}</td>
                       <td className="border px-4 py-2 border-gray-300">
-                        {p.email}
+                        {p.training.title}
                       </td>
+                      <td className="px-4 py-3 border border-gray-300 capitalize">
+                        {p.training.type}
+                      </td>
+                      <td className="border px-4 py-2 border-gray-300">{p.batch}</td>
 
+                      {/* ACTION BUTTONS */}
                       <td className="border px-4 py-2 border-gray-300">
-                        {p.phone}
-                      </td>
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => showDetail(p.training.id)}
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                         >
+                            <FileText size={14} /> Detail
+                          </button>
 
-                      <td className="border px-4 py-2 border-gray-300">
-                        {p.trainingTitle}
-                      </td>
-
-                      <td className="border px-4 py-2 border-gray-300 capitalize">
-                        {p.trainingType}
-                      </td>
-
-                      <td className="border px-4 py-2 border-gray-300">
-                        {p.batch}
-                      </td>
-
-                      {/* DELETE BUTTON */}
-                      <td className="border px-4 py-2 border-gray-300">
-                        <button
-                          onClick={() => setConfirmDelete(p)}
-                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                        >
-                          Hapus
-                        </button>
+                          <button
+                            onClick={() => setConfirmDelete(p)}
+                            className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+                          >
+                            <Trash2 size={14} /> Hapus
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -259,11 +308,10 @@ export default function TrainingParticipantsAdmin() {
                   }
                 }}
                 disabled={currentPage === 1}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  }`}
               >
                 &lt;
               </button>
@@ -276,11 +324,10 @@ export default function TrainingParticipantsAdmin() {
                   <button
                     key={pageNumber}
                     onClick={() => setCurrentPage(pageNumber)}
-                    className={`px-2 py-1 rounded text-xs border ${
-                      currentPage === pageNumber
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNumber
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                      }`}
                   >
                     {pageNumber}
                   </button>
@@ -296,11 +343,10 @@ export default function TrainingParticipantsAdmin() {
                   }
                 }}
                 disabled={currentPage === totalPages}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300 text-gray-800"
-                }`}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  }`}
               >
                 &gt;
               </button>
@@ -309,7 +355,7 @@ export default function TrainingParticipantsAdmin() {
         </main>
       </div>
 
-      {/* 🔴 MODAL DELETE */}
+      {/* DELETE MODAL */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
@@ -331,13 +377,21 @@ export default function TrainingParticipantsAdmin() {
 
               <button
                 onClick={() => deleteNow(confirmDelete.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded text-sm"
+                className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
               >
                 Ya, Hapus
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* DETAIL MODAL */}
+      {detailData && (
+        <DetailTrainingModal
+          data={detailData!}
+          onClose={() => setDetailData(null)}
+        />
       )}
     </div>
   );
