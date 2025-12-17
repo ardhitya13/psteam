@@ -165,7 +165,7 @@ export default function DaftarHkiPage() {
           <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200">
             <input
               type="text"
-              placeholder="Cari title HKI..."
+              placeholder="Cari Judul HKI..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg text-gray-900 placeholder-gray-500"
@@ -182,9 +182,9 @@ export default function DaftarHkiPage() {
             <thead className="bg-gray-300 text-gray-800">
               <tr>
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">title KARYA</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">type HKI</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">year</th>
+                <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">JENIS HKI</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>

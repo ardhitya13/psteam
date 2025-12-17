@@ -136,7 +136,7 @@ export default function DaftarKaryaIlmiahPage() {
               onChange={(e) => setSelectedYear(e.target.value)}
               className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-900 cursor-pointer"
             >
-              <option value="Semua">Semua year</option>
+              <option value="Semua">Semua Tahun</option>
               {[2025, 2024, 2023, 2022, 2021].map((year) => (
                 <option key={year} value={year}>
                   {year}
@@ -171,7 +171,7 @@ export default function DaftarKaryaIlmiahPage() {
                 <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
                 <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">JENIS</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">year</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
                 <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>

@@ -1,14 +1,13 @@
 "use client";
 
-import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 import ModalWrapper from "./ModalWrapper";
 
 interface EditResearchCardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (updatedData: { no: number; nama: string; title: string; year: number }) => void;
-  defaultData: { no: number; nama: string; title: string; year: number } | null;
+  onSubmit: (updatedData: { no: number; title: string; year: number }) => void;
+  defaultData: { no: number; title: string; year: number } | null;
 }
 
 export default function EditResearchCard({
@@ -19,18 +18,26 @@ export default function EditResearchCard({
 }: EditResearchCardProps) {
   const [formData, setFormData] = useState({
     no: 0,
-    nama: "",
     title: "",
     year: new Date().getFullYear(),
   });
 
   useEffect(() => {
-    if (defaultData) setFormData(defaultData);
+    if (defaultData) {
+      setFormData({
+        no: defaultData.no,
+        title: defaultData.title,
+        year: defaultData.year,
+      });
+    }
   }, [defaultData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: name === "year" ? Number(value) : value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "year" ? Number(value) : value,
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,77 +47,65 @@ export default function EditResearchCard({
   };
 
   return (
-  <ModalWrapper isOpen={isOpen} onClose={onClose}>
-    {/* 🔽 HAPUS background putih di wrapper dalam */}
-    <div className="w-[95%] max-w-md">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-5">
-        <h2 className="text-xl font-semibold text-gray-800">Edit Penelitian</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-800 transition-colors"
-        >
-        </button>
+    <ModalWrapper isOpen={isOpen} onClose={onClose}>
+      <div className="w-[95%] max-w-md">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Edit Penelitian
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Judul Penelitian */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Judul Penelitian
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+            />
+          </div>
+
+          {/* Tahun */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tahun Penelitian
+            </label>
+            <input
+              type="number"
+              name="year"
+              min={2000}
+              max={2100}
+              value={formData.year}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition-all"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </form>
       </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nama Dosen</label>
-          <input
-            type="text"
-            name="nama"
-            value={formData.nama}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Judul Penelitian</label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Penelitian</label>
-          <input
-            type="number"
-            name="year"
-            value={formData.year}
-            onChange={handleChange}
-            min={2000}
-            max={2100}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-          />
-        </div>
-
-        {/* Tombol */}
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition-all"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
-          >
-            Simpan Perubahan
-          </button>
-        </div>
-      </form>
-    </div>
-  </ModalWrapper>
-);
+    </ModalWrapper>
+  );
 }
