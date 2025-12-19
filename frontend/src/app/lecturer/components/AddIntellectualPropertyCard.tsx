@@ -1,117 +1,125 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface TambahKaryaIlmiahCardProps {
+interface AddHkiProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: { title: string; type: string; year: number }) => void;
+  onSubmit: (data: { title: string; type: string; year: number }) => void;
 }
 
 export default function AddIntellectualPropertyCard({
   isOpen,
   onClose,
   onSubmit,
-}: TambahKaryaIlmiahCardProps) {
-  const [formData, setFormData] = useState({
+}: AddHkiProps) {
+  const [form, setForm] = useState({
     title: "",
     type: "",
     year: new Date().getFullYear(),
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      setForm({
+        title: "",
+        type: "",
+        year: new Date().getFullYear(),
+      });
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (!form.title.trim()) return alert("Judul wajib diisi!");
+    if (!form.type.trim()) return alert("Jenis wajib dipilih!");
+
+    onSubmit(form);
     onClose();
-    setFormData({ title: "", type: "", year: new Date().getFullYear() });
   };
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-lg font-semibold text-gray-900 mb-6 text-center">
-        Tambah HKI
-      </h2>
+      <div className="bg-white rounded-lg shadow-md w-[420px] p-6">
+        <h2 className="text-xl font-semibold mb-5 text-center text-gray-800">
+          Tambah HKI / Paten
+        </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Input title */}
-        <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Judul Karya
-          </label>
-          <input
-            id="title"
-            type="text"
-            placeholder="Masukkan judul karya"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* Input type */}
-        <div>
-          <label
-            htmlFor="type"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Jenis Karya
-          </label>
-          <select
-            id="type"
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-          >
-            <option value="">Pilih jenis karya</option>
-            <option value="Hak Cipta Nasional">Hak Cipta Nasional</option>
-            <option value="Lain-lain">Lain-lain</option>
-          </select>
-        </div>
+          {/* TITLE INPUT */}
+          <div>
+            <label className="text-sm font-medium mb-1 block text-gray-700">
+              Judul HKI
+            </label>
+            <input
+              type="text"
+              placeholder="Masukkan Judul"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="border w-full rounded-lg px-3 py-2 text-sm"
+              required
+            />
+          </div>
 
-        {/* Input year */}
-        <div>
-          <label
-            htmlFor="year"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Tahun Pengajuan HKI
-          </label>
-          <input
-            id="year"
-            type="number"
-            placeholder="Enter the year of application"
-            value={formData.year}
-            onChange={(e) =>
-              setFormData({ ...formData, year: Number(e.target.value) })
-            }
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
+          {/* TYPE SELECT */}
+          <div>
+            <label className="text-sm font-medium mb-1 block text-gray-700">
+              Jenis HKI
+            </label>
+            <select
+              className="border w-full rounded-lg px-3 py-2 text-sm bg-white"
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value })}
+              required
+            >
+              <option value="">Pilih jenis HKI</option>
+              <option value="Hak Cipta Nasional">Hak Cipta Nasional</option>
+              <option value="Hak Cipta Internasional">Hak Cipta Internasional</option>
+              <option value="Desain Industri">Desain Industri</option>
+              <option value="Paten Sederhana">Paten Sederhana</option>
+              <option value="Paten">Paten</option>
+            </select>
+          </div>
 
-        {/* Tombol Aksi */}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200 text-sm font-medium"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium"
-          >
-            Tambahkan
-          </button>
-        </div>
-      </form>
+          {/* YEAR INPUT */}
+          <div>
+            <label className="text-sm font-medium mb-1 block text-gray-700">
+              Tahun
+            </label>
+            <input
+              type="number"
+              min={2000}
+              max={2100}
+              value={form.year}
+              onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
+              className="border w-full rounded-lg px-3 py-2 text-sm"
+              required
+            />
+          </div>
+
+          {/* BUTTONS */}
+          <div className="flex justify-end gap-2 pt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 rounded-lg"
+            >
+              Batal
+            </button>
+
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Tambahkan
+            </button>
+          </div>
+        </form>
+      </div>
     </ModalWrapper>
   );
 }

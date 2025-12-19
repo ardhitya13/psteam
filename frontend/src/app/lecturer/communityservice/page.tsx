@@ -2,13 +2,15 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
+
 import NavbarDosen from "../components/NavbarLecturer";
 import SidebarDosen from "../components/SidebarLecturer";
 import TambahPengabdianCard from "../components/AddCommunityService";
 import EditPengabdianCard from "../components/EditCommunityServiceCard";
 
-type PengabdianItem = {
-  no: number;
+type CSItem = {
+  id: number;
   title: string;
   year: number;
 };
@@ -17,63 +19,114 @@ export default function DaftarPengabdianPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedData, setSelectedData] = useState<PengabdianItem | null>(null);
+
+  const [data, setData] = useState<CSItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<CSItem | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("Semua");
+
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [addSuccess, setAddSuccess] = useState(false);
+  const [successTitle, setSuccessTitle] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageStart, setPageStart] = useState(1);
 
   const itemsPerPage = 10;
   const maxVisiblePages = 2;
 
-  // Dummy Data
-  const [data, setData] = useState<PengabdianItem[]>(
-    Array.from({ length: 20 }, (_, i) => ({
-      no: i + 1,
-      title: `Kegiatan Pengabdian ${i + 1}`,
-      year: 2020 + ((i + 1) % 6),
-    }))
-  );
+  const userId = 2;
 
-  // Tambah
-  const handleAddData = (newData: { title: string; year: number }) => {
-    const newItem: PengabdianItem = {
-      no: data.length + 1,
-      title: newData.title,
-      year: newData.year,
-    };
-    setData((prev) => [...prev, newItem]);
-  };
-
-  // Edit
-  const handleEdit = (no: number) => {
-    const item = data.find((d) => d.no === no) ?? null;
-    setSelectedData(item);
-    setIsEditModalOpen(!!item);
-  };
-
-  const handleUpdateData = (updatedData: { no: number; title: string; year: number }) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.no === updatedData.no
-          ? { ...item, title: updatedData.title, year: updatedData.year }
-          : item
-      )
-    );
-
-    setIsEditModalOpen(false);
-    setSelectedData(null);
-  };
-
-  // Hapus
-  const handleHapus = (no: number) => {
-    if (confirm("Yakin ingin menghapus data ini?")) {
-      setData((prev) => prev.filter((item) => item.no !== no));
+  /* ================= FETCH ================= */
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`http://localhost:4000/api/lecturer/${userId}/community-service`);
+      const json = await res.json();
+      setData(json.data || []);
+    } catch (err) {
+      console.error("Gagal fetch pengabdian:", err);
     }
   };
 
-  // Filter
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  /* ================= ADD ================= */
+  const handleAddData = async ({ title, year }: { title: string; year: number }) => {
+    try {
+      await fetch(`http://localhost:4000/api/lecturer/${userId}/community-service`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, year }),
+      });
+
+      await fetchData();
+      setIsModalOpen(false);
+      setSuccessTitle(title);
+      setAddSuccess(true);
+    } catch (err) {
+      console.error("Gagal tambah data:", err);
+    }
+  };
+
+  /* ================= EDIT ================= */
+  const handleEdit = (item: CSItem) => {
+    setUpdateSuccess(false);
+    setAddSuccess(false);
+    setDeleteSuccess(false);
+    setSelectedItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateData = async (updated: CSItem) => {
+    try {
+      await fetch(`http://localhost:4000/api/lecturer/community-service/${updated.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: updated.title, year: updated.year }),
+      });
+
+      await fetchData();
+      setIsEditModalOpen(false);
+      setSuccessTitle(updated.title);
+      setUpdateSuccess(true);
+    } catch (err) {
+      console.error("Gagal update:", err);
+    }
+  };
+
+  /* ================= DELETE ================= */
+  const openDeleteModal = (id: number) => {
+    setDeleteSuccess(false);
+    setUpdateSuccess(false);
+    setAddSuccess(false);
+    setDeleteId(id);
+    setDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await fetch(`http://localhost:4000/api/lecturer/community-service/${deleteId}`, {
+        method: "DELETE",
+      });
+
+      await fetchData();
+      setDeleteConfirm(false);
+      setDeleteSuccess(true);
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Gagal hapus:", err);
+    }
+  };
+
+  /* ================= FILTER ================= */
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const cocokYear = selectedYear === "Semua" || item.year === Number(selectedYear);
@@ -109,22 +162,66 @@ export default function DaftarPengabdianPage() {
     }
   };
 
+  /* ================= ALERT UI ================= */
+  const SuccessAlert = ({ message, onOk }: { message: string; onOk: () => void }) =>
+    createPortal(
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999999]">
+        <div className="bg-white p-6 rounded-lg w-80 text-center">
+          <h3 className="font-bold text-blue-600 mb-2">Berhasil!</h3>
+          <p className="mb-4">{message}</p>
+          <button onClick={onOk} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+            OK
+          </button>
+        </div>
+      </div>,
+      document.body
+    );
+
+  const DeleteAlert = ({ onCancel, onOk }: { onCancel: () => void; onOk: () => void }) =>
+    createPortal(
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999999]">
+        <div className="bg-white p-6 rounded-lg w-80 text-center">
+          <h3 className="font-bold text-red-600 mb-2">Hapus Data?</h3>
+          <p className="mb-4">Data akan dihapus permanen.</p>
+          <div className="flex justify-center gap-3">
+            <button onClick={onCancel} className="px-4 py-2 bg-gray-300 rounded-lg">
+              Batal
+            </button>
+            <button onClick={onOk} className="px-4 py-2 bg-red-600 text-white rounded-lg">
+              Hapus
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+
+  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+
       <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <main className={`transition-all duration-300 pt-0 px-8 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"} mt-[85px]`}>
-
+      <main
+        className={`transition-all duration-300 pt-0 px-8 pb-10 ${
+          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+        } mt-[85px]`}
+      >
         <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
-          DAFTAR PENGABDIAN MASYARAKAT
+          DAFTAR PENGABDIAN DOSEN
         </h1>
 
-        {/* Kontrol Atas */}
-        <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
+        <div className="flex justify-end gap-3 mb-4">
+
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
+            onClick={() => {
+              setAddSuccess(false);
+              setUpdateSuccess(false);
+              setDeleteSuccess(false);
+              setIsModalOpen(true);
+            }}
+            className="bg-blue-600 text-white rounded-lg px-4 py-2.5 flex items-center gap-2 text-sm"
           >
             <Plus size={16} /> Tambah Pengabdian
           </button>
@@ -132,72 +229,68 @@ export default function DaftarPengabdianPage() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="appearance-none border rounded-lg px-4 py-2 bg-white"
+            className="border rounded-lg px-3 py-2 pr-8 text-black"
           >
             <option value="Semua">Semua Tahun</option>
-            {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
-              <option key={year} value={year}>{year}</option>
+            {[2025, 2024, 2023, 2022, 2021].map((y) => (
+              <option key={y} value={y}>{y}</option>
             ))}
           </select>
 
-          <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64">
+          <div className="flex border rounded-lg overflow-hidden bg-white  text-black">
             <input
-              type="text"
-              placeholder="Cari Judul Pengabdian..."
+              className="px-3 py-2 text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-grow px-3 py-2.5 focus:outline-none text-sm"
+              placeholder="Cari Judul..."
             />
-            <div className="bg-blue-600 text-white px-3 py-3 flex items-center">
+            <div className="px-2 bg-blue-600 text-white flex items-center">
               <Search size={16} />
             </div>
           </div>
         </div>
 
-        {/* === TABEL (SAMA PERSIS KARYA ILMIAH) === */}
-        <div className="overflow-x-auto bg-white shadow-lg rounded-lg border border-gray-200">
-          <table className="w-full border-collapse text-sm text-gray-700">
-            <thead className="bg-gray-300 text-gray-800">
+        <div className="border rounded-lg shadow bg-white overflow-x-auto">
+          <table className="w-full text-sm text-black">
+            <thead className="bg-gray-300">
               <tr>
-                <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL PENGABDIAN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
+                <th className="px-4 py-2 border text-center">NO</th>
+                <th className="px-4 py-2 border">JUDUL</th>
+                <th className="px-4 py-2 border text-center">TAHUN</th>
+                <th className="px-4 py-2 border text-center">AKSI</th>
               </tr>
             </thead>
-
             <tbody>
               {visibleData.length > 0 ? (
-                visibleData.map((item) => (
-                  <tr key={item.no} className="hover:bg-gray-50 transition-colors">
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                    <td className="border border-gray-200 px-4 py-2">{item.title}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.year}</td>
-
-                    <td className="border border-gray-200 px-4 py-2 text-center">
+                visibleData.map((item, i) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="border px-4 py-2 text-center">
+                      {(currentPage - 1) * itemsPerPage + i + 1}
+                    </td>
+                    <td className="border px-4 py-2">{item.title}</td>
+                    <td className="border px-4 py-2 text-center">{item.year}</td>
+                    <td className="border px-4 py-2 text-center">
                       <div className="flex justify-center gap-2">
-
                         <button
-                          onClick={() => handleEdit(item.no)}
-                          className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm"
+                          onClick={() => handleEdit(item)}
+                          className="bg-yellow-400 text-xs text-white rounded px-3 py-1 flex items-center"
                         >
                           <Edit size={14} /> Edit
                         </button>
 
                         <button
-                          onClick={() => handleHapus(item.no)}
-                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm"
+                          onClick={() => openDeleteModal(item.id)}
+                          className="bg-red-500 text-xs text-white rounded px-3 py-1 flex items-center"
                         >
                           <Trash2 size={14} /> Hapus
                         </button>
-
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="text-center py-4 text-gray-500 italic">
+                  <td colSpan={4} className="text-center py-4 italic text-gray-500">
                     Tidak ada data ditemukan
                   </td>
                 </tr>
@@ -205,41 +298,87 @@ export default function DaftarPengabdianPage() {
             </tbody>
           </table>
 
-          {/* Pagination */}
-          <div className="flex justify-end items-center px-4 py-3 border-t bg-white rounded-b-lg">
+          <div className="p-3 flex justify-end gap-2">
             <button onClick={handlePrevGroup} disabled={pageStart === 1} className="px-2 py-1 border rounded text-xs">
-              {"<"}
+              &lt;
             </button>
-
             {visiblePages.map((page) => (
-              <button key={page} onClick={() => setCurrentPage(page)} className={`px-2 py-1 border rounded text-xs mx-1 ${currentPage === page ? "bg-blue-600 text-white" : ""}`}>
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-2 py-1 border rounded text-xs ${
+                  currentPage === page ? "bg-blue-600 text-white" : ""
+                }`}
+              >
                 {page}
               </button>
             ))}
-
-            <button onClick={handleNextGroup} disabled={pageStart + maxVisiblePages - 1 >= totalPages} className="px-2 py-1 border rounded text-xs">
-              {">"}
+            <button
+              onClick={handleNextGroup}
+              disabled={pageStart + maxVisiblePages - 1 >= totalPages}
+              className="px-2 py-1 border rounded text-xs"
+            >
+              &gt;
             </button>
           </div>
         </div>
 
-        {/* Modal */}
-        <TambahPengabdianCard isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleAddData} />
+        {/* MODAL ADD */}
+        <TambahPengabdianCard
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setAddSuccess(false);
+          }}
+          onSubmit={handleAddData}
+        />
 
+        {/* SUCCESS ADD */}
+        {addSuccess && (
+          <SuccessAlert
+            message={`Data "${successTitle}" berhasil ditambahkan.`}
+            onOk={() => {
+              setAddSuccess(false);
+            }}
+          />
+        )}
+
+        {/* MODAL EDIT */}
         <EditPengabdianCard
           isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setUpdateSuccess(false);
+          }}
+          defaultData={selectedItem}
           onSubmit={handleUpdateData}
-          defaultData={
-            selectedData
-              ? {
-                  no: selectedData.no,
-                  title: selectedData.title,
-                  year: selectedData.year,
-                }
-              : null
-          }
         />
+
+        {/* SUCCESS UPDATE */}
+        {updateSuccess && (
+          <SuccessAlert
+            message={`Perubahan "${successTitle}" berhasil disimpan.`}
+            onOk={() => {
+              setUpdateSuccess(false);
+            }}
+          />
+        )}
+
+        {/* DELETE CONFIRM */}
+        {deleteConfirm && (
+          <DeleteAlert
+            onCancel={() => setDeleteConfirm(false)}
+            onOk={confirmDelete}
+          />
+        )}
+
+        {/* SUCCESS DELETE */}
+        {deleteSuccess && (
+          <SuccessAlert
+            message="Data berhasil dihapus."
+            onOk={() => setDeleteSuccess(false)}
+          />
+        )}
       </main>
     </div>
   );

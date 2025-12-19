@@ -2,13 +2,15 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
+
 import NavbarDosen from "../components/NavbarLecturer";
 import SidebarDosen from "../components/SidebarLecturer";
-import AddIntellectualPropertyCard from "../components/AddIntellectualPropertyCard";
-import EditIntellectualPropertyCard from "../components/EditIntellectualPropertyCard";
+import TambahHkiCard from "../components/AddIntellectualPropertyCard";
+import EditHkiCard from "../components/EditIntellectualPropertyCard";
 
 type HkiItem = {
-  no: number;
+  id: number;
   title: string;
   type: string;
   year: number;
@@ -18,71 +20,124 @@ export default function DaftarHkiPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedHki, setSelectedHki] = useState<HkiItem | null>(null);
+
+  const [data, setData] = useState<HkiItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<HkiItem | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("Semua");
+
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [addSuccess, setAddSuccess] = useState(false);
+  const [successTitle, setSuccessTitle] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageStart, setPageStart] = useState(1);
+
   const itemsPerPage = 10;
   const maxVisiblePages = 2;
+  const userId = 2;
 
-  // === Data Dummy ===
-  const [data, setData] = useState<HkiItem[]>(
-    [
-      { no: 1, title: "Poster Aplikasi Polibatam Guest", type: "Hak Cipta Nasional", year: 2021 },
-      { no: 2, title: "Sistem Informasi Organisasi Mahasiswa (SIOMA)", type: "Hak Cipta Nasional", year: 2022 },
-      { no: 3, title: "Sistem Informasi Pelatihan Karyawan Baru", type: "Hak Cipta Nasional", year: 2022 },
-      { no: 4, title: "Website Company Profile PT. ADE MESTAKUNG ABADI", type: "Hak Cipta Nasional", year: 2023 },
-      { no: 5, title: "Aplikasi Absensi Berbasis QR Code", type: "Hak Cipta Nasional", year: 2023 },
-      { no: 6, title: "Sistem E-Learning Polibatam", type: "Hak Cipta Nasional", year: 2024 },
-      { no: 7, title: "Desain UI Dashboard Akademik", type: "Hak Cipta Nasional", year: 2025 },
-      { no: 8, title: "Aplikasi Inventaris Barang Kampus", type: "Hak Cipta Nasional", year: 2024 },
-      { no: 9, title: "Website Monitoring Proyek Mahasiswa", type: "Hak Cipta Nasional", year: 2025 },
-      { no: 10, title: "Sistem Penilaian Dosen Otomatis", type: "Hak Cipta Nasional", year: 2025 },
-      { no: 11, title: "Aplikasi Keuangan Digital Kampus", type: "Hak Cipta Nasional", year: 2023 },
-      { no: 12, title: "Aplikasi Pengajuan Surat Mahasiswa", type: "Hak Cipta Nasional", year: 2024 },
-    ]
-  );
-
-  // === Tambah Data ===
-  const handleAddData = (newData: { title: string; type: string; year: number }) => {
-    const newItem: HkiItem = {
-      no: data.length + 1,
-      title: newData.title,
-      type: newData.type,
-      year: newData.year,
-    };
-    setData((prev) => [...prev, newItem]);
-  };
-
-  // === Edit Data ===
-  const handleEdit = (no: number) => {
-    const hki = data.find((item) => item.no === no) ?? null;
-    setSelectedHki(hki);
-    setIsEditModalOpen(!!hki);
-  };
-
-  const handleUpdateData = (updatedData: HkiItem) => {
-    setData((prev) =>
-      prev.map((item) => (item.no === updatedData.no ? updatedData : item))
+  /* ================= FETCH ================= */
+  const fetchData = async () => {
+    const res = await fetch(
+      `http://localhost:4000/api/lecturer/${userId}/intellectual-property`
     );
+    const json = await res.json();
+    setData(json.data || []);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  /* ================= ADD ================= */
+  const handleAddData = async (payload: {
+    title: string;
+    type: string;
+    year: number;
+  }) => {
+    await fetch(
+      `http://localhost:4000/api/lecturer/${userId}/intellectual-property`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    await fetchData();
+    setIsModalOpen(false);
+    setSuccessTitle(payload.title);
+    setAddSuccess(true);
+  };
+
+  /* ================= EDIT ================= */
+  const handleEdit = (item: HkiItem) => {
+    setAddSuccess(false);
+    setUpdateSuccess(false);
+    setDeleteSuccess(false);
+    setSelectedItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateData = async (updated: HkiItem) => {
+    await fetch(
+      `http://localhost:4000/api/lecturer/intellectual-property/${updated.id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: updated.title,
+          type: updated.type,
+          year: updated.year,
+        }),
+      }
+    );
+
+    await fetchData();
     setIsEditModalOpen(false);
-    setSelectedHki(null);
+    setSuccessTitle(updated.title);
+    setUpdateSuccess(true);
   };
 
-  // === Hapus Data ===
-  const handleHapus = (no: number) => {
-    if (confirm("Yakin ingin menghapus data ini?")) {
-      setData((prev) => prev.filter((item) => item.no !== no));
-    }
+  /* ================= DELETE ================= */
+  const openDeleteModal = (id: number) => {
+    setAddSuccess(false);
+    setUpdateSuccess(false);
+    setDeleteSuccess(false);
+    setDeleteId(id);
+    setDeleteConfirm(true);
   };
 
-  // === Filter & Search ===
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    await fetch(
+      `http://localhost:4000/api/lecturer/intellectual-property/${deleteId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    await fetchData();
+    setDeleteConfirm(false);
+    setDeleteSuccess(true);
+    setDeleteId(null);
+  };
+
+  /* ================= FILTER ================= */
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const cocokyear = selectedYear === "Semua" || item.year === Number(selectedYear);
-      const cocoktitle = item.title.toLowerCase().includes(searchTerm.toLowerCase());
-      return cocokyear && cocoktitle;
+      const cocokYear =
+        selectedYear === "Semua" || item.year === Number(selectedYear);
+      const cocokTitle = item.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return cocokYear && cocokTitle;
     });
   }, [data, searchTerm, selectedYear]);
 
@@ -91,37 +146,84 @@ export default function DaftarHkiPage() {
     setPageStart(1);
   }, [searchTerm, selectedYear]);
 
-  // === Pagination ===
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
-  const visibleData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  /* ================= PAGINATION ================= */
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredData.length / itemsPerPage)
+  );
+  const visibleData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const visiblePages = Array.from(
     { length: Math.min(maxVisiblePages, totalPages - pageStart + 1) },
     (_, i) => pageStart + i
   );
 
-  const handleNextGroup = () => {
-    if (pageStart + maxVisiblePages - 1 < totalPages) {
-      setPageStart(pageStart + 1);
-      setCurrentPage(pageStart + 1);
-    }
-  };
+  /* ================= ALERT COMPONENTS ================= */
+  const SuccessAlert = ({
+    message,
+    onOk,
+  }: {
+    message: string;
+    onOk: () => void;
+  }) =>
+    createPortal(
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[99999]">
+        <div className="bg-white p-6 rounded-lg w-80 text-center">
+          <h3 className="font-bold text-blue-600 mb-2">Berhasil!</h3>
+          <p className="mb-4">{message}</p>
+          <button
+            onClick={onOk}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            OK
+          </button>
+        </div>
+      </div>,
+      document.body
+    );
 
-  const handlePrevGroup = () => {
-    if (pageStart > 1) {
-      setPageStart(pageStart - 1);
-      setCurrentPage(pageStart - 1);
-    }
-  };
+  const DeleteAlert = ({
+    onCancel,
+    onOk,
+  }: {
+    onCancel: () => void;
+    onOk: () => void;
+  }) =>
+    createPortal(
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[99999]">
+        <div className="bg-white p-6 rounded-lg w-80 text-center">
+          <h3 className="font-bold text-red-600 mb-2">Hapus Data?</h3>
+          <p className="mb-4">Data akan dihapus permanen!</p>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+            >
+              Batal
+            </button>
+            <button
+              onClick={onOk}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg"
+            >
+              Hapus
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
+  /* ================= RENDER ================= */
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <SidebarDosen
+        isOpen={isSidebarOpen}
+        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
 
       <main
         className={`transition-all duration-300 pt-0 px-8 pb-10 ${
@@ -132,81 +234,81 @@ export default function DaftarHkiPage() {
           DAFTAR HKI / PATEN DOSEN
         </h1>
 
-        {/* === Tombol & Filter === */}
         <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
-          {/* Tambah HKI */}
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setAddSuccess(false);
+              setUpdateSuccess(false);
+              setDeleteSuccess(false);
+              setIsModalOpen(true);
+            }}
             className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
           >
-            <Plus size={16} /> Tambah HKI / Paten
+            <Plus size={16} /> Tambah HKI
           </button>
 
-          {/* Filter year */}
-          <div className="relative inline-block">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-900 cursor-pointer"
-            >
-              <option value="Semua">Semua Tahun</option>
-              {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <ChevronDown size={18} className="text-gray-500" />
-            </div>
-          </div>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="border rounded-lg px-3 pr-8 py-2 text-black"
+          >
+            <option value="Semua">Semua Tahun</option>
+            {[2025, 2024, 2023, 2022, 2021, 2020].map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
 
-          {/* Pencarian */}
-          <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200">
+          <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 text-black">
             <input
               type="text"
               placeholder="Cari Judul HKI..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg text-gray-900 placeholder-gray-500"
+              className="flex-grow px-3 py-2.5 focus:outline-none text-sm"
             />
-            <div className="bg-blue-600 text-white px-3 py-3 flex items-center justify-center border-l border-blue-700">
+            <div className="bg-blue-600 text-white px-3 py-3 border-l">
               <Search size={16} />
             </div>
           </div>
         </div>
 
-        {/* === Tabel Data === */}
-        <div className="overflow-x-auto bg-white shadow-lg rounded-lg border border-gray-200">
+        <div className="overflow-x-auto bg-white shadow-lg rounded-lg border">
           <table className="w-full border-collapse text-sm text-gray-700">
-            <thead className="bg-gray-300 text-gray-800">
+            <thead className="bg-gray-300">
               <tr>
-                <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">JENIS HKI</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
+                <th className="border px-4 py-2 text-center">NO</th>
+                <th className="border px-4 py-2">JUDUL KARYA</th>
+                <th className="border px-4 py-2 text-center">JENIS HKI</th>
+                <th className="border px-4 py-2 text-center">TAHUN</th>
+                <th className="border px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>
+
             <tbody>
               {visibleData.length > 0 ? (
-                visibleData.map((item) => (
-                  <tr key={item.no} className="hover:bg-gray-50 transition-colors">
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                    <td className="border border-gray-200 px-4 py-2">{item.title}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.type}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.year}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">
+                visibleData.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="border px-4 py-2 text-center">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
+                    <td className="border px-4 py-2">{item.title}</td>
+                    <td className="border px-4 py-2 text-center">{item.type}</td>
+                    <td className="border px-4 py-2 text-center">{item.year}</td>
+
+                    <td className="border px-4 py-2 text-center">
                       <div className="flex justify-center gap-2">
                         <button
-                          onClick={() => handleEdit(item.no)}
-                          className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                          onClick={() => handleEdit(item)}
+                          className="bg-yellow-400 text-white text-xs px-3 py-1 rounded flex items-center gap-1"
                         >
                           <Edit size={14} /> Edit
                         </button>
+
                         <button
-                          onClick={() => handleHapus(item.no)}
-                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                          onClick={() => openDeleteModal(item.id)}
+                          className="bg-red-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1"
                         >
                           <Trash2 size={14} /> Hapus
                         </button>
@@ -216,7 +318,7 @@ export default function DaftarHkiPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center py-4 text-gray-500 italic">
+                  <td colSpan={5} className="text-center py-4">
                     Tidak ada data ditemukan
                   </td>
                 </tr>
@@ -224,60 +326,77 @@ export default function DaftarHkiPage() {
             </tbody>
           </table>
 
-          {/* === Pagination <1 2> Geser === */}
-          <div className="flex justify-end items-center px-4 py-3 border-t bg-white rounded-b-lg">
-            <button
-              onClick={handlePrevGroup}
-              disabled={pageStart === 1}
-              className={`px-2 py-1 border rounded text-xs font-medium ${
-                pageStart === 1
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white hover:bg-gray-200 text-gray-800"
-              }`}
-            >
+          <div className="p-3 flex justify-end gap-2">
+            <button onClick={() => pageStart > 1 && (setPageStart(pageStart - 1), setCurrentPage(pageStart - 1))}>
               &lt;
             </button>
 
-            {Array.from({ length: Math.min(maxVisiblePages, totalPages - pageStart + 1) }, (_, i) => (
+            {visiblePages.map((page) => (
               <button
-                key={i}
-                onClick={() => handlePageChange(pageStart + i)}
-                className={`px-2 py-1 border rounded text-xs font-medium mx-0.5 ${
-                  currentPage === pageStart + i
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-800 hover:bg-gray-200"
-                }`}
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={currentPage === page ? "bg-blue-600 text-white" : ""}
               >
-                {pageStart + i}
+                {page}
               </button>
             ))}
 
             <button
-              onClick={handleNextGroup}
-              disabled={pageStart + maxVisiblePages - 1 >= totalPages}
-              className={`px-2 py-1 border rounded text-xs font-medium ${
-                pageStart + maxVisiblePages - 1 >= totalPages
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white hover:bg-gray-200 text-gray-800"
-              }`}
+              onClick={() =>
+                pageStart + maxVisiblePages - 1 < totalPages &&
+                (setPageStart(pageStart + 1), setCurrentPage(pageStart + 1))
+              }
             >
               &gt;
             </button>
           </div>
         </div>
 
-        {/* === Modal Tambah & Edit === */}
-        <AddIntellectualPropertyCard
+        {/* ADD MODAL */}
+        <TambahHkiCard
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleAddData}
         />
-        <EditIntellectualPropertyCard
+
+        {addSuccess && (
+          <SuccessAlert
+            message={`"${successTitle}" berhasil ditambahkan.`}
+            onOk={() => setAddSuccess(false)}
+          />
+        )}
+
+        {/* EDIT MODAL */}
+        <EditHkiCard
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           onSubmit={handleUpdateData}
-          defaultData={selectedHki}
+          defaultData={selectedItem}
         />
+
+        {/* UPDATE SUCCESS */}
+        {updateSuccess && (
+          <SuccessAlert
+            message={`Perubahan pada "${successTitle}" berhasil disimpan.`}
+            onOk={() => setUpdateSuccess(false)}
+          />
+        )}
+
+        {/* DELETE CONFIRM */}
+        {deleteConfirm && (
+          <DeleteAlert
+            onCancel={() => setDeleteConfirm(false)}
+            onOk={confirmDelete}
+          />
+        )}
+
+        {/* DELETE SUCCESS */}
+        {deleteSuccess && (
+          <SuccessAlert
+            message="Data berhasil dihapus."
+            onOk={() => setDeleteSuccess(false)}
+          />
+        )}
       </main>
     </div>
   );

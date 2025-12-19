@@ -183,3 +183,5 @@ model intellectualproperty {
 
   lecturer lecturerprofile @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
 }
+
+

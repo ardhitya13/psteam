@@ -4,7 +4,7 @@ import { prisma } from "../db";
 /* =============================================================
    GET ALL LECTURERS
    ============================================================= */
-export const getAllLecturers = async (req: Request, res: Response) => {
+export const getAllLecturers = async (_req: Request, res: Response) => {
   try {
     const lecturers = await prisma.user.findMany({
       where: { role: "dosen" },
@@ -35,18 +35,9 @@ export const getAllLecturers = async (req: Request, res: Response) => {
 export const getLecturerProfile = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
-  if (isNaN(userId)) {
-    return res.status(400).json({ error: "Invalid userId" });
-  }
-
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
@@ -59,15 +50,9 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
       },
     });
 
-    // CREATE PROFILE IF NOT EXISTS
     if (!profile) {
       profile = await prisma.lecturerprofile.create({
-        data: {
-          userId,
-          studyProgram: "",
-          specialization: "",
-          imageUrl: null,
-        },
+        data: { userId },
         include: {
           educationhistory: true,
           research: true,
@@ -89,13 +74,10 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
    UPDATE PROFILE
    ============================================================= */
 export const updateLecturerProfile = async (req: Request, res: Response) => {
-  try {
-    const userId = Number(req.params.userId);
+  const userId = Number(req.params.userId);
 
-    let imageUrl: string | undefined;
-    if (req.file) {
-      imageUrl = `/uploads/lecturer/${req.file.filename}`;
-    }
+  try {
+    const imageUrl = req.file ? `/uploads/lecturer/${req.file.filename}` : undefined;
 
     const updated = await prisma.lecturerprofile.upsert({
       where: { userId },
@@ -120,21 +102,97 @@ export const updateLecturerProfile = async (req: Request, res: Response) => {
 };
 
 /* =============================================================
-   ADD EDUCATION (TIDAK DIUBAH)
+    ========== PENELITIAN DOSEN (RESEARCH) ======================
    ============================================================= */
-export const addEducationHistory = async (req: Request, res: Response) => {
+
+/* GET ALL RESEARCH BY LECTURER */
+export const getResearchByLecturer = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
+      include: { research: true },
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({
-        data: { userId },
-      });
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+      return res.json({ data: [] });
     }
+
+    return res.json({ data: profile.research });
+  } catch (err) {
+    console.error("GET RESEARCH ERR:", err);
+    return res.status(500).json({ error: "Failed to fetch research" });
+  }
+};
+
+/* ADD RESEARCH */
+export const addResearch = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+
+  try {
+    let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
+    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
+
+    const research = await prisma.research.create({
+      data: {
+        lecturerId: profile.id,
+        title: req.body.title,
+        year: Number(req.body.year),
+      },
+    });
+
+    return res.json(research);
+  } catch (err) {
+    console.error("ADD RESEARCH ERR:", err);
+    return res.status(500).json({ error: "Failed to add research" });
+  }
+};
+
+/* UPDATE RESEARCH */
+export const updateResearch = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+
+  try {
+    const updated = await prisma.research.update({
+      where: { id },
+      data: {
+        title: req.body.title,
+        year: Number(req.body.year),
+      },
+    });
+
+    return res.json(updated);
+  } catch (err) {
+    console.error("UPDATE RESEARCH ERR:", err);
+    return res.status(500).json({ error: "Failed to update research" });
+  }
+};
+
+/* DELETE RESEARCH */
+export const deleteResearch = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+
+  try {
+    await prisma.research.delete({ where: { id } });
+    return res.json({ message: "Deleted" });
+  } catch (err) {
+    console.error("DELETE RESEARCH ERR:", err);
+    return res.status(500).json({ error: "Failed to delete research" });
+  }
+};
+
+/* =============================================================
+   ========== EDUCATION HISTORY =================================
+   ============================================================= */
+
+export const addEducationHistory = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+
+  try {
+    let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
+    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
 
     const edu = await prisma.educationhistory.create({
       data: {
@@ -152,9 +210,6 @@ export const addEducationHistory = async (req: Request, res: Response) => {
   }
 };
 
-/* =============================================================
-   UPDATE EDUCATION
-   ============================================================= */
 export const updateEducationHistory = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -175,17 +230,11 @@ export const updateEducationHistory = async (req: Request, res: Response) => {
   }
 };
 
-/* =============================================================
-   DELETE EDUCATION
-   ============================================================= */
 export const deleteEducationHistory = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
   try {
-    await prisma.educationhistory.delete({
-      where: { id },
-    });
-
+    await prisma.educationhistory.delete({ where: { id } });
     return res.json({ message: "Deleted" });
   } catch (err) {
     console.error("DELETE EDUCATION ERR:", err);
@@ -194,93 +243,37 @@ export const deleteEducationHistory = async (req: Request, res: Response) => {
 };
 
 /* =============================================================
-   ADD RESEARCH
+   ========== COMMUNITY SERVICE =================================
    ============================================================= */
-export const addResearch = async (req: Request, res: Response) => {
+
+/* ⭐ NEW — GET COMMUNITY SERVICE BY LECTURER */
+export const getCommunityServiceByLecturer = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
+      include: { communityservice: true },
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({
-        data: { userId },
-      });
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+      return res.json({ data: [] });
     }
 
-    const research = await prisma.research.create({
-      data: {
-        lecturerId: profile.id, 
-        title: req.body.title,
-        year: Number(req.body.year),
-      },
-    });
-
-    return res.json(research);
+    return res.json({ data: profile.communityservice });
   } catch (err) {
-    console.error("ADD RESEARCH ERR:", err);
-    return res.status(500).json({ error: "Failed to add research" });
+    console.error("GET CS ERR:", err);
+    return res.status(500).json({ error: "Failed to fetch community service" });
   }
 };
 
-/* =============================================================
-   UPDATE RESEARCH
-   ============================================================= */
-export const updateResearch = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-
-  try {
-    const updated = await prisma.research.update({
-      where: { id },
-      data: {
-        title: req.body.title,
-        year: Number(req.body.year),
-      },
-    });
-
-    return res.json(updated);
-  } catch (err) {
-    console.error("UPDATE RESEARCH ERR:", err);
-    return res.status(500).json({ error: "Failed to update research" });
-  }
-};
-
-/* =============================================================
-   DELETE RESEARCH
-   ============================================================= */
-export const deleteResearch = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-
-  try {
-    await prisma.research.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "Deleted" });
-  } catch (err) {
-    console.error("DELETE RESEARCH ERR:", err);
-    return res.status(500).json({ error: "Failed to delete research" });
-  }
-};
-
-/* =============================================================
-   ADD COMMUNITY SERVICE
-   ============================================================= */
 export const addCommunityService = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
-    let profile = await prisma.lecturerprofile.findUnique({
-      where: { userId },
-    });
-
-    if (!profile) {
-      profile = await prisma.lecturerprofile.create({
-        data: { userId },
-      });
-    }
+    let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
+    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
 
     const cs = await prisma.communityservice.create({
       data: {
@@ -292,14 +285,11 @@ export const addCommunityService = async (req: Request, res: Response) => {
 
     return res.json(cs);
   } catch (err) {
-    console.error("ADD COMMUNITY SERVICE ERR:", err);
+    console.error("ADD CS ERR:", err);
     return res.status(500).json({ error: "Failed to add community service" });
   }
 };
 
-/* =============================================================
-   UPDATE COMMUNITY SERVICE
-   ============================================================= */
 export const updateCommunityService = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -314,45 +304,55 @@ export const updateCommunityService = async (req: Request, res: Response) => {
 
     return res.json(updated);
   } catch (err) {
-    console.error("UPDATE COMMUNITY SERVICE ERR:", err);
+    console.error("UPDATE CS ERR:", err);
     return res.status(500).json({ error: "Failed to update community service" });
   }
 };
 
-/* =============================================================
-   DELETE COMMUNITY SERVICE
-   ============================================================= */
 export const deleteCommunityService = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
   try {
-    await prisma.communityservice.delete({
-      where: { id },
-    });
-
+    await prisma.communityservice.delete({ where: { id } });
     return res.json({ message: "Deleted" });
   } catch (err) {
-    console.error("DELETE COMMUNITY SERVICE ERR:", err);
+    console.error("DELETE CS ERR:", err);
     return res.status(500).json({ error: "Failed to delete community service" });
   }
 };
 
-/* =========================
-   ADD SCIENTIFIC WORK
-========================= */
-export const addScientificWork = async (req: Request, res: Response) => {
+/* =============================================================
+   ========== SCIENTIFIC WORK (KARYA ILMIAH) ====================
+   ============================================================= */
+
+/* ⭐ NEW — GET SCIENTIFIC WORK BY LECTURER */
+export const getScientificWorkByLecturer = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
+      include: { scientificwork: true },
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({
-        data: { userId },
-      });
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+      return res.json({ data: [] });
     }
+
+    return res.json({ data: profile.scientificwork });
+  } catch (err) {
+    console.error("GET SW ERR:", err);
+    return res.status(500).json({ error: "Failed to fetch scientific work" });
+  }
+};
+
+export const addScientificWork = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+
+  try {
+    let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
+    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
 
     const sw = await prisma.scientificwork.create({
       data: {
@@ -365,14 +365,11 @@ export const addScientificWork = async (req: Request, res: Response) => {
 
     return res.json(sw);
   } catch (err) {
-    console.error("ADD SCIENTIFIC WORK ERR:", err);
+    console.error("ADD SW ERR:", err);
     return res.status(500).json({ error: "Failed to add scientific work" });
   }
 };
 
-/* =========================
-   UPDATE SCIENTIFIC WORK
-========================= */
 export const updateScientificWork = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -388,45 +385,55 @@ export const updateScientificWork = async (req: Request, res: Response) => {
 
     return res.json(updated);
   } catch (err) {
-    console.error("UPDATE SCIENTIFIC WORK ERR:", err);
+    console.error("UPDATE SW ERR:", err);
     return res.status(500).json({ error: "Failed to update scientific work" });
   }
 };
 
-/* =========================
-   DELETE SCIENTIFIC WORK
-========================= */
 export const deleteScientificWork = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
   try {
-    await prisma.scientificwork.delete({
-      where: { id },
-    });
-
+    await prisma.scientificwork.delete({ where: { id } });
     return res.json({ message: "Deleted" });
   } catch (err) {
-    console.error("DELETE SCIENTIFIC WORK ERR:", err);
+    console.error("DELETE SW ERR:", err);
     return res.status(500).json({ error: "Failed to delete scientific work" });
   }
 };
 
 /* =============================================================
-   ADD INTELLECTUAL PROPERTY
+   ========== INTELLECTUAL PROPERTY (HKI) ========================
    ============================================================= */
-export const addIntellectualProperty = async (req: Request, res: Response) => {
+
+/* ⭐ NEW — GET IP BY LECTURER */
+export const getIntellectualPropertyByLecturer = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
+      include: { intellectualproperty: true },
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({
-        data: { userId },
-      });
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+      return res.json({ data: [] });
     }
+
+    return res.json({ data: profile.intellectualproperty });
+  } catch (err) {
+    console.error("GET IP ERR:", err);
+    return res.status(500).json({ error: "Failed to fetch intellectual property" });
+  }
+};
+
+export const addIntellectualProperty = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+
+  try {
+    let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
+    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
 
     const ip = await prisma.intellectualproperty.create({
       data: {
@@ -439,14 +446,11 @@ export const addIntellectualProperty = async (req: Request, res: Response) => {
 
     return res.json(ip);
   } catch (err) {
-    console.error("ADD INTELLECTUAL PROPERTY ERR:", err);
-    return res.status(500).json({ error: "Failed to add intellectual property" });
+    console.error("ADD IP ERR:", err);
+    return res.status(500).json({ error: "Failed to add IP" });
   }
 };
 
-/* =============================================================
-   UPDATE INTELLECTUAL PROPERTY
-   ============================================================= */
 export const updateIntellectualProperty = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -462,25 +466,19 @@ export const updateIntellectualProperty = async (req: Request, res: Response) =>
 
     return res.json(updated);
   } catch (err) {
-    console.error("UPDATE INTELLECTUAL PROPERTY ERR:", err);
+    console.error("UPDATE IP ERR:", err);
     return res.status(500).json({ error: "Failed to update intellectual property" });
   }
 };
 
-/* =============================================================
-   DELETE INTELLECTUAL PROPERTY
-   ============================================================= */
 export const deleteIntellectualProperty = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
   try {
-    await prisma.intellectualproperty.delete({
-      where: { id },
-    });
-
+    await prisma.intellectualproperty.delete({ where: { id } });
     return res.json({ message: "Deleted" });
   } catch (err) {
-    console.error("DELETE INTELLECTUAL PROPERTY ERR:", err);
+    console.error("DELETE IP ERR:", err);
     return res.status(500).json({ error: "Failed to delete intellectual property" });
   }
 };

@@ -7,6 +7,57 @@ import { AuthRequest } from "../middleware/authMiddleware";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 /* =========================================================
+   REGISTER USER (AUTO CREATE LECTURER PROFILE FOR DOSEN)
+   ========================================================= */
+export const register = async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ error: "Data tidak lengkap" });
+    }
+
+    const exist = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (exist) {
+      return res.status(400).json({ error: "Email telah digunakan" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashed,
+        role,
+      },
+    });
+
+    // Auto Create Lecturer Profile
+    if (role === "dosen") {
+      await prisma.lecturerprofile.create({
+        data: {
+          userId: user.id,
+          studyProgram: null,
+          specialization: null,
+        },
+      });
+    }
+
+    return res.status(201).json({
+      message: "User berhasil dibuat",
+      user,
+    });
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+    return res.status(500).json({ error: "Terjadi kesalahan server" });
+  }
+};
+
+/* =========================================================
    LOGIN
    ========================================================= */
 export const login = async (req: AuthRequest, res: Response) => {
@@ -29,11 +80,7 @@ export const login = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Email tidak ditemukan" });
     }
 
-    /* =====================================================
-       VALIDASI ROLE (FIX SUPERADMIN)
-       - Pilih admin → boleh admin & superadmin
-       - Pilih dosen → hanya dosen
-       ===================================================== */
+    // Validasi Role
     if (role === "admin") {
       if (user.role !== "admin" && user.role !== "superadmin") {
         return res.status(403).json({ error: "Role tidak sesuai" });
@@ -67,14 +114,14 @@ export const login = async (req: AuthRequest, res: Response) => {
         role: user.role,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("LOGIN ERROR:", error);
     res.status(500).json({ error: "Terjadi kesalahan pada server" });
   }
 };
 
 /* =========================================================
-   CHANGE PASSWORD (JWT PROTECTED)
+   CHANGE PASSWORD
    ========================================================= */
 export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
@@ -106,7 +153,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     });
 
     res.json({ message: "Password berhasil diubah" });
-  } catch (error: any) {
+  } catch (error) {
     console.error("CHANGE PASSWORD ERROR:", error);
     res.status(500).json({ error: "Terjadi kesalahan pada server" });
   }

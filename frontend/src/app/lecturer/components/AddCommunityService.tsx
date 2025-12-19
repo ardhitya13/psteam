@@ -1,82 +1,70 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface AddPengabdianProps {
+type Props = {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: { title: string; year: number }) => void;
-}
+};
 
-export default function TambahPengabdianCard({
-  isOpen,
-  onClose,
-  onSubmit,
-}: AddPengabdianProps) {
-  const [formData, setFormData] = useState({
-    title: "",
-    year: new Date().getFullYear(),
-  });
+export default function AddCommunityServiceCard({ isOpen, onClose, onSubmit }: Props) {
+  const [form, setForm] = useState({ title: "", year: new Date().getFullYear() });
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm({ title: "", year: new Date().getFullYear() });
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
-    setFormData({ title: "", year: new Date().getFullYear() });
+    if (!form.title.trim()) return alert("Judul wajib diisi!");
+    onSubmit(form);
   };
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-        Tambah Pengabdian Masyarakat
-      </h2>
+      <form onSubmit={handleSubmit} className="bg-white p-5 rounded-lg w-[400px] space-y-4">
+        <h2 className="text-lg font-semibold text-center">Tambah Pengabdian</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Judul Pengabdian
-          </label>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Judul</label>
           <input
             type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-            placeholder="Masukkan judul pengabdian"
+            className="border w-full rounded px-3 py-2"
+            placeholder="Judul Pengabdian"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
             required
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tahun
-          </label>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Tahun</label>
           <input
             type="number"
-            min={2000}
-            max={2100}
-            value={formData.year}
-            onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            className="border w-full rounded px-3 py-2"
+            value={form.year}
+            onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
             required
           />
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 rounded-lg"
+            className="px-4 py-2 rounded bg-gray-300"
           >
             Batal
           </button>
-
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+            className="px-4 py-2 rounded bg-blue-600 text-white"
           >
             Simpan
           </button>

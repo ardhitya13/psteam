@@ -2,88 +2,166 @@
 
 import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
+
 import NavbarDosen from "../components/NavbarLecturer";
 import SidebarDosen from "../components/SidebarLecturer";
 import TambahKaryaIlmiahCard from "../components/AddScientificWorkCard";
+import EditKaryaIlmiahCard from "../components/EditScientificWorkCard";
 
-type KaryaIlmiahItem = {
-  no: number;
-  judul: string;
-  jenis: string;
+type ScientificWorkItem = {
+  id: number;
+  title: string;
+  type: string;
   year: number;
 };
 
 export default function DaftarKaryaIlmiahPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [data, setData] = useState<ScientificWorkItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<ScientificWorkItem | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("Semua");
+
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [addSuccess, setAddSuccess] = useState(false);
+  const [successTitle, setSuccessTitle] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageStart, setPageStart] = useState(1);
+
   const itemsPerPage = 10;
   const maxVisiblePages = 2;
+  const userId = 2;
 
-  // === Data Dummy ===
-  const [data, setData] = useState<KaryaIlmiahItem[]>(
-    [
-      { no: 1, judul: "Penerapan IoT dalam Smart Campus", jenis: "Jurnal Nasional Terakreditasi", year: 2025 },
-      { no: 2, judul: "Analisis Big Data untuk Prediksi Cuaca", jenis: "Jurnal Internasional", year: 2024 },
-      { no: 3, judul: "Studi Desain UI/UX untuk Aplikasi Edukasi", jenis: "Prosiding Nasional", year: 2023 },
-      { no: 4, judul: "Implementasi Blockchain dalam Keamanan Data", jenis: "Jurnal Nasional", year: 2025 },
-      { no: 5, judul: "Pemanfaatan AI untuk Pendidikan Digital", jenis: "Jurnal Nasional Terakreditasi", year: 2022 },
-      { no: 6, judul: "Optimalisasi Energi dengan Teknologi Smart Grid", jenis: "Prosiding Internasional", year: 2021 },
-      { no: 7, judul: "Sistem Keamanan Jaringan Berbasis IDS", jenis: "Jurnal Nasional", year: 2023 },
-      { no: 8, judul: "Pengembangan Chatbot Akademik Berbasis NLP", jenis: "Prosiding Nasional", year: 2024 },
-      { no: 9, judul: "Pemanfaatan Cloud Computing untuk UMKM", jenis: "Jurnal Nasional", year: 2025 },
-      { no: 10, judul: "Rancang Bangun Aplikasi Kesehatan Digital", jenis: "Jurnal Internasional", year: 2022 },
-      { no: 11, judul: "Sistem Informasi Pengelolaan Sekolah", jenis: "Jurnal Nasional", year: 2021 },
-      { no: 12, judul: "Pemodelan Data Mahasiswa Menggunakan AI", jenis: "Jurnal Nasional Terakreditasi", year: 2024 },
-    ]
-  );
-
-  // === Tambah Data ===
-  const handleAddData = (newData: { judul: string; jenis: string; year: number }) => {
-    const newItem: KaryaIlmiahItem = {
-      no: data.length + 1,
-      judul: newData.judul,
-      jenis: newData.jenis,
-      year: newData.year,
-    };
-    setData((prev) => [...prev, newItem]);
-  };
-
-  // === Edit Data (dummy) ===
-  const handleEdit = (no: number) => {
-    alert(`Edit karya ilmiah nomor ${no}`);
-  };
-
-  // === Hapus Data ===
-  const handleHapus = (no: number) => {
-    if (confirm("Yakin ingin menghapus karya ilmiah ini?")) {
-      setData((prev) => prev.filter((item) => item.no !== no));
+  /* ================= FETCH ================= */
+  const fetchData = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/lecturer/${userId}/scientific-work`
+      );
+      const json = await res.json();
+      setData(json.data || []);
+    } catch (err) {
+      console.error("Fetch SW error:", err);
     }
   };
 
-  // === Filter & Search ===
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  /* ================= ADD ================= */
+  const handleAddData = async (payload: { title: string; type: string; year: number }) => {
+    try {
+      await fetch(
+        `http://localhost:4000/api/lecturer/${userId}/scientific-work`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      await fetchData();
+      setIsModalOpen(false);
+      setSuccessTitle(payload.title);
+      setAddSuccess(true);
+    } catch (err) {
+      console.error("Add SW error:", err);
+    }
+  };
+
+  /* ================= EDIT ================= */
+  const handleEdit = (item: ScientificWorkItem) => {
+    setAddSuccess(false);
+    setUpdateSuccess(false);
+    setDeleteSuccess(false);
+    setSelectedItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateData = async (updated: ScientificWorkItem) => {
+    try {
+      await fetch(
+        `http://localhost:4000/api/lecturer/scientific-work/${updated.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: updated.title,
+            type: updated.type,
+            year: updated.year,
+          }),
+        }
+      );
+
+      await fetchData();
+      setIsEditModalOpen(false);
+      setSuccessTitle(updated.title);
+      setUpdateSuccess(true);
+    } catch (err) {
+      console.error("Update SW error:", err);
+    }
+  };
+
+  /* ================= DELETE ================= */
+  const openDeleteModal = (id: number) => {
+    setAddSuccess(false);
+    setUpdateSuccess(false);
+    setDeleteSuccess(false);
+    setDeleteId(id);
+    setDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await fetch(
+        `http://localhost:4000/api/lecturer/scientific-work/${deleteId}`,
+        { method: "DELETE" }
+      );
+
+      await fetchData();
+      setDeleteConfirm(false);
+      setDeleteSuccess(true);
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Delete SW error:", err);
+    }
+  };
+
+  /* ================= FILTER ================= */
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const cocokyear = selectedYear === "Semua" || item.year === Number(selectedYear);
-      const cocokJudul = item.judul.toLowerCase().includes(searchTerm.toLowerCase());
-      return cocokyear && cocokJudul;
+      const cocokYear =
+        selectedYear === "Semua" || item.year === Number(selectedYear);
+      const cocokJudul = item.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return cocokYear && cocokJudul;
     });
   }, [data, searchTerm, selectedYear]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-    setPageStart(1);
-  }, [searchTerm, selectedYear]);
-
-  // === Pagination ===
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
-  const visibleData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const visibleData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const visiblePages = Array.from(
-    { length: Math.min(maxVisiblePages, totalPages - pageStart + 1) },
+    {
+      length: Math.min(maxVisiblePages, totalPages - pageStart + 1),
+    },
     (_, i) => pageStart + i
   );
 
@@ -101,14 +179,69 @@ export default function DaftarKaryaIlmiahPage() {
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  /* ================= ALERT COMPONENTS ================= */
+  const SuccessAlert = ({
+    message,
+    onOk,
+  }: {
+    message: string;
+    onOk: () => void;
+  }) =>
+    createPortal(
+      <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[99999]">
+        <div className="bg-white p-6 rounded-lg w-80 text-center">
+          <h3 className="font-bold text-blue-600 mb-2">Berhasil!</h3>
+          <p className="mb-4">{message}</p>
+          <button
+            onClick={onOk}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            OK
+          </button>
+        </div>
+      </div>,
+      document.body
+    );
 
+  const DeleteAlert = ({
+    onCancel,
+    onOk,
+  }: {
+    onCancel: () => void;
+    onOk: () => void;
+  }) =>
+    createPortal(
+      <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[99999]">
+        <div className="bg-white p-6 rounded-lg w-80 text-center">
+          <h3 className="font-bold text-red-600 mb-2">Hapus Data?</h3>
+          <p className="mb-4 text-black">Data ini akan dihapus secara permanen!</p>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+            >
+              Batal
+            </button>
+            <button
+              onClick={onOk}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg"
+            >
+              Hapus
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+
+  /* ================= RENDER ================= */
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <SidebarDosen isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <SidebarDosen
+        isOpen={isSidebarOpen}
+        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
 
       <main
         className={`transition-all duration-300 pt-0 px-8 pb-10 ${
@@ -119,82 +252,85 @@ export default function DaftarKaryaIlmiahPage() {
           DAFTAR KARYA ILMIAH DOSEN
         </h1>
 
-        {/* === Kontrol Atas === */}
         <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
-          {/* Tambah Data */}
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setAddSuccess(false);
+              setUpdateSuccess(false);
+              setDeleteSuccess(false);
+              setIsModalOpen(true);
+            }}
             className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
           >
             <Plus size={16} /> Tambah Karya Ilmiah
           </button>
 
-          {/* Filter year */}
-          <div className="relative inline-block">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="appearance-none border rounded-lg pl-4 pr-10 py-2 shadow-sm bg-white text-gray-900 cursor-pointer"
-            >
-              <option value="Semua">Semua Tahun</option>
-              {[2025, 2024, 2023, 2022, 2021].map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <ChevronDown size={18} className="text-gray-500" />
-            </div>
-          </div>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="border rounded-lg px-3 pr-8 py-2 text-black"
+          >
+            <option value="Semua">Semua Tahun</option>
+            {[2025, 2024, 2023, 2022, 2021, 2020].map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
 
-          {/* Pencarian */}
-          <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200">
+          <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 text-black">
             <input
               type="text"
-              placeholder="Cari Judul Karya Ilmiah..."
+              placeholder="Cari Judul..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-grow px-3 py-2.5 focus:outline-none text-sm rounded-lg text-gray-900 placeholder-gray-500"
+              className="flex-grow px-3 py-2.5 focus:outline-none text-sm"
             />
-            <div className="bg-blue-600 text-white px-3 py-3 flex items-center justify-center border-l border-blue-700">
+            <div className="bg-blue-600 text-white px-3 py-3 border-l">
               <Search size={16} />
             </div>
           </div>
         </div>
 
-        {/* === Tabel === */}
         <div className="overflow-x-auto bg-white shadow-lg rounded-lg border border-gray-200">
-          <table className="w-full border-collapse text-sm text-gray-700">
+          <table className="w-full border-collapse text-sm text-gray-900">
             <thead className="bg-gray-300 text-gray-800">
               <tr>
-                <th className="border border-gray-200 px-4 py-2 text-center">NO</th>
-                <th className="border border-gray-200 px-4 py-2">JUDUL KARYA</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">JENIS</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">TAHUN</th>
-                <th className="border border-gray-200 px-4 py-2 text-center">AKSI</th>
+                <th className="border px-4 py-2 text-center">NO</th>
+                <th className="border px-4 py-2">JUDUL</th>
+                <th className="border px-4 py-2 text-center">JENIS</th>
+                <th className="border px-4 py-2 text-center">TAHUN</th>
+                <th className="border px-4 py-2 text-center">AKSI</th>
               </tr>
             </thead>
 
             <tbody>
               {visibleData.length > 0 ? (
-                visibleData.map((item) => (
-                  <tr key={item.no} className="hover:bg-gray-50 transition-colors">
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.no}</td>
-                    <td className="border border-gray-200 px-4 py-2">{item.judul}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.jenis}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">{item.year}</td>
-                    <td className="border border-gray-200 px-4 py-2 text-center">
+                visibleData.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="border px-4 py-2 text-center">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
+                    <td className="border px-4 py-2">{item.title}</td>
+                    <td className="border px-4 py-2 text-center">
+                      {item.type}
+                    </td>
+                    <td className="border px-4 py-2 text-center">
+                      {item.year}
+                    </td>
+
+                    <td className="border px-4 py-2 text-center">
                       <div className="flex justify-center gap-2">
                         <button
-                          onClick={() => handleEdit(item.no)}
-                          className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                          onClick={() => handleEdit(item)}
+                          className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1"
                         >
                           <Edit size={14} /> Edit
                         </button>
+
                         <button
-                          onClick={() => handleHapus(item.no)}
-                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                          onClick={() => openDeleteModal(item.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded flex items-center gap-1"
                         >
                           <Trash2 size={14} /> Hapus
                         </button>
@@ -204,7 +340,10 @@ export default function DaftarKaryaIlmiahPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center py-4 text-gray-500 italic">
+                  <td
+                    colSpan={5}
+                    className="text-center py-4 italic text-gray-500"
+                  >
                     Tidak ada data ditemukan
                   </td>
                 </tr>
@@ -212,16 +351,11 @@ export default function DaftarKaryaIlmiahPage() {
             </tbody>
           </table>
 
-          {/* === Pagination <1 2> === */}
           <div className="flex justify-end items-center px-4 py-3 border-t bg-white rounded-b-lg">
             <button
               onClick={handlePrevGroup}
               disabled={pageStart === 1}
-              className={`px-2 py-1 border rounded text-xs font-medium ${
-                pageStart === 1
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white hover:bg-gray-200 text-gray-800"
-              }`}
+              className="px-2 py-1 border rounded text-xs"
             >
               &lt;
             </button>
@@ -229,11 +363,11 @@ export default function DaftarKaryaIlmiahPage() {
             {visiblePages.map((page) => (
               <button
                 key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-2 py-1 border rounded text-xs font-medium mx-0.5 ${
+                onClick={() => setCurrentPage(page)}
+                className={`px-2 py-1 border rounded text-xs mx-1 ${
                   currentPage === page
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-800 hover:bg-gray-200"
+                    ? "bg-blue-600 text-white"
+                    : ""
                 }`}
               >
                 {page}
@@ -243,23 +377,58 @@ export default function DaftarKaryaIlmiahPage() {
             <button
               onClick={handleNextGroup}
               disabled={pageStart + maxVisiblePages - 1 >= totalPages}
-              className={`px-2 py-1 border rounded text-xs font-medium ${
-                pageStart + maxVisiblePages - 1 >= totalPages
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white hover:bg-gray-200 text-gray-800"
-              }`}
+              className="px-2 py-1 border rounded text-xs"
             >
               &gt;
             </button>
           </div>
         </div>
 
-        {/* Modal Tambah */}
+        {/* ADD MODAL */}
         <TambahKaryaIlmiahCard
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleAddData}
         />
+
+        {addSuccess && (
+          <SuccessAlert
+            message={`"${successTitle}" berhasil ditambahkan.`}
+            onOk={() => setAddSuccess(false)}
+          />
+        )}
+
+        {/* EDIT MODAL */}
+        <EditKaryaIlmiahCard
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateData}
+          defaultData={selectedItem}
+        />
+
+        {/* UPDATE SUCCESS ALERT */}
+        {updateSuccess && (
+          <SuccessAlert
+            message={`Perubahan pada "${successTitle}" berhasil disimpan.`}
+            onOk={() => setUpdateSuccess(false)}
+          />
+        )}
+
+        {/* DELETE CONFIRM */}
+        {deleteConfirm && (
+          <DeleteAlert
+            onCancel={() => setDeleteConfirm(false)}
+            onOk={confirmDelete}
+          />
+        )}
+
+        {/* DELETE SUCCESS */}
+        {deleteSuccess && (
+          <SuccessAlert
+            message="Data berhasil dihapus."
+            onOk={() => setDeleteSuccess(false)}
+          />
+        )}
       </main>
     </div>
   );

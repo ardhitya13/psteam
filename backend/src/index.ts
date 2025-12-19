@@ -11,6 +11,11 @@ import productRoutes from "./routes/productRoutes";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
 import lecturerRoutes from "./routes/lecturerRoutes";
+import researchRoutes from "./routes/researchRoutes";
+//import communityServiceRoutes from "./routes/communityServiceRoutes";
+//import scientificWorkRoutes from "./routes/scientificWorkRoutes";
+//import intellectualPropertyRoutes from "./routes/intellectualPropertyRoutes";
+
 
 import { ensureSuperAdmin } from "./controllers/userController";
 
@@ -51,6 +56,11 @@ app.use("/api/training", trainingCRUDRoutes);
 app.use("/api/training-registrations", trainingRegistrationRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/lecturer", lecturerRoutes);
+app.use("/api/research", researchRoutes);
+//app.use("/api/community-service", communityServiceRoutes);
+//app.use("/api/scientific-work", scientificWorkRoutes);
+//app.use("/api/intellectual-property", intellectualPropertyRoutes);
+
 
 // ======================================================
 // ROOT

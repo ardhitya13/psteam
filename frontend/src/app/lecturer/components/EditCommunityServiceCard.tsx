@@ -3,97 +3,74 @@
 import { useState, useEffect } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-interface EditPengabdianCardProps {
+type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (updatedData: { no: number; title: string; year: number }) => void;
-  defaultData: { no: number; title: string; year: number } | null;
-}
+  defaultData: { id: number; title: string; year: number } | null;
+  onSubmit: (data: { id: number; title: string; year: number }) => void;
+};
 
-export default function EditPengabdianCard({
+export default function EditCommunityServiceCard({
   isOpen,
   onClose,
-  onSubmit,
   defaultData,
-}: EditPengabdianCardProps) {
-  const [formData, setFormData] = useState({
-    no: 0,
-    title: "",
-    year: new Date().getFullYear(),
-  });
+  onSubmit,
+}: Props) {
+  const [form, setForm] = useState({ id: 0, title: "", year: new Date().getFullYear() });
 
   useEffect(() => {
-    if (defaultData) setFormData(defaultData);
+    if (defaultData) {
+      setForm(defaultData);
+    }
   }, [defaultData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "year" ? Number(value) : value,
-    }));
-  };
+  if (!isOpen || !defaultData) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
+    if (!form.title.trim()) return alert("Judul wajib diisi!");
+    onSubmit(form);
   };
-
-  if (!isOpen) return null;
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-        Edit Pengabdian Masyarakat
-      </h2>
+      <form onSubmit={handleSubmit} className="bg-white p-5 rounded-lg w-[400px] space-y-4">
+        <h2 className="text-lg font-semibold text-center">Edit Pengabdian</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Judul Pengabdian
-          </label>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Judul</label>
           <input
             type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-            required
+            className="border w-full rounded px-3 py-2"
+            placeholder="Judul Pengabdian"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tahun
-          </label>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Tahun</label>
           <input
             type="number"
-            name="year"
-            value={formData.year}
-            min={2000}
-            max={2100}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-            required
+            className="border w-full rounded px-3 py-2"
+            value={form.year}
+            onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
           />
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 rounded-lg"
+            className="px-4 py-2 rounded bg-gray-300"
           >
             Batal
           </button>
-
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+            className="px-4 py-2 rounded bg-blue-600 text-white"
           >
-            Simpan Perubahan
+            Simpan
           </button>
         </div>
       </form>
