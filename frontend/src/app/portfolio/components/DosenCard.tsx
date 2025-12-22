@@ -177,7 +177,7 @@ function DosenSingleCard({ dosen }: { dosen: Dosen }) {
   );
 
   return (
-    <article className="bg-white rounded-3xl shadow-lg border border-blue-200 overflow-visible">
+    <article className="bg-white rounded-3xl shadow-lg border border-blue-200 overflow-visible text-black">
       {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row items-center gap-8 p-8 bg-gradient-to-r from-blue-50 to-white border-b rounded-t-3xl">
         <div className="relative w-40 h-40 shrink-0">
