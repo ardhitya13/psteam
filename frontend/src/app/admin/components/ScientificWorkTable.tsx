@@ -8,9 +8,7 @@ import AdminSidebar from "./AdminSidebar";
 
 import {
   getAllLecturers,
-  addScientificWork,
-  updateScientificWork,
-  deleteScientificWork,
+  saveScientificWorkBulk,
 } from "../../../lib/lecturer";
 
 import EditScientificWorkCard from "./ScientificWorkEditCard";
@@ -46,7 +44,7 @@ export default function ScientificWorkTable() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  /* FILTER JENIS KARYA (DETAIL — TETAP ADA, TAPI DETAIL DIKOSONGKAN) */
+  /* FILTER */
   const [filterType, setFilterType] = useState("Semua");
 
   /* PAGINATION */
@@ -104,46 +102,29 @@ export default function ScientificWorkTable() {
   }, []);
 
   /* =========================
-     CRUD HANDLER
+     BULK SAVE HANDLER (FIXED)
   ========================= */
   async function handleUpdateScientificWork(payload: {
     lecId: number;
     scientificworkList: ScientificWorkItem[];
   }) {
-    const { lecId, scientificworkList } = payload;
-
     try {
-      const lecturer = lecturers.find((l) => l.id === lecId);
-      const original = lecturer?.scientificwork || [];
-
-      for (const old of original) {
-        const stillExist = scientificworkList.some(
-          (s) => s.id === old.id
-        );
-        if (!stillExist && old.id) {
-          await deleteScientificWork(old.id);
-        }
-      }
-
-      for (const item of scientificworkList) {
-        if (!item.title.trim()) continue;
-
-        if (!item.id) {
-          await addScientificWork(lecId, item);
-        } else {
-          await updateScientificWork(item.id, item);
-        }
-      }
+      await saveScientificWorkBulk(
+        payload.lecId,
+        payload.scientificworkList
+      );
 
       await loadLecturers();
     } catch (err) {
-      console.error("UPDATE SCIENTIFIC WORK ERROR:", err);
+      console.error("SAVE BULK SCIENTIFIC WORK ERROR:", err);
       alert("Gagal menyimpan karya ilmiah.");
+      throw err;
     }
   }
 
+
   /* =========================
-     SEARCH FILTER (SAMA POLA)
+     SEARCH FILTER
   ========================= */
   const filteredLecturers = useMemo(() => {
     if (!searchQuery.trim()) return lecturers;
@@ -157,7 +138,7 @@ export default function ScientificWorkTable() {
   }, [searchQuery, lecturers]);
 
   /* =========================
-     PAGINATION LOGIC
+     PAGINATION
   ========================= */
   const totalPages = Math.max(
     1,
@@ -188,7 +169,6 @@ export default function ScientificWorkTable() {
     type: "Artikel Ilmiah",
     year: new Date().getFullYear(),
   });
-
   /* =========================
      RENDER
   ========================= */
@@ -246,8 +226,8 @@ export default function ScientificWorkTable() {
                 }}
                 placeholder="Cari nama / prodi / email..."
                 className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${searchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
+                  ? "w-56 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
                   }`}
               />
             </div>
@@ -445,8 +425,8 @@ export default function ScientificWorkTable() {
                 }}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &lt;
@@ -461,8 +441,8 @@ export default function ScientificWorkTable() {
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-300"
                       }`}
                   >
                     {pageNum}
@@ -479,8 +459,8 @@ export default function ScientificWorkTable() {
                 }}
                 disabled={currentPage === totalPages}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &gt;
@@ -503,5 +483,4 @@ export default function ScientificWorkTable() {
     </div>
   );
 }
-
 

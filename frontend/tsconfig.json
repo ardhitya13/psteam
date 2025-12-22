@@ -17,7 +17,7 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["*"],                 // BISA IMPORT '@/lib/...'
+      "@/*": ["src/*"],                 // BISA IMPORT '@/lib/...'
       "@app/*": ["app/*"],          // Optional
       "@lib/*": ["lib/*"],          // Optional
       "@components/*": ["components/*"] // Optional

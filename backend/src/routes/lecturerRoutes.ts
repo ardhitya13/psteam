@@ -24,9 +24,8 @@ import {
 
   // ===== SCIENTIFIC WORK =====
   getScientificWorkByLecturer,
-  addScientificWork,
-  updateScientificWork,
   deleteScientificWork,
+  saveScientificWorkBulk,
 
   // ===== INTELLECTUAL PROPERTY =====
   getIntellectualPropertyByLecturer,
@@ -83,10 +82,9 @@ router.delete("/community-service/:id", deleteCommunityService);
 /* ======================================================
    SCIENTIFIC WORK (KARYA ILMIAH)
 ====================================================== */
-router.get("/:userId/scientific-work", getScientificWorkByLecturer);
-router.post("/:userId/scientific-work", addScientificWork);
-router.put("/scientific-work/:id", updateScientificWork);
-router.delete("/scientific-work/:id", deleteScientificWork);
+router.get("/lecturer/:userId/scientific-work",getScientificWorkByLecturer);
+router.post("/lecturer/:userId/scientific-work/bulk",saveScientificWorkBulk);
+router.delete("/scientific-work/:id",deleteScientificWork);
 
 /* ======================================================
    INTELLECTUAL PROPERTY (HKI)

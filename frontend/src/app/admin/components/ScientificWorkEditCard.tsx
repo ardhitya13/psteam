@@ -162,10 +162,7 @@ export default function EditScientificWorkCard({
     if (!form) return;
 
     const clean = form.scientificworkList.filter(
-      (s) =>
-        s.title.trim() !== "" &&
-        s.type.trim() !== "" &&
-        s.year >= 1900
+      (s) => s.title.trim() && s.type.trim() && s.year >= 1900
     );
 
     if (clean.length === 0) {
@@ -204,7 +201,10 @@ export default function EditScientificWorkCard({
             <ReadOnly label="Nama" value={form.lecturer.name} />
             <ReadOnly label="Email" value={form.lecturer.email} />
             <ReadOnly label="Program Studi" value={form.lecturer.studyProgram} />
-            <ReadOnly label="Spesialisasi" value={form.lecturer.specialization} />
+            <ReadOnly
+              label="Spesialisasi"
+              value={form.lecturer.specialization}
+            />
           </div>
         </div>
 

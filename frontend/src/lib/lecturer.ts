@@ -125,26 +125,31 @@ export function deleteCommunityService(id: number) {
 }
 
 // ========================================================
-// SCIENTIFIC WORK
+// SCIENTIFIC WORK (BULK)
 // ========================================================
-export function addScientificWork(userId: number, data: any) {
-  return safeFetch(`${BASE_URL}/lecturer/${userId}/scientific-work`, {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-export function updateScientificWork(id: number, data: any) {
-  return safeFetch(`${BASE_URL}/scientific-work/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
+export function saveScientificWorkBulk(
+  userId: number,
+  scientificworkList: {
+    id?: number;
+    title: string;
+    type: string;
+    year: number;
+  }[]
+) {
+  return safeFetch(
+    `${BASE_URL}/lecturer/${userId}/scientific-work/bulk`,
+    {
+      method: "POST",
+      body: JSON.stringify({ scientificworkList }),
+    }
+  );
 }
 
 export function deleteScientificWork(id: number) {
-  return safeFetch(`${BASE_URL}/scientific-work/${id}`, {
-    method: "DELETE",
-  });
+  return safeFetch(
+    `${BASE_URL}/scientific-work/${id}`,
+    { method: "DELETE" }
+  );
 }
 
 // ========================================================

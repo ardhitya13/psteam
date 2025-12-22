@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../db";
 
 /* =============================================================
-   GET ALL LECTURERS
+   GET ALL LECTURERS (UNTUK PORTOFOLIO / LIST)
    ============================================================= */
 export const getAllLecturers = async (_req: Request, res: Response) => {
   try {
@@ -36,10 +36,15 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
-    let profile = await prisma.lecturerprofile.findUnique({
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
       include: {
         educationhistory: true,
@@ -51,16 +56,7 @@ export const getLecturerProfile = async (req: Request, res: Response) => {
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({
-        data: { userId },
-        include: {
-          educationhistory: true,
-          research: true,
-          communityservice: true,
-          scientificwork: true,
-          intellectualproperty: true,
-        },
-      });
+      return res.status(404).json({ error: "Profile not found" });
     }
 
     return res.json({ user, profile });
@@ -77,7 +73,9 @@ export const updateLecturerProfile = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
-    const imageUrl = req.file ? `/uploads/lecturer/${req.file.filename}` : undefined;
+    const imageUrl = req.file
+      ? `/uploads/lecturer/${req.file.filename}`
+      : undefined;
 
     const updated = await prisma.lecturerprofile.upsert({
       where: { userId },
@@ -102,21 +100,19 @@ export const updateLecturerProfile = async (req: Request, res: Response) => {
 };
 
 /* =============================================================
-    ========== PENELITIAN DOSEN (RESEARCH) ======================
+   ========== RESEARCH ==========================================
    ============================================================= */
 
-/* GET ALL RESEARCH BY LECTURER */
 export const getResearchByLecturer = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
-    let profile = await prisma.lecturerprofile.findUnique({
+    const profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
       include: { research: true },
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({ data: { userId } });
       return res.json({ data: [] });
     }
 
@@ -127,13 +123,14 @@ export const getResearchByLecturer = async (req: Request, res: Response) => {
   }
 };
 
-/* ADD RESEARCH */
 export const addResearch = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
-    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
+    if (!profile) {
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+    }
 
     const research = await prisma.research.create({
       data: {
@@ -150,7 +147,6 @@ export const addResearch = async (req: Request, res: Response) => {
   }
 };
 
-/* UPDATE RESEARCH */
 export const updateResearch = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -170,7 +166,6 @@ export const updateResearch = async (req: Request, res: Response) => {
   }
 };
 
-/* DELETE RESEARCH */
 export const deleteResearch = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -184,7 +179,7 @@ export const deleteResearch = async (req: Request, res: Response) => {
 };
 
 /* =============================================================
-   ========== EDUCATION HISTORY =================================
+   ========== EDUCATION HISTORY ================================
    ============================================================= */
 
 export const addEducationHistory = async (req: Request, res: Response) => {
@@ -192,7 +187,9 @@ export const addEducationHistory = async (req: Request, res: Response) => {
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
-    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
+    if (!profile) {
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+    }
 
     const edu = await prisma.educationhistory.create({
       data: {
@@ -243,21 +240,22 @@ export const deleteEducationHistory = async (req: Request, res: Response) => {
 };
 
 /* =============================================================
-   ========== COMMUNITY SERVICE =================================
+   ========== COMMUNITY SERVICE ================================
    ============================================================= */
 
-/* ⭐ NEW — GET COMMUNITY SERVICE BY LECTURER */
-export const getCommunityServiceByLecturer = async (req: Request, res: Response) => {
+export const getCommunityServiceByLecturer = async (
+  req: Request,
+  res: Response
+) => {
   const userId = Number(req.params.userId);
 
   try {
-    let profile = await prisma.lecturerprofile.findUnique({
+    const profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
       include: { communityservice: true },
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({ data: { userId } });
       return res.json({ data: [] });
     }
 
@@ -273,7 +271,9 @@ export const addCommunityService = async (req: Request, res: Response) => {
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
-    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
+    if (!profile) {
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+    }
 
     const cs = await prisma.communityservice.create({
       data: {
@@ -321,103 +321,124 @@ export const deleteCommunityService = async (req: Request, res: Response) => {
   }
 };
 
+
 /* =============================================================
-   ========== SCIENTIFIC WORK (KARYA ILMIAH) ====================
+   ========== SCIENTIFIC WORK ==================================
    ============================================================= */
 
-/* ⭐ NEW — GET SCIENTIFIC WORK BY LECTURER */
-export const getScientificWorkByLecturer = async (req: Request, res: Response) => {
+/* =============================================================
+   ========== SCIENTIFIC WORK (BULK REPLACE)
+   ============================================================= */
+
+export const getScientificWorkByLecturer = async (
+  req: Request,
+  res: Response
+) => {
   const userId = Number(req.params.userId);
 
   try {
-    let profile = await prisma.lecturerprofile.findUnique({
+    const profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
       include: { scientificwork: true },
     });
 
-    if (!profile) {
-      profile = await prisma.lecturerprofile.create({ data: { userId } });
-      return res.json({ data: [] });
-    }
-
-    return res.json({ data: profile.scientificwork });
+    return res.json({
+      data: profile?.scientificwork || [],
+    });
   } catch (err) {
-    console.error("GET SW ERR:", err);
+    console.error("GET SCIENTIFIC WORK ERROR:", err);
     return res.status(500).json({ error: "Failed to fetch scientific work" });
   }
 };
 
-export const addScientificWork = async (req: Request, res: Response) => {
+export const saveScientificWorkBulk = async (
+  req: Request,
+  res: Response
+) => {
   const userId = Number(req.params.userId);
+  const { scientificworkList } = req.body;
+
+  if (!userId || !Array.isArray(scientificworkList)) {
+    return res.status(400).json({ error: "Invalid payload" });
+  }
 
   try {
-    let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
-    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
-
-    const sw = await prisma.scientificwork.create({
-      data: {
-        lecturerId: profile.id,
-        title: req.body.title,
-        type: req.body.type,
-        year: Number(req.body.year),
-      },
+    // pastikan profile ada
+    let profile = await prisma.lecturerprofile.findUnique({
+      where: { userId },
     });
 
-    return res.json(sw);
+    if (!profile) {
+      profile = await prisma.lecturerprofile.create({
+        data: { userId },
+      });
+    }
+
+    // hapus semua data lama
+    await prisma.scientificwork.deleteMany({
+      where: { lecturerId: profile.id },
+    });
+
+    // insert ulang (bulk)
+    if (scientificworkList.length > 0) {
+      await prisma.scientificwork.createMany({
+        data: scientificworkList.map((item: any) => ({
+          lecturerId: profile.id,
+          title: item.title,
+          type: item.type,
+          year: Number(item.year),
+        })),
+      });
+    }
+
+    return res.json({
+      message: "Scientific work saved successfully",
+    });
   } catch (err) {
-    console.error("ADD SW ERR:", err);
-    return res.status(500).json({ error: "Failed to add scientific work" });
+    console.error("SAVE SCIENTIFIC WORK BULK ERROR:", err);
+    return res.status(500).json({
+      error: "Failed to save scientific work",
+    });
   }
 };
 
-export const updateScientificWork = async (req: Request, res: Response) => {
+export const deleteScientificWork = async (
+  req: Request,
+  res: Response
+) => {
   const id = Number(req.params.id);
 
   try {
-    const updated = await prisma.scientificwork.update({
+    await prisma.scientificwork.delete({
       where: { id },
-      data: {
-        title: req.body.title,
-        type: req.body.type,
-        year: Number(req.body.year),
-      },
     });
-
-    return res.json(updated);
-  } catch (err) {
-    console.error("UPDATE SW ERR:", err);
-    return res.status(500).json({ error: "Failed to update scientific work" });
-  }
-};
-
-export const deleteScientificWork = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-
-  try {
-    await prisma.scientificwork.delete({ where: { id } });
     return res.json({ message: "Deleted" });
   } catch (err) {
-    console.error("DELETE SW ERR:", err);
-    return res.status(500).json({ error: "Failed to delete scientific work" });
+    console.error("DELETE SCIENTIFIC WORK ERROR:", err);
+    return res.status(500).json({
+      error: "Failed to delete scientific work",
+    });
   }
 };
 
+
 /* =============================================================
-   ========== INTELLECTUAL PROPERTY (HKI) ========================
+   ========== INTELLECTUAL PROPERTY ============================
    ============================================================= */
 
-/* ⭐ NEW — GET IP BY LECTURER */
-export const getIntellectualPropertyByLecturer = async (req: Request, res: Response) => {
+export const getIntellectualPropertyByLecturer = async (
+  req: Request,
+  res: Response
+) => {
   const userId = Number(req.params.userId);
 
   try {
-    let profile = await prisma.lecturerprofile.findUnique({
+    const profile = await prisma.lecturerprofile.findUnique({
       where: { userId },
       include: { intellectualproperty: true },
     });
 
     if (!profile) {
-      profile = await prisma.lecturerprofile.create({ data: { userId } });
       return res.json({ data: [] });
     }
 
@@ -433,7 +454,9 @@ export const addIntellectualProperty = async (req: Request, res: Response) => {
 
   try {
     let profile = await prisma.lecturerprofile.findUnique({ where: { userId } });
-    if (!profile) profile = await prisma.lecturerprofile.create({ data: { userId } });
+    if (!profile) {
+      profile = await prisma.lecturerprofile.create({ data: { userId } });
+    }
 
     const ip = await prisma.intellectualproperty.create({
       data: {
@@ -451,7 +474,10 @@ export const addIntellectualProperty = async (req: Request, res: Response) => {
   }
 };
 
-export const updateIntellectualProperty = async (req: Request, res: Response) => {
+export const updateIntellectualProperty = async (
+  req: Request,
+  res: Response
+) => {
   const id = Number(req.params.id);
 
   try {
@@ -471,7 +497,10 @@ export const updateIntellectualProperty = async (req: Request, res: Response) =>
   }
 };
 
-export const deleteIntellectualProperty = async (req: Request, res: Response) => {
+export const deleteIntellectualProperty = async (
+  req: Request,
+  res: Response
+) => {
   const id = Number(req.params.id);
 
   try {
