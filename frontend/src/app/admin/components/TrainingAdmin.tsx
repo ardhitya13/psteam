@@ -64,9 +64,10 @@ export type Training = {
    FIX IMAGE — SAMA PERSIS DENGAN TEAM ADMIN
 ============================================================ */
 const fixImage = (img?: string) => {
-  if (!img) return "/default-thumb.png";
-  if (img.startsWith("http")) return img;
-  return "http://localhost:4000" + img;
+  if (!img) return "http://localhost:4000/uploads/default-thumb.png";
+  return img.startsWith("http")
+    ? img
+    : `http://localhost:4000${img}`;
 };
 
 export default function TrainingAdmin() {
@@ -84,6 +85,9 @@ export default function TrainingAdmin() {
   const [detailData, setDetailData] = useState<Training | null>(null);
 
   const [confirmDelete, setConfirmDelete] = useState<Training | null>(null);
+  const [selectedType, setSelectedType] = useState<
+    "all" | "web" | "mobile" | "iot" | "ai"
+  >("all");
 
   // ======================= LOAD TRAININGS =======================
   useEffect(() => {
@@ -153,9 +157,17 @@ export default function TrainingAdmin() {
   };
 
   // ======================= SEARCH + PAGINATION =======================
-  const filtered = trainings.filter((t) =>
-    (t.title || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = trainings.filter((t) => {
+    const searchMatch = (t.title || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const typeMatch =
+      selectedType === "all" ? true : t.type === selectedType;
+
+    return searchMatch && typeMatch;
+  });
+
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -213,14 +225,35 @@ export default function TrainingAdmin() {
                   if (searchTerm.trim() === "") setIsSearchOpen(false);
                 }}
                 placeholder="Cari pelatihan..."
-                className={`transition-all duration-300 border border-gray-300 bg-white 
-                  rounded-md shadow-sm text-sm h-10
-                  ${isSearchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
+                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-black text-sm h-10
+    focus:text-black focus:outline-none
+    ${isSearchOpen
+                    ? "w-56 pl-10 pr-3 scale-100"
+                    : "w-10 scale-0 pointer-events-none"
                   }`}
               />
             </div>
+
+            {/* FILTER TIPE */}
+            <div className="relative">
+              <select
+                value={selectedType}
+                onChange={(e) =>
+                  setSelectedType(
+                    e.target.value as "all" | "web" | "mobile" | "iot" | "ai"
+                  )
+                }
+                className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
+              >
+                <option value="all">Semua Tipe</option>
+                <option value="web">Web</option>
+                <option value="mobile">Mobile</option>
+                <option value="iot">IoT</option>
+                <option value="ai">AI</option>
+              </select>
+
+            </div>
+
 
             <div className="relative">
               <select
@@ -228,17 +261,14 @@ export default function TrainingAdmin() {
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
                 className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
               >
-                {[5, 10, 20, 30].map((n) => (
+                {[5, 10, 20, 30, 40, 50].map((n) => (
                   <option key={n} value={n}>
                     {n} Halaman
                   </option>
                 ))}
               </select>
 
-              <ChevronDown
-                size={16}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
-              />
+
             </div>
 
             <button
@@ -322,7 +352,7 @@ export default function TrainingAdmin() {
 
                             <button
                               onClick={() => setEditData(t)}
-                              className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition "
+                              className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 transition "
                             >
                               <Edit size={14} /> Edit
                             </button>
@@ -345,38 +375,33 @@ export default function TrainingAdmin() {
             {/* PAGINATION */}
             <div className="flex justify-end items-center gap-2 px-4 py-4">
               <button
-                disabled={safeCurrentPage === 1}
-                onClick={() =>
-                  setCurrentPage((p) => Math.max(1, p - 1))
-                }
-                className="w-10 h-10 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
+                onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  }`}
               >
-                {"<"}
+                &lt;
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-10 h-10 border rounded ${safeCurrentPage === page
-                      ? "bg-blue-600 text-white"
-                      : "bg-white hover:bg-gray-100"
-                      }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
+              {/* CURRENT PAGE */}
+              <button className="px-3 py-1 rounded text-xs border bg-blue-600 text-white">
+                {currentPage}
+              </button>
 
+              {/* NEXT */}
               <button
-                disabled={safeCurrentPage === totalPages}
                 onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  currentPage < totalPages && setCurrentPage(currentPage + 1)
                 }
-                className="w-10 h-10 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
+                disabled={currentPage === totalPages}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                  }`}
               >
-                {">"}
+                &gt;
               </button>
             </div>
           </div>
@@ -421,7 +446,7 @@ export default function TrainingAdmin() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="px-4 py-2 bg-gray-300 rounded text-sm"
+                className="px-4 py-2 border bg-black/50 rounded"
               >
                 Batal
               </button>

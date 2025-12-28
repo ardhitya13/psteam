@@ -119,7 +119,7 @@ export default function ProductTable({
 
                       <button
                         onClick={() => onEdit(p)}
-                        className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition "
+                        className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 transition "
                       >
                        <IconEdit size={14} /> Edit
                       </button>

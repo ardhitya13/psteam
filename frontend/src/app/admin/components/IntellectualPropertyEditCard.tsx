@@ -7,6 +7,8 @@ import { createPortal } from "react-dom";
 /* =========================
    TYPES
 ========================= */
+
+
 type IPItem = {
   id?: number;
   title: string;
@@ -21,19 +23,21 @@ type LecturerInfo = {
   specialization: string;
 };
 
+type SuccessMode = "add" | "edit";
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   defaultData:
-    | {
-        lecId: number;
-        intellectualpropertyList: IPItem[];
-        lecturer_name: string;
-        email: string;
-        studyProgram: string;
-        specialization: string;
-      }
-    | null;
+  | {
+    lecId: number;
+    intellectualpropertyList: IPItem[];
+    lecturer_name: string;
+    email: string;
+    studyProgram: string;
+    specialization: string;
+  }
+  | null;
   onSubmit: (payload: {
     lecId: number;
     intellectualpropertyList: IPItem[];
@@ -57,10 +61,22 @@ export default function EditIntellectualPropertyCard({
 
   /* ALERT */
   const [successAlert, setSuccessAlert] = useState(false);
-  const [successTitle, setSuccessTitle] = useState("");
+  const [successList, setSuccessList] = useState<IPItem[]>([]);
+  const [successMode, setSuccessMode] = useState<SuccessMode>("add");
 
   const [deleteAlert, setDeleteAlert] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const HKI_TYPES = [
+    "Hak Cipta Nasional",
+    "Hak Cipta Internasional",
+    "Desain Industri",
+    "Paten Sederhana",
+    "Paten",
+    "Merek",
+    "Rahasia Dagang",
+    "Lain-Lain",
+  ];
+
 
   /* =========================
      LOAD DEFAULT
@@ -88,15 +104,14 @@ export default function EditIntellectualPropertyCard({
     }
   }, [defaultData]);
 
-  /* =========================
-     RESET
-  ========================= */
+  /* RESET */
   useEffect(() => {
     if (!isOpen) {
       setForm(null);
       setSuccessAlert(false);
       setDeleteAlert(false);
       setDeleteIndex(null);
+      setSuccessList([]);
     }
   }, [isOpen]);
 
@@ -165,12 +180,32 @@ export default function EditIntellectualPropertyCard({
       return;
     }
 
+    const original = defaultData?.intellectualpropertyList || [];
+
+    const added = clean.filter((i) => !i.id);
+    const edited = clean.filter((i) =>
+      original.some(
+        (o) =>
+          o.id === i.id &&
+          (o.title !== i.title ||
+            o.type !== i.type ||
+            o.year !== i.year)
+      )
+    );
+
+    if (added.length > 0) {
+      setSuccessMode("add");
+      setSuccessList(added);
+    } else {
+      setSuccessMode("edit");
+      setSuccessList(edited);
+    }
+
     onSubmit({
       lecId: form.lecId,
       intellectualpropertyList: clean,
     });
 
-    setSuccessTitle(clean[0]?.title || "HKI");
     setSuccessAlert(true);
   }
 
@@ -178,15 +213,8 @@ export default function EditIntellectualPropertyCard({
      RENDER
   ========================= */
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      lockScroll={successAlert || deleteAlert}
-      onClose={() => {
-        if (successAlert || deleteAlert) return;
-        onClose();
-      }}
-    >
-      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl pb-10">
+    <ModalWrapper isOpen={isOpen} onClose={onClose}>
+      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl pb-10 bg-white text-gray-800">
         {/* INFO */}
         <div className="border rounded-xl p-4 bg-gray-50 mb-6">
           <h3 className="font-bold mb-3">Informasi Pribadi</h3>
@@ -213,49 +241,65 @@ export default function EditIntellectualPropertyCard({
             </div>
 
             {form.intellectualpropertyList.map((i, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-lg shadow mt-4">
+              <div
+                key={idx}
+                className="bg-white p-4 rounded-lg shadow mt-4 border border-gray-300"
+              >
+                <div className="font-semibold text-sm text-gray-700 mb-2">
+                  No. {idx + 1}
+                </div>
+
+                {/* JUDUL */}
                 <textarea
                   value={i.title}
                   onChange={(e) => updateRow(idx, "title", e.target.value)}
-                  className="border rounded p-2 w-full mb-3"
+                  placeholder="Judul HKI"
+                  className="border rounded p-2 w-full mb-3 text-gray-900 bg-white"
                 />
 
                 <div className="grid grid-cols-3 gap-4 items-end">
+                  {/* JENIS HKI */}
                   <select
                     value={i.type}
                     onChange={(e) => updateRow(idx, "type", e.target.value)}
-                    className="border rounded p-2 bg-white"
+                    className="border rounded p-2 bg-white text-gray-900"
                   >
-                    <option value="Hak Cipta Nasional">Hak Cipta Nasional</option>
-                    <option value="Paten Nasional">Paten Nasional</option>
+                    {HKI_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
                   </select>
 
+                  {/* TAHUN */}
                   <input
                     type="number"
                     value={i.year}
                     onChange={(e) =>
                       updateRow(idx, "year", Number(e.target.value))
                     }
-                    className="border rounded p-2"
+                    className="border rounded p-2 text-gray-900 bg-white"
                   />
 
+                  {/* DELETE */}
                   <button
                     type="button"
                     onClick={() => askDelete(idx)}
-                    className="bg-red-500 text-white rounded px-3 py-2"
+                    className="bg-red-600 hover:bg-red-700 text-white rounded px-3 py-2"
                   >
                     Hapus
                   </button>
                 </div>
               </div>
             ))}
+
           </div>
 
           <div className="flex justify-end gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 bg-gray-300 rounded-lg"
+              className="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg"
             >
               Batal
             </button>
@@ -268,10 +312,28 @@ export default function EditIntellectualPropertyCard({
           </div>
         </form>
 
+        {/* SUCCESS ALERT */}
         {successAlert && (
           <Alert
-            title="Berhasil!"
-            message={`HKI "${successTitle}" berhasil disimpan.`}
+            title={
+              successMode === "add"
+                ? "Berhasil Menambahkan HKI!"
+                : "Berhasil Memperbarui HKI!"
+            }
+            message={
+              <div className="text-left text-gray-800">
+                <p className="mb-2 font-semibold">
+                  {successMode === "add"
+                    ? "HKI baru berhasil ditambahkan:"
+                    : "HKI berhasil diperbarui:"}
+                </p>
+                <ul className="list-decimal pl-5 space-y-1">
+                  {successList.map((i, idx) => (
+                    <li key={idx}>{i.title}</li>
+                  ))}
+                </ul>
+              </div>
+            }
             onOk={() => {
               setSuccessAlert(false);
               onClose();
@@ -279,6 +341,7 @@ export default function EditIntellectualPropertyCard({
           />
         )}
 
+        {/* DELETE ALERT */}
         {deleteAlert && (
           <Alert
             danger
@@ -299,50 +362,42 @@ export default function EditIntellectualPropertyCard({
 function ReadOnly({ label, value }: any) {
   return (
     <div>
-      <label className="text-sm font-semibold">{label}</label>
+      <label className="text-sm font-semibold text-gray-700">{label}</label>
       <input
         disabled
         value={value || "-"}
-        className="w-full bg-gray-200 border rounded px-3 py-2"
+        className="w-full bg-gray-200 border rounded px-3 py-2 text-gray-800"
       />
     </div>
   );
 }
 
 function Alert({ title, message, onOk, onCancel, danger }: any) {
-  useEffect(() => {
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, []);
-
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg p-6 text-center w-full max-w-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg p-6 w-full max-w-sm border shadow-lg">
         <h3
-          className={`font-bold mb-2 ${
-            danger ? "text-red-600" : "text-blue-600"
-          }`}
+          className={`font-bold mb-3 ${danger ? "text-red-600" : "text-blue-600"
+            }`}
         >
           {title}
         </h3>
-        <p className="mb-4">{message}</p>
+
+        <div className="mb-4 text-sm text-gray-800">{message}</div>
+
         <div className="flex justify-center gap-3">
           {onCancel && (
             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-gray-300 rounded"
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
             >
               Batal
             </button>
           )}
           <button
             onClick={onOk}
-            className={`px-4 py-2 rounded text-white ${
-              danger ? "bg-red-600" : "bg-blue-600"
-            }`}
+            className={`px-4 py-2 rounded text-white ${danger ? "bg-red-600" : "bg-blue-600"
+              }`}
           >
             OK
           </button>

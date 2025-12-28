@@ -12,9 +12,44 @@ interface NavbarAdminProps {
 
 export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [adminName, setAdminName] = useState("Admin");
+  const [initials, setInitials] = useState("AD");
   const router = useRouter();
 
-  // tutup dropdown saat klik luar
+  /* =========================
+     AMBIL USER DARI LOCALSTORAGE
+     (PASTI SESUAI DATABASE)
+  ========================= */
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (!stored) return;
+
+    try {
+      const user = JSON.parse(stored);
+
+      if (user?.name) {
+        setAdminName(user.name);
+
+        // 🔥 Buat inisial otomatis (2 huruf)
+        const parts = user.name
+          .replace(/[^a-zA-Z ]/g, "")
+          .trim()
+          .split(" ");
+
+        const init =
+          (parts[0]?.[0] || "") + (parts[1]?.[0] || "");
+
+        setInitials(init.toUpperCase() || "AD");
+      }
+    } catch {
+      setAdminName("Admin");
+      setInitials("AD");
+    }
+  }, []);
+
+  /* =========================
+     TUTUP DROPDOWN KLIK LUAR
+  ========================= */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!(e.target as HTMLElement).closest(".dropdown-area")) {
@@ -26,44 +61,51 @@ export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // 🔐 LOGOUT JWT (FINAL)
+  /* =========================
+     LOGOUT
+  ========================= */
   const handleLogout = () => {
     logout(router);
   };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+      <div className="max-w-screen-xl flex items-center justify-between mx-auto p-4">
         
         {/* LOGO */}
-        <a className="flex items-center space-x-3 rtl:space-x-reverse">
-          <div className="relative w-[120px] h-[30px] overflow-hidden">
+        <div className="flex items-center space-x-3">
+          <div className="relative w-[95px] h-[40px]">
             <Image
               src="/logopsteam1.png"
               alt="PSTEAM Logo"
               fill
               priority
-              className="object-cover object-center"
+              className="object-contain"
             />
           </div>
-        </a>
+        </div>
 
         {/* AVATAR + DROPDOWN */}
         <div className="relative dropdown-area">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="w-9 h-9 rounded-full bg-blue-800 text-white font-semibold flex items-center justify-center focus:outline-none shadow-sm hover:opacity-90 transition"
+            className="w-9 h-9 rounded-full bg-blue-800 text-white font-semibold flex items-center justify-center shadow-sm hover:opacity-90 transition"
           >
-            AD
+            {initials}
           </button>
 
           {dropdownOpen && (
             <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 animate-fadeIn">
               
+              {/* USER INFO */}
               <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-semibold text-gray-900">Admin</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {adminName}
+                </p>
+                <p className="text-xs text-gray-500">Administrator</p>
               </div>
 
+              {/* MENU */}
               <ul className="py-2 text-sm">
                 <li>
                   <button
@@ -81,7 +123,7 @@ export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
                     className="w-full text-left flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut size={16} />
-                    Logout
+                    Keluar
                   </button>
                 </li>
               </ul>
@@ -90,6 +132,7 @@ export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
         </div>
       </div>
 
+      {/* ANIMASI */}
       <style jsx>{`
         @keyframes fadeIn {
           from {

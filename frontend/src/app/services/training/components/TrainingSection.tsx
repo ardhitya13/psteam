@@ -2,17 +2,21 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+
 import CategoryFilter from "./CategoryFilter";
 import CourseCardHorizontal, { Course } from "./CourseCardHorizontal";
 import CourseDetailModal from "./CourseDetailModal";
 import RegisterTrainingModal from "./RegisterTrainingModal";
 import RegistrationGuideModal from "./RegistrationGuideModal";
+
 import { getAllTraining } from "../../../../lib/apiTraining";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
 
-// NORMALIZE CATEGORY BACKEND -> UI
+/* =========================================================
+   NORMALIZE CATEGORY BACKEND -> UI
+========================================================= */
 function normalizeCategory(c: string): string {
   const key = (c || "").toLowerCase();
 
@@ -24,15 +28,16 @@ function normalizeCategory(c: string): string {
   return "Umum";
 }
 
-// PARSE JSON FIELD FROM DATABASE
+/* =========================================================
+   SAFE JSON PARSER
+========================================================= */
 function safeJSON(input: any, fallback: any) {
   if (!input) return fallback;
-
   if (Array.isArray(input)) return input;
 
   try {
     return JSON.parse(input);
-  } catch (e) {
+  } catch {
     console.warn("JSON PARSE FAILED:", input);
     return fallback;
   }
@@ -44,7 +49,7 @@ export default function TrainingSection() {
 
   const categoryFromQuery = searchParams.get("category");
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
+  const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [selectedTraining, setSelectedTraining] = useState<Course | null>(null);
 
   const [openDetail, setOpenDetail] = useState(false);
@@ -53,11 +58,16 @@ export default function TrainingSection() {
 
   const [trainings, setTrainings] = useState<Course[]>([]);
 
+  /* =========================================================
+     INIT AOS
+  ========================================================= */
   useEffect(() => {
     AOS.init({ duration: 900, easing: "ease-out-cubic", once: true });
   }, []);
 
-  // FETCH TRAINING + FIX JSON PARSE
+  /* =========================================================
+     FETCH TRAINING DATA
+  ========================================================= */
   useEffect(() => {
     (async () => {
       try {
@@ -67,16 +77,15 @@ export default function TrainingSection() {
           id: t.id,
           title: t.title,
           category: normalizeCategory(t.type),
-          excerpt: t.shortDescription ?? t.excerpt ?? "",
+          excerpt: t.shortDescription ?? "",
           price: Number(t.price || 0),
 
           img: t.thumbnail
-            ? "http://localhost:4000" + t.thumbnail
+            ? `http://localhost:4000${t.thumbnail}`
             : "/default-thumb.png",
 
           description: t.description ?? "",
 
-          // FIX — JSON PARSE PROPERLY
           costDetails: safeJSON(t.costDetails, []),
           requirements: safeJSON(t.requirements, []),
           schedule: safeJSON(t.schedule, []),
@@ -96,7 +105,9 @@ export default function TrainingSection() {
     })();
   }, []);
 
-  // QUERY CATEGORY
+  /* =========================================================
+     HANDLE QUERY CATEGORY (?category=...)
+  ========================================================= */
   useEffect(() => {
     if (categoryFromQuery) {
       setSelectedCategory(categoryFromQuery);
@@ -120,13 +131,17 @@ export default function TrainingSection() {
     "Internet of Things (IoT)",
   ];
 
-  // FILTER CATEGORY
+  /* =========================================================
+     FILTER TRAINING
+  ========================================================= */
   const filteredTraining =
     selectedCategory === "Semua"
       ? trainings
       : trainings.filter((c) => c.category === selectedCategory);
 
-  // MODAL HANDLER
+  /* =========================================================
+     MODAL HANDLERS
+  ========================================================= */
   const openDetailModal = (course: Course) => {
     setSelectedTraining(course);
     setOpenDetail(true);
@@ -146,7 +161,7 @@ export default function TrainingSection() {
   return (
     <main className="relative min-h-screen py-16 bg-transparent text-white">
       <section className="max-w-6xl mx-auto px-4">
-        {/* HEADER */}
+        {/* ================= HEADER ================= */}
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="text-3xl font-bold">Pelatihan & Sertifikasi</h2>
@@ -157,13 +172,13 @@ export default function TrainingSection() {
 
           <button
             onClick={() => setOpenGuide(true)}
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-blue-700 transition-all"
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-full shadow-md hover:bg-blue-700 transition"
           >
             📋 Lihat Tata Cara Pendaftaran
           </button>
         </div>
 
-        {/* FILTER */}
+        {/* ================= FILTER ================= */}
         <div ref={filterRef} className="mt-4 mb-8">
           <CategoryFilter
             categories={kategori}
@@ -172,7 +187,7 @@ export default function TrainingSection() {
           />
         </div>
 
-        {/* JUMLAH */}
+        {/* ================= COUNT ================= */}
         <div className="flex justify-center my-6">
           <div className="px-6 py-2 bg-gray-100 rounded-full border shadow-sm">
             <span className="text-gray-700 font-semibold">
@@ -181,7 +196,7 @@ export default function TrainingSection() {
           </div>
         </div>
 
-        {/* LIST TRAINING */}
+        {/* ================= LIST ================= */}
         <div className="mt-8 flex flex-col gap-5">
           {filteredTraining.map((course) => (
             <CourseCardHorizontal
@@ -193,23 +208,29 @@ export default function TrainingSection() {
           ))}
         </div>
 
-        {/* MODALS */}
-        <CourseDetailModal
-          open={openDetail}
-          course={selectedTraining}
-          onClose={closeAllModals}
-        />
+        {/* ================= MODALS (FIXED) ================= */}
+        {openDetail && selectedTraining && (
+          <CourseDetailModal
+            open={openDetail}
+            course={selectedTraining}
+            onClose={closeAllModals}
+          />
+        )}
 
-        <RegisterTrainingModal
-          open={openRegister}
-          course={selectedTraining}
-          onClose={closeAllModals}
-        />
+        {openRegister && selectedTraining && (
+          <RegisterTrainingModal
+            open={openRegister}
+            course={selectedTraining}
+            onClose={closeAllModals}
+          />
+        )}
 
-        <RegistrationGuideModal
-          open={openGuide}
-          onClose={() => setOpenGuide(false)}
-        />
+        {openGuide && (
+          <RegistrationGuideModal
+            open={openGuide}
+            onClose={() => setOpenGuide(false)}
+          />
+        )}
       </section>
     </main>
   );

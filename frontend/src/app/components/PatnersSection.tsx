@@ -18,7 +18,6 @@ export default function PartnerSection() {
   const partners = [
     { name: "Politeknik Negeri Batam", logo: "/partners/patners4.png", aos: "fade-right" },
     { name: "PSTEAM", logo: "/partners/partners2.png", aos: "fade-up" },
-    { name: "PT Sumitomo", logo: "/partners/partners3.png", aos: "fade-left" },
   ];
 
   return (

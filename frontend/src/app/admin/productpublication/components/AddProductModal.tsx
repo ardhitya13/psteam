@@ -2,16 +2,25 @@
 
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { ProductItem } from "./ProductManager";
+import Swal from "sweetalert2";
 
 const API_URL = "http://localhost:4000/api/products";
+
+/* ==============================
+   JWT AUTH HEADER
+================================ */
+const getAuthHeaders = (): HeadersInit => {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export default function AddProductModal({
   onClose,
   onSubmit,
 }: {
   onClose: () => void;
-  onSubmit: () => void; // FIX
+  onSubmit: () => void;
 }) {
   const today = new Date().toISOString().split("T")[0];
 
@@ -34,26 +43,59 @@ export default function AddProductModal({
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPreview(url);
-
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
   const generateYears = () => {
-    const arr = [];
+    const arr: string[] = [];
     for (let y = 2010; y <= 2035; y++) arr.push(`${y}/${y + 1}`);
     return arr;
   };
 
+  /* ==============================
+     VALIDATION
+  ================================ */
+  const validateForm = () => {
+    const errors: string[] = [];
+
+    if (!file) errors.push("Thumbnail");
+    if (!form.title.trim()) errors.push("Judul");
+    if (!form.description.trim()) errors.push("Deskripsi");
+    if (!form.category) errors.push("Kategori");
+    if (!form.academicYear) errors.push("Tahun Akademik");
+    if (!form.publishDate) errors.push("Tanggal Publish");
+
+    return errors;
+  };
+
+  /* ==============================
+     SUBMIT (JWT PROTECTED)
+  ================================ */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!file) {
-      alert("Thumbnail wajib diisi.");
+    const errors = validateForm();
+
+    if (errors.length > 0) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Data Belum Lengkap",
+        html: `
+          <div style="text-align:left">
+            <p>Mohon lengkapi field berikut:</p>
+            <ul style="margin-top:8px">
+              ${errors.map((e) => `<li>• ${e}</li>`).join("")}
+            </ul>
+          </div>
+        `,
+        confirmButtonText: "OK",
+        confirmButtonColor: "#2563eb",
+      });
       return;
     }
 
     const fd = new FormData();
-    fd.append("image", file);
+    fd.append("image", file as File);
     fd.append("title", form.title);
     fd.append("category", form.category);
     fd.append("academicYear", form.academicYear);
@@ -61,12 +103,31 @@ export default function AddProductModal({
     fd.append("link", form.link);
     fd.append("publishDate", form.publishDate);
 
-    await fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: "POST",
+      headers: getAuthHeaders(),
       body: fd,
     });
 
-    await onSubmit(); // FIX
+    if (!res.ok) {
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan Produk",
+        text: "Terjadi kesalahan pada server. Silakan coba lagi.",
+        confirmButtonColor: "#dc2626",
+      });
+      return;
+    }
+
+    await Swal.fire({
+      icon: "success",
+      title: "Berhasil",
+      text: "Produk berhasil ditambahkan.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+
+    await onSubmit();
     onClose();
   };
 
@@ -79,12 +140,17 @@ export default function AddProductModal({
           <X />
         </button>
 
-        <h2 className="text-xl font-bold mb-4 text-blue-900">Tambah Produk</h2>
+        <h2 className="text-xl font-bold mb-4 text-blue-900">
+          Tambah Produk
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* === UI TIDAK DIUBAH === */}
           {/* Thumbnail */}
           <div>
-            <label className="block text-sm font-semibold mb-2">Thumbnail</label>
+            <label className="block text-sm font-semibold mb-2">
+              Thumbnail
+            </label>
 
             <input
               type="file"
@@ -113,7 +179,9 @@ export default function AddProductModal({
 
           {/* Deskripsi */}
           <div>
-            <label className="text-sm font-semibold">Deskripsi Singkat</label>
+            <label className="text-sm font-semibold">
+              Deskripsi Singkat
+            </label>
             <input
               value={form.description}
               onChange={(e) => update("description", e.target.value)}
@@ -138,10 +206,14 @@ export default function AddProductModal({
 
           {/* Tahun */}
           <div>
-            <label className="text-sm font-semibold">Tahun Akademik</label>
+            <label className="text-sm font-semibold">
+              Tahun Akademik
+            </label>
             <select
               value={form.academicYear}
-              onChange={(e) => update("academicYear", e.target.value)}
+              onChange={(e) =>
+                update("academicYear", e.target.value)
+              }
               className="w-full border rounded px-3 py-2 mt-1"
             >
               {generateYears().map((y) => (
@@ -152,18 +224,24 @@ export default function AddProductModal({
 
           {/* Publish */}
           <div>
-            <label className="text-sm font-semibold">Tanggal Publish</label>
+            <label className="text-sm font-semibold">
+              Tanggal Publish
+            </label>
             <input
               type="date"
               value={form.publishDate}
-              onChange={(e) => update("publishDate", e.target.value)}
+              onChange={(e) =>
+                update("publishDate", e.target.value)
+              }
               className="w-full border rounded px-3 py-2 mt-1"
             />
           </div>
 
           {/* Link */}
           <div>
-            <label className="text-sm font-semibold">Link Website</label>
+            <label className="text-sm font-semibold">
+              Link Website
+            </label>
             <input
               value={form.link}
               onChange={(e) => update("link", e.target.value)}
@@ -181,7 +259,10 @@ export default function AddProductModal({
               Batal
             </button>
 
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
               Simpan Produk
             </button>
           </div>

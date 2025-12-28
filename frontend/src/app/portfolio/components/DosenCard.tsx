@@ -1,19 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useMemo, useEffect, useRef } from "react";
-import { FaEnvelope, FaFilter } from "react-icons/fa";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { FaEnvelope } from "react-icons/fa";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import DosenTabs from "./DosenTabs";
+import { getPublicLecturers } from "@/lib/publicLecturer";
 
 /* ================= TYPE ================= */
 
 type Dosen = {
   name: string;
-  position: string;
-  program: string;
-  educationLevel: string;
   email: string;
+  program: string;
   specialization: string;
   imageUrl: string;
   educationHistory: any[];
@@ -28,75 +27,62 @@ type Dosen = {
 /* ================= MAIN ================= */
 
 export default function DosenCard({ limit }: { limit?: number }) {
-  const [dosenList, setDosenList] = useState<Dosen[]>([]);
+  const [list, setList] = useState<Dosen[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function load() {
       try {
-        const res = await fetch("http://localhost:4000/api/lecturer", {
-          credentials: "include",
-        });
+        const raw = await getPublicLecturers();
 
-        const json = await res.json();
-        const rawData = Array.isArray(json)
-          ? json
-          : json.data || json.lecturers || [];
-
-        const generated: Dosen[] = rawData.map((d: any) => {
-          const profile = d.lecturerprofile || {};
+        const mapped: Dosen[] = raw.map((d) => {
+          const p = d.lecturerprofile;
 
           return {
-            name: d.name ?? "-",
-            position: "Dosen",
-            program: profile.studyProgram ?? "-",
-            educationLevel: "-",
-            email: d.email ?? "-",
-            specialization: profile.specialization ?? "-",
-            imageUrl: profile.imageUrl
-              ? `http://localhost:4000${profile.imageUrl}`
+            name: d.name,
+            email: d.email,
+            program: p?.studyProgram ?? "-",
+            specialization: p?.specialization ?? "-",
+            imageUrl: p?.imageUrl
+              ? `http://localhost:4000${p.imageUrl}`
               : "/default-avatar.png",
-            educationHistory: profile.educationhistory || [],
+            educationHistory: p?.educationhistory ?? [],
             portfolio: {
-              research: profile.research || [],
-              communityService: profile.communityservice || [],
-              publications: profile.scientificwork || [],
-              intellectualProperty: profile.intellectualproperty || [],
+              research: p?.research ?? [],
+              communityService: p?.communityservice ?? [],
+              publications: p?.scientificwork ?? [],
+              intellectualProperty: p?.intellectualproperty ?? [],
             },
           };
         });
 
-        setDosenList(generated);
-      } catch (err) {
-        console.error("Gagal mengambil data dosen", err);
+        setList(mapped);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    fetchData();
+    load();
   }, []);
-
-  const displayed =
-    typeof limit === "number"
-      ? dosenList.slice(0, Math.max(1, limit))
-      : dosenList;
 
   if (loading) {
     return (
-      <section className="py-16 text-center text-gray-500">
-        Memuat data dosen...
-      </section>
+      <div className="py-16 text-center text-gray-500">
+        Memuat data dosen…
+      </div>
     );
   }
 
+  const displayed =
+    typeof limit === "number" ? list.slice(0, limit) : list;
+
   return (
-    <section className="py-16 px-6 lg:px-12">
-      <div className="max-w-6xl mx-auto space-y-12">
-        {displayed.map((dosen, i) => (
-          <DosenSingleCard key={i} dosen={dosen} />
-        ))}
-      </div>
+    <section className="max-w-6xl mx-auto space-y-16 px-6 py-12">
+      {displayed.map((d, i) => (
+        <DosenSingleCard key={i} dosen={d} />
+      ))}
     </section>
   );
 }
@@ -104,241 +90,302 @@ export default function DosenCard({ limit }: { limit?: number }) {
 /* ========================================================= */
 
 function DosenSingleCard({ dosen }: { dosen: Dosen }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<
+  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<
     "research" | "communityService" | "publications" | "intellectualProperty"
   >("research");
+
   const [page, setPage] = useState(1);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [yearFilter, setYearFilter] = useState("Semua");
   const [typeFilter, setTypeFilter] = useState("Semua");
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const itemsPerPage = 10;
+  const perPage = 10;
+  const rawData = dosen.portfolio[tab] ?? [];
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  /* ================= FILTER OPTIONS ================= */
 
-  const dataAktif = dosen.portfolio[activeTab] || [];
+  const yearOptions = useMemo(() => {
+    const years = rawData.map((d: any) => d.year).filter(Boolean);
+    return ["Semua", ...Array.from(new Set(years)).sort((a, b) => b - a)];
+  }, [rawData]);
 
-  const kategoriPublikasi = [
-    "Artikel ilmiah",
-    "Jurnal nasional",
-    "Jurnal nasional terakreditasi",
-    "Jurnal internasional bereputasi",
-    "Jurnal internasional",
-    "Lain-lain",
-  ];
+  const typeOptions = useMemo(() => {
+    const types = rawData.map((d: any) => d.type).filter(Boolean);
+    return ["Semua", ...Array.from(new Set(types))];
+  }, [rawData]);
 
-  const kategoriHKI = ["Hak cipta nasional", "Paten nasional"];
+  /* ================= FILTER DATA ================= */
 
-  const existingTypes = new Set(dataAktif.map((i: any) => i.type));
+  const filtered = useMemo(() => {
+    let data = [...rawData];
 
-  const typeOptions =
-    activeTab === "publications"
-      ? ["Semua", ...kategoriPublikasi]
-      : activeTab === "intellectualProperty"
-      ? ["Semua", ...kategoriHKI]
-      : [];
-
-  const filteredData = useMemo(() => {
-    let data = [...dataAktif];
-
-    if (
-      (activeTab === "publications" ||
-        activeTab === "intellectualProperty") &&
-      typeFilter !== "Semua"
-    ) {
-      data = data.filter((i: any) => i.type === typeFilter);
+    if (yearFilter !== "Semua") {
+      data = data.filter((d: any) => String(d.year) === yearFilter);
     }
 
-    data.sort((a: any, b: any) =>
-      sortOrder === "asc" ? a.year - b.year : b.year - a.year
-    );
+    if (
+      (tab === "publications" || tab === "intellectualProperty") &&
+      typeFilter !== "Semua"
+    ) {
+      data = data.filter((d: any) => d.type === typeFilter);
+    }
 
     return data;
-  }, [dataAktif, activeTab, typeFilter, sortOrder]);
+  }, [rawData, yearFilter, typeFilter, tab]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (page - 1) * itemsPerPage;
-  const currentData = filteredData.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const totalPage = Math.ceil(filtered.length / perPage);
+  const start = (page - 1) * perPage;
+  const current = filtered.slice(start, start + perPage);
 
   return (
-    <article className="bg-white rounded-3xl shadow-lg border border-blue-200 overflow-visible text-black">
+    <article className="bg-white rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
       {/* ================= HEADER ================= */}
-      <div className="flex flex-col md:flex-row items-center gap-8 p-8 bg-gradient-to-r from-blue-50 to-white border-b rounded-t-3xl">
-        <div className="relative w-40 h-40 shrink-0">
+      <div className="flex gap-8 p-8 bg-blue-100 border-b border-blue-300">
+        <div className="relative w-32 h-32 shrink-0">
           <Image
             src={dosen.imageUrl}
             alt={dosen.name}
             fill
-            unoptimized
-            className="object-cover rounded-full border-4 border-blue-300 shadow-md"
+            className="rounded-full object-cover border-4 border-blue-600"
           />
         </div>
 
-        <div className="flex-1 text-black space-y-2">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
+        <div className="space-y-1 text-gray-800">
+          <h2 className="text-3xl font-bold text-blue-900">
             {dosen.name}
           </h2>
-          <p className="font-semibold">{dosen.position}</p>
+
+          {/* LABEL DOSEN */}
+          <span className="inline-block text-sm font-semibold text-blue-700">
+            Dosen
+          </span>
+
           <p>
-            <strong>Program Studi:</strong> {dosen.program}
+            <b>Program Studi:</b> {dosen.program}
           </p>
-          <p>
-            <strong>Pendidikan Terakhir:</strong> {dosen.educationLevel}
-          </p>
+
           <p className="flex items-center gap-2">
             <FaEnvelope /> {dosen.email}
           </p>
+
           <p>
-            <strong>Bidang Spesialis:</strong> {dosen.specialization}
+            <b>Bidang Spesialis:</b> {dosen.specialization}
           </p>
         </div>
       </div>
 
-      {/* ================= ACCORDION ================= */}
-      <div className="my-4 flex justify-center">
+      {/* ================= TOGGLE ICON ONLY ================= */}
+      <div className="flex justify-center -mt-4">
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="px-6 py-3 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800"
+          onClick={() => setOpen(!open)}
+          className="bg-gradient-to-r from-blue-800 to-blue-500 text-white p-2 rounded-full shadow-md hover:scale-105 transition"
+          aria-label="Toggle Detail"
         >
-          {isOpen ? "Tutup Detail" : "Lihat Detail Dosen"}
+          {open ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>
       </div>
 
       {/* ================= DETAIL ================= */}
-      {isOpen && (
-        <div className="px-8 py-6 border-t border-blue-200 overflow-visible">
-          {/* PENDIDIKAN */}
-          <h3 className="font-semibold text-lg mb-2">Riwayat Pendidikan</h3>
-          <ul className="list-disc ml-5 mb-6">
-            {dosen.educationHistory.length > 0
-              ? dosen.educationHistory.map((e: any, i: number) => (
-                  <li key={i}>
-                    {e.degree} – {e.university} ({e.major})
+      {open && (
+        <div className="p-8 text-gray-800">
+          {/* RIWAYAT PENDIDIKAN */}
+          <div className="mb-10">
+            <h3 className="font-semibold text-lg mb-3 border-b border-blue-300 pb-2">
+              Riwayat Pendidikan
+            </h3>
+
+            <ul className="space-y-2">
+              {dosen.educationHistory.length ? (
+                dosen.educationHistory.map((e, i) => (
+                  <li
+                    key={i}
+                    className="pl-4 border-l-4 border-blue-500"
+                  >
+                    <span className="font-semibold">{e.degree}</span> –{" "}
+                    {e.university} ({e.major})
                   </li>
                 ))
-              : <li>-</li>}
-          </ul>
+              ) : (
+                <li>-</li>
+              )}
+            </ul>
+          </div>
 
           {/* TABS */}
           <DosenTabs
-            activeTab={activeTab}
-            setActiveTab={(tab: any) => {
-              setActiveTab(tab);
+            activeTab={tab}
+            setActiveTab={(t: any) => {
+              setTab(t);
               setPage(1);
+              setYearFilter("Semua");
               setTypeFilter("Semua");
             }}
           />
 
           {/* ================= TABLE ================= */}
-          <div className="relative mt-4 overflow-visible">
-            <table className="w-full text-sm">
-              <thead className="bg-blue-100">
+          <div className="mt-6 rounded-xl overflow-hidden border border-blue-300">
+            <table className="w-full text-sm border-collapse">
+              <thead className="bg-gradient-to-r from-blue-800 to-blue-500 text-white">
                 <tr>
-                  <th className="p-3">No</th>
-                  <th className="p-3 text-left">Judul</th>
+                  <th className="p-3 border border-blue-600 w-14 text-center">
+                    No
+                  </th>
 
-                  {(activeTab === "publications" ||
-                    activeTab === "intellectualProperty") && (
-                    <th className="p-3 text-left relative">
-                      Jenis
-                      <div
-                        ref={dropdownRef}
-                        className="inline-block ml-2 relative"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDropdownOpen(!dropdownOpen);
+                  <th className="p-3 border border-blue-600 text-left">
+                    Judul
+                  </th>
+
+                  {(tab === "publications" || tab === "intellectualProperty") && (
+                    <th className="p-3 border border-blue-600 w-56 text-left">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-white font-semibold">Jenis</span>
+
+                        <select
+                          value={typeFilter}
+                          onChange={(e) => {
+                            setTypeFilter(e.target.value);
+                            setPage(1);
                           }}
-                          className="text-xs px-2 py-1 border rounded bg-blue-50 inline-flex items-center gap-1"
+                          className="
+    bg-white
+    text-blue-900 text-xs font-medium
+    rounded-md
+    px-3 py-1.5
+    pr-10               /* 🔥 JARAK ICON ▼ */
+    border border-blue-300
+    shadow-sm
+    focus:outline-none
+    focus:ring-2 focus:ring-blue-400
+    hover:border-blue-500
+    transition
+  "
                         >
-                          <FaFilter className="text-[10px]" /> {typeFilter}
-                        </button>
+                          {typeOptions.map((t) => (
+                            <option key={t} value={t} className="text-blue-900">
+                              {t}
+                            </option>
+                          ))}
+                        </select>
 
-                        {dropdownOpen && (
-                          <div className="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-xl z-[9999] max-h-64 overflow-y-auto">
-                            {typeOptions.map((type, i) => {
-                              const ok =
-                                type === "Semua" || existingTypes.has(type);
-                              return (
-                                <button
-                                  key={i}
-                                  disabled={!ok}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (ok) {
-                                      setTypeFilter(type);
-                                      setDropdownOpen(false);
-                                    }
-                                  }}
-                                  className={`block w-full text-left px-4 py-2 text-sm ${
-                                    type === typeFilter
-                                      ? "bg-blue-100 font-semibold"
-                                      : ok
-                                      ? "hover:bg-blue-50"
-                                      : "opacity-40"
-                                  }`}
-                                >
-                                  {type}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
                       </div>
                     </th>
                   )}
 
-                  <th
-                    onClick={() =>
-                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                    }
-                    className="p-3 cursor-pointer"
-                  >
-                    <div className="inline-flex items-center gap-1">
-                      <span>Tahun</span>
-                      {sortOrder === "asc" ? (
-                        <ChevronUp size={14} />
-                      ) : (
-                        <ChevronDown size={14} />
-                      )}
+                  <th className="p-3 border border-blue-600 w-28 text-center">
+                    <div className="flex flex-col gap-1 items-center">
+                      <span className="text-white font-semibold">Tahun</span>
+
+                      <select
+                        value={yearFilter}
+                        onChange={(e) => {
+                          setYearFilter(e.target.value);
+                          setPage(1);
+                        }}
+                        className="
+    bg-white
+    text-blue-900 text-xs font-medium
+    rounded-md
+    px-3 py-1.5
+    pr-10               /* 🔥 INI YANG PALING PENTING */
+    border border-blue-300
+    shadow-sm
+    focus:outline-none
+    focus:ring-2 focus:ring-blue-400
+    hover:border-blue-500
+    transition
+  "
+                      >
+                        {yearOptions.map((y) => (
+                          <option key={y} value={y} className="text-blue-900">
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+
                     </div>
                   </th>
                 </tr>
               </thead>
 
               <tbody>
-                {currentData.map((item: any, i: number) => (
-                  <tr key={i} className="even:bg-blue-50">
-                    <td className="p-2 text-center">{startIndex + i + 1}</td>
-                    <td className="p-2">{item.title}</td>
-                    {(activeTab === "publications" ||
-                      activeTab === "intellectualProperty") && (
-                      <td className="p-2">{item.type}</td>
-                    )}
-                    <td className="p-2 text-center">{item.year}</td>
+                {current.length ? (
+                  current.map((it: any, i: number) => (
+                    <tr
+                      key={i}
+                      className="even:bg-blue-50 hover:bg-blue-100"
+                    >
+                      <td className="p-3 border border-blue-200 text-center font-semibold">
+                        {start + i + 1}
+                      </td>
+
+                      <td className="p-3 border border-blue-200">
+                        {it.title}
+                      </td>
+
+                      {(tab === "publications" ||
+                        tab === "intellectualProperty") && (
+                          <td className="p-3 border border-blue-200">
+                            {it.type}
+                          </td>
+                        )}
+
+                      <td className="p-3 border border-blue-200 text-center">
+                        {it.year}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={
+                        tab === "publications" ||
+                          tab === "intellectualProperty"
+                          ? 4
+                          : 3
+                      }
+                      className="py-8 text-center italic text-gray-500"
+                    >
+                      Tidak ada data
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* ================= PAGINATION ================= */}
+          {totalPage > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+                className="px-3 py-1 border rounded disabled:opacity-40"
+              >
+                ‹
+              </button>
+
+              {Array.from({ length: totalPage }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i + 1)}
+                  className={`px-3 py-1 rounded ${page === i + 1
+                    ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white"
+                    : "border hover:bg-blue-100"
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button
+                disabled={page === totalPage}
+                onClick={() => setPage(page + 1)}
+                className="px-3 py-1 border rounded disabled:opacity-40"
+              >
+                ›
+              </button>
+            </div>
+          )}
         </div>
       )}
     </article>

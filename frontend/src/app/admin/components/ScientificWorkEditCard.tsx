@@ -1,4 +1,3 @@
-// components/EditScientificWorkCard.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -21,6 +20,8 @@ type LecturerInfo = {
   studyProgram: string;
   specialization: string;
 };
+
+type SuccessMode = "add" | "edit";
 
 interface Props {
   isOpen: boolean;
@@ -56,8 +57,10 @@ export default function EditScientificWorkCard({
     lecturer: LecturerInfo;
   } | null>(null);
 
+  /* ALERT */
   const [successAlert, setSuccessAlert] = useState(false);
-  const [successTitle, setSuccessTitle] = useState("");
+  const [successList, setSuccessList] = useState<ScientificWorkItem[]>([]);
+  const [successMode, setSuccessMode] = useState<SuccessMode>("add");
 
   const [deleteAlert, setDeleteAlert] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
@@ -88,16 +91,14 @@ export default function EditScientificWorkCard({
     }
   }, [defaultData]);
 
-  /* =========================
-     RESET
-  ========================= */
+  /* RESET */
   useEffect(() => {
     if (!isOpen) {
       setForm(null);
       setSuccessAlert(false);
-      setSuccessTitle("");
       setDeleteAlert(false);
       setDeleteIndex(null);
+      setSuccessList([]);
     }
   }, [isOpen]);
 
@@ -170,12 +171,32 @@ export default function EditScientificWorkCard({
       return;
     }
 
+    const original = defaultData?.scientificworkList || [];
+
+    const added = clean.filter((s) => !s.id);
+    const edited = clean.filter((s) =>
+      original.some(
+        (o) =>
+          o.id === s.id &&
+          (o.title !== s.title ||
+            o.type !== s.type ||
+            o.year !== s.year)
+      )
+    );
+
+    if (added.length > 0) {
+      setSuccessMode("add");
+      setSuccessList(added);
+    } else {
+      setSuccessMode("edit");
+      setSuccessList(edited);
+    }
+
     onSubmit({
       lecId: form.lecId,
       scientificworkList: clean,
     });
 
-    setSuccessTitle(clean[0]?.title || "Karya Ilmiah");
     setSuccessAlert(true);
   }
 
@@ -191,30 +212,22 @@ export default function EditScientificWorkCard({
         onClose();
       }}
     >
-      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl pb-10">
+      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl bg-white text-gray-900">
         {/* INFO */}
         <div className="border rounded-xl p-4 bg-gray-50 mb-6">
-          <h3 className="text-lg font-bold mb-3 text-gray-800">
-            Informasi Pribadi
-          </h3>
+          <h3 className="text-lg font-bold mb-3">Informasi Pribadi</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ReadOnly label="Nama" value={form.lecturer.name} />
             <ReadOnly label="Email" value={form.lecturer.email} />
             <ReadOnly label="Program Studi" value={form.lecturer.studyProgram} />
-            <ReadOnly
-              label="Spesialisasi"
-              value={form.lecturer.specialization}
-            />
+            <ReadOnly label="Spesialisasi" value={form.lecturer.specialization} />
           </div>
         </div>
 
-        {/* FORM */}
         <form onSubmit={submit}>
           <div className="border bg-gray-50 rounded-xl p-5 shadow mb-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">
-                Daftar Karya Ilmiah
-              </h3>
+              <h3 className="text-lg font-bold">Daftar Karya Ilmiah</h3>
               <button
                 type="button"
                 onClick={addRow}
@@ -227,17 +240,24 @@ export default function EditScientificWorkCard({
             {form.scientificworkList.map((s, idx) => (
               <div
                 key={idx}
-                className="bg-white p-4 rounded-lg shadow mt-4 grid grid-cols-1 gap-4"
+                className="bg-white p-4 rounded-lg shadow mt-4 relative"
               >
+                <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                  {idx + 1}
+                </div>
+
+                <label className="text-sm font-semibold">
+                  Judul Karya Ilmiah
+                </label>
                 <textarea
-                  className="border rounded-lg p-2 w-full"
+                  className="border rounded-lg p-3 w-full mt-1 bg-white text-gray-900"
                   value={s.title}
                   onChange={(e) =>
                     updateRow(idx, "title", e.target.value)
                   }
                 />
 
-                <div className="grid grid-cols-3 gap-4 items-end">
+                <div className="grid grid-cols-3 gap-4 items-end mt-3">
                   <select
                     className="border rounded-lg p-2 bg-white"
                     value={s.type}
@@ -262,7 +282,6 @@ export default function EditScientificWorkCard({
                   <input
                     type="number"
                     min={1900}
-                    max={3000}
                     className="border rounded-lg p-2"
                     value={s.year}
                     onChange={(e) =>
@@ -273,7 +292,7 @@ export default function EditScientificWorkCard({
                   <button
                     type="button"
                     onClick={() => askDelete(idx)}
-                    className="bg-red-500 text-white px-3 py-2 rounded-md"
+                    className="bg-red-600 text-white px-3 py-2 rounded"
                   >
                     Hapus
                   </button>
@@ -299,10 +318,28 @@ export default function EditScientificWorkCard({
           </div>
         </form>
 
+        {/* SUCCESS ALERT */}
         {successAlert && (
           <Alert
-            title="Berhasil!"
-            message={`Karya ilmiah "${successTitle}" berhasil diperbarui.`}
+            title={
+              successMode === "add"
+                ? "Berhasil Menambahkan Karya Ilmiah!"
+                : "Berhasil Memperbarui Karya Ilmiah!"
+            }
+            message={
+              <div className="text-left">
+                <p className="mb-2 font-semibold">
+                  {successMode === "add"
+                    ? "Karya ilmiah baru berhasil ditambahkan:"
+                    : "Karya ilmiah berhasil diperbarui:"}
+                </p>
+                <ul className="list-decimal pl-5 space-y-1">
+                  {successList.map((s, idx) => (
+                    <li key={idx}>{s.title}</li>
+                  ))}
+                </ul>
+              </div>
+            }
             onOk={() => {
               setSuccessAlert(false);
               onClose();
@@ -310,6 +347,7 @@ export default function EditScientificWorkCard({
           />
         )}
 
+        {/* DELETE ALERT */}
         {deleteAlert && (
           <Alert
             danger
@@ -327,39 +365,33 @@ export default function EditScientificWorkCard({
 /* =========================
    HELPERS
 ========================= */
-function ReadOnly({ label, value }: any) {
+function ReadOnly({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <label className="text-sm font-semibold text-gray-700">{label}</label>
+      <label className="text-sm font-semibold">{label}</label>
       <input
         disabled
         value={value || "-"}
-        className="mt-1 w-full px-4 py-2 rounded-lg bg-gray-200 text-gray-700 border border-gray-300"
+        className="w-full bg-gray-200 border rounded px-3 py-2"
       />
     </div>
   );
 }
 
 function Alert({ title, message, onOk, onCancel, danger }: any) {
-  useEffect(() => {
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, []);
-
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg p-6 text-center w-full max-w-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl p-6 w-full max-w-sm border shadow-lg">
         <h3
-          className={`font-bold mb-2 ${
-            danger ? "text-red-600" : "text-blue-600"
+          className={`font-bold mb-3 text-lg ${
+            danger ? "text-red-600" : "text-blue-700"
           }`}
         >
           {title}
         </h3>
-        <p className="mb-4">{message}</p>
+
+        <div className="mb-4 text-sm text-gray-800">{message}</div>
+
         <div className="flex justify-center gap-3">
           {onCancel && (
             <button

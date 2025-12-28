@@ -283,11 +283,6 @@ export default function TeamAdmin() {
                   </option>
                 ))}
               </select>
-
-              <ChevronDown
-                size={16}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-              />
             </div>
 
             {/* BUTTON ADD PROJECT */}

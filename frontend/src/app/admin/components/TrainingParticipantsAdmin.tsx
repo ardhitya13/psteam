@@ -5,121 +5,109 @@ import { Search, ChevronDown, FileText, Trash2 } from "lucide-react";
 
 import AdminNavbar from "./AdminNavbar";
 import AdminSidebar from "./AdminSidebar";
-import DetailTrainingModal from "./TrainingDetailModal";
+import TrainingVerifyDetailModal from "./TrainingVerifyDetailModal";
+import type { Registration } from "@/types/trainingRegistration";
 
+/* =========================
+   TYPE TABLE DATA
+========================= */
 type Participant = {
   id: number;
   name: string;
   email: string;
   phone: string;
   batch: string;
-
   training: {
     id: number;
     title: string;
     type: "web" | "mobile" | "iot" | "ai" | string;
+    thumbnail?: string | null;
   };
-};
-
-export type Training = {
-  id: number;
-  title: string;
-  shortDescription?: string;
-  type: "web" | "mobile" | "iot" | "ai" | string;
-  price: number;
-  thumbnail?: string;
-  description?: string;
-  costDetails?: string[];
-  requirements?: string[];
-  schedule?: { batchName: string; startDate: string; endDate: string }[];
-  rundown?: { day: string; activity: string }[];
-  organizer?: string;
-  duration?: string;
-  location?: string;
-  certificate?: string;
-  instructor?: string;
 };
 
 export default function TrainingParticipantsAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const [selectedType, setSelectedType] = useState<
+    "all" | "web" | "mobile" | "iot" | "ai"
+  >("all");
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageGroup, setPageGroup] = useState(0);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const [detailData, setDetailData] = useState<Training | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [detailData, setDetailData] = useState<Registration | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Participant | null>(null);
 
-  async function showDetail(trainingId: number) {
-    try {
-      const res = await fetch(`http://localhost:4000/api/training/${trainingId}`);
-      const data = await res.json();
-
-      // NORMALIZE JSON FIELDS
-      const normalized = {
-        ...data,
-        costDetails: Array.isArray(data.costDetails)
-          ? data.costDetails
-          : JSON.parse(data.costDetails || "[]"),
-
-        requirements: Array.isArray(data.requirements)
-          ? data.requirements
-          : JSON.parse(data.requirements || "[]"),
-
-        schedule: Array.isArray(data.schedule)
-          ? data.schedule
-          : JSON.parse(data.schedule || "[]"),
-
-        rundown: Array.isArray(data.rundown)
-          ? data.rundown
-          : JSON.parse(data.rundown || "[]"),
-      };
-
-      setDetailData(normalized);
-    } catch (err) {
-      console.error("Failed loading training detail:", err);
-      alert("Gagal memuat detail pelatihan.");
-    }
+  /* =========================
+     NORMALIZE TYPE
+  ========================= */
+  function normalizeType(str: string) {
+    if (!str) return "";
+    const s = str.toLowerCase();
+    if (s.includes("web")) return "web";
+    if (s.includes("mobile")) return "mobile";
+    if (s.includes("iot") || s.includes("internet")) return "iot";
+    if (s.includes("ai") || s.includes("machine")) return "ai";
+    return s;
   }
 
-  // LOAD DATA APPROVED
+  /* =========================
+     LOAD DATA APPROVED
+  ========================= */
   useEffect(() => {
-    fetch("http://localhost:4000/api/training-registrations/approved")
+    const token = localStorage.getItem("token");
+
+    fetch("http://localhost:4000/api/training-registrations/approved", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((r) => r.json())
       .then((data) => {
-        console.log("DATA APPROVED:", data);
         setParticipants(Array.isArray(data) ? data : []);
-      });
+      })
+      .catch(() => setParticipants([]));
   }, []);
 
-  // DELETE
+  /* =========================
+     DELETE
+  ========================= */
   const deleteNow = async (id: number) => {
+    const token = localStorage.getItem("token");
+
     await fetch(`http://localhost:4000/api/training-registrations/${id}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     setParticipants((prev) => prev.filter((p) => p.id !== id));
     setConfirmDelete(null);
   };
 
-  // FILTERING
+  /* =========================
+     FILTER + PAGINATION
+  ========================= */
   const filtered = participants.filter((p) => {
-    const s = searchTerm.toLowerCase();
-    const matchSearch =
-      p.name.toLowerCase().includes(s) ||
-      p.email.toLowerCase().includes(s);
+    const textMatch =
+      `${p.name} ${p.email} ${p.training.title}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
-    const matchType =
-      selectedType === "all" ? true : p.training.type === selectedType;
+    const typeMatch =
+      selectedType === "all"
+        ? true
+        : normalizeType(p.training.type) === selectedType;
 
-    return matchSearch && matchType;
+    return textMatch && typeMatch;
   });
 
-  // PAGINATION
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * itemsPerPage;
@@ -130,11 +118,14 @@ export default function TrainingParticipantsAdmin() {
     setPageGroup(0);
   }, [searchTerm, selectedType, itemsPerPage]);
 
+  /* =========================
+     UI
+  ========================= */
   return (
-    <div className="min-h-screen w-full bg-[#f5f7fb] flex flex-col">
+    <div className="min-h-screen bg-[#f5f7fb]">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div className="flex flex-1">
+      <div className="flex">
         <AdminSidebar
           isOpen={isSidebarOpen}
           toggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -145,8 +136,8 @@ export default function TrainingParticipantsAdmin() {
             }`}
         >
           {/* TITLE */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-black uppercase">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold uppercase text-black">
               Daftar Peserta Pelatihan
             </h1>
             <p className="text-gray-600 text-sm">
@@ -155,18 +146,20 @@ export default function TrainingParticipantsAdmin() {
           </div>
 
           {/* CONTROL BAR */}
-          <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-5">
+          <div className="flex flex-col md:flex-row justify-end items-center gap-3 mb-6">
             {/* SEARCH */}
             <div className="relative flex items-center h-10">
               {!isSearchOpen && (
                 <button
                   onClick={() => {
                     setIsSearchOpen(true);
-                    setTimeout(() => {
-                      document.getElementById("searchInput")?.focus();
-                    }, 50);
+                    setTimeout(
+                      () =>
+                        document.getElementById("searchInput")?.focus(),
+                      50
+                    );
                   }}
-                  className="w-10 h-10 flex items-center justify-center bg-blue-500 text-white rounded-md absolute left-0"
+                  className="absolute left-0 w-10 h-10 bg-blue-500 rounded-md flex items-center justify-center text-white"
                 >
                   <Search size={18} />
                 </button>
@@ -180,19 +173,28 @@ export default function TrainingParticipantsAdmin() {
                   if (!searchTerm.trim()) setIsSearchOpen(false);
                 }}
                 placeholder="Cari peserta..."
-                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${isSearchOpen
-                  ? "w-56 pl-10 pr-3 opacity-100"
-                  : "w-10 opacity-0 pointer-events-none"
+                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-black text-sm h-10 ${isSearchOpen
+                    ? "w-60 pl-10 pr-3 opacity-100"
+                    : "w-10 opacity-0 pointer-events-none"
                   }`}
               />
             </div>
 
-            {/* FILTER TYPE */}
+            {/* FILTER TIPE */}
             <div className="relative">
               <select
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-40 border border-gray-300 bg-white text-gray-700 text-sm font-medium rounded-md pl-3 pr-10 py-2 shadow-sm appearance-none cursor-pointer"
+                onChange={(e) =>
+                  setSelectedType(
+                    e.target.value as
+                    | "all"
+                    | "web"
+                    | "mobile"
+                    | "iot"
+                    | "ai"
+                  )
+                }
+                className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
               >
                 <option value="all">Semua Tipe</option>
                 <option value="web">Web</option>
@@ -200,10 +202,6 @@ export default function TrainingParticipantsAdmin() {
                 <option value="iot">IoT</option>
                 <option value="ai">AI</option>
               </select>
-              <ChevronDown
-                size={16}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
-              />
             </div>
 
             {/* ITEMS PER PAGE */}
@@ -215,77 +213,85 @@ export default function TrainingParticipantsAdmin() {
               >
                 {[10, 20, 30, 40].map((n) => (
                   <option key={n} value={n}>
-                    {n} Halaman
+                    {n} Data
                   </option>
                 ))}
               </select>
-              <ChevronDown
-                size={16}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
-              />
             </div>
           </div>
 
           {/* TABLE */}
-          <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-x-auto">
-            <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
-              <thead className="bg-[#eaf0fa] text-gray-800 text-[14px] font-semibold uppercase border border-gray-300">
+          <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
+            <table className="min-w-full text-sm text-gray-800 text-center border-collapse">
+              <thead className="bg-[#eaf0fa] text-gray-700 font-semibold">
                 <tr>
-                  <th className="px-4 py-3 border border-gray-300">No</th>
-                  <th className="px-4 py-3 border border-gray-300">Nama</th>
-                  <th className="px-4 py-3 border border-gray-300">Email</th>
-                  <th className="px-4 py-3 border border-gray-300">Telepon</th>
-                  <th className="px-4 py-3 border border-gray-300">Pelatihan</th>
-                  <th className="px-4 py-3 border border-gray-300">Tipe</th>
-                  <th className="px-4 py-3 border border-gray-300">Batch</th>
-                  <th className="px-4 py-3 border border-gray-300">Aksi</th>
+                  {[
+                    "No",
+                    "Nama",
+                    "Email",
+                    "Telepon",
+                    "Pelatihan",
+                    "Tipe",
+                    "Batch",
+                    "Aksi",
+                  ].map((h) => (
+                    <th key={h} className="border px-4 py-3 border-gray-300">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
               <tbody>
                 {pageItems.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={8}
-                      className="text-center py-6 italic text-gray-500"
-                    >
-                      Belum ada peserta diterima.
+                    <td colSpan={8} className="py-8 text-gray-500">
+                      Tidak ada data.
                     </td>
                   </tr>
                 ) : (
                   pageItems.map((p, i) => (
-                    <tr key={p.id} className="hover:bg-blue-50 border">
+                    <tr key={p.id} className="hover:bg-blue-50">
                       <td className="border px-4 py-2 border-gray-300">
                         {startIndex + i + 1}
                       </td>
-
-                      <td className="px-4 py-3 border border-gray-300 font-semibold">
-                        {p.name}
-                      </td>
-
+                      <td className="border px-4 py-2 border-gray-300">{p.name}</td>
                       <td className="border px-4 py-2 border-gray-300">{p.email}</td>
                       <td className="border px-4 py-2 border-gray-300">{p.phone}</td>
                       <td className="border px-4 py-2 border-gray-300">
                         {p.training.title}
                       </td>
-                      <td className="px-4 py-3 border border-gray-300 capitalize">
-                        {p.training.type}
+                      <td className="border px-4 py-2 border-gray-300 capitalize">
+                        {normalizeType(p.training.type)}
                       </td>
                       <td className="border px-4 py-2 border-gray-300">{p.batch}</td>
-
-                      {/* ACTION BUTTONS */}
                       <td className="border px-4 py-2 border-gray-300">
-                        <div className="flex justify-center gap-2">
+                        <div className="inline-flex gap-2">
                           <button
-                            onClick={() => showDetail(p.training.id)}
-                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
-                         >
+                            onClick={() =>
+                              setDetailData({
+                                id: p.id,
+                                name: p.name,
+                                email: p.email,
+                                phone: p.phone,
+                                batch: p.batch,
+                                status: "approved",
+                                notes: "-",
+                                trainingId: p.training.id,
+                                trainingTitle: p.training.title,
+                                trainingType: p.training.type,
+                                trainingThumbnail:
+                                  p.training.thumbnail ?? null,
+                              })
+                            }
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold"
+                          >
                             <FileText size={14} /> Detail
                           </button>
 
                           <button
                             onClick={() => setConfirmDelete(p)}
-                            className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+                            className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold"
                           >
                             <Trash2 size={14} /> Hapus
                           </button>
@@ -296,88 +302,86 @@ export default function TrainingParticipantsAdmin() {
                 )}
               </tbody>
             </table>
-
             {/* PAGINATION */}
-            <div className="flex justify-end items-center py-3 px-4 gap-2 bg-gray-50 text-sm rounded-b-lg">
+            <div className="flex justify-end items-center gap-2 px-4 py-4 bg-gray-50 border-t border-gray-300">
+              {/* PREV */}
               <button
                 onClick={() => {
                   if (currentPage > 1) {
-                    const newGroup = Math.floor((currentPage - 2) / 3);
-                    setCurrentPage((prev) => prev - 1);
-                    setPageGroup(newGroup);
+                    setCurrentPage(currentPage - 1);
+                    setPageGroup(Math.floor((currentPage - 2) / 3));
                   }
                 }}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === 1
-                  ? "bg-gray-200 text-gray-400"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &lt;
               </button>
 
+              {/* PAGE NUMBERS */}
               {Array.from({ length: 3 }, (_, i) => {
-                const pageNumber = pageGroup * 3 + (i + 1);
-                if (pageNumber > totalPages) return null;
+                const pageNum = pageGroup * 3 + (i + 1);
+                if (pageNum > totalPages) return null;
 
                 return (
                   <button
-                    key={pageNumber}
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNumber
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-1 rounded text-xs border ${currentPage === pageNum
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-300"
                       }`}
                   >
-                    {pageNumber}
+                    {pageNum}
                   </button>
                 );
               })}
 
+              {/* NEXT */}
               <button
                 onClick={() => {
                   if (currentPage < totalPages) {
-                    const newGroup = Math.floor(currentPage / 3);
-                    setCurrentPage((prev) => prev + 1);
-                    setPageGroup(newGroup);
+                    setCurrentPage(currentPage + 1);
+                    setPageGroup(Math.floor(currentPage / 3));
                   }
                 }}
                 disabled={currentPage === totalPages}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
-                  ? "bg-gray-200 text-gray-400"
-                  : "bg-gray-100 hover:bg-gray-300 text-gray-800"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &gt;
               </button>
             </div>
+
           </div>
         </main>
       </div>
 
       {/* DELETE MODAL */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
-            <h3 className="text-lg font-semibold mb-3 text-red-600">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+            <h3 className="text-lg font-semibold text-red-600 mb-3">
               Konfirmasi Hapus
             </h3>
-
-            <p className="text-sm text-gray-700 mb-6">
+            <p className="mb-6 text-black">
               Hapus peserta <b>{confirmDelete.name}</b>?
             </p>
-
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="px-4 py-2 bg-gray-300 rounded text-sm"
+                className="px-4 py-2 bg-gray-600 rounded"
               >
                 Batal
               </button>
-
               <button
                 onClick={() => deleteNow(confirmDelete.id)}
-                className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
+                className="px-4 py-2 bg-red-600 text-white rounded"
               >
                 Ya, Hapus
               </button>
@@ -386,10 +390,12 @@ export default function TrainingParticipantsAdmin() {
         </div>
       )}
 
+
+
       {/* DETAIL MODAL */}
       {detailData && (
-        <DetailTrainingModal
-          data={detailData!}
+        <TrainingVerifyDetailModal
+          data={detailData}
           onClose={() => setDetailData(null)}
         />
       )}

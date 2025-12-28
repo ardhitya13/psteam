@@ -3,43 +3,56 @@
 const API_URL = "http://localhost:4000/api/team";
 
 /* =====================================================
+   AUTH HEADER (TYPE SAFE)
+===================================================== */
+function getAuthHeaders(): HeadersInit {
+  if (typeof window === "undefined") return {};
+
+  const token = localStorage.getItem("token");
+  if (!token) return {};
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+/* =====================================================
    HANDLE RESPONSE
 ===================================================== */
 async function handleResponse(res: Response) {
   const type = res.headers.get("content-type") || "";
 
   if (!res.ok) {
-    const text = type.includes("json")
-      ? JSON.stringify(await res.json())
+    const message = type.includes("json")
+      ? (await res.json())?.error || JSON.stringify(await res.json())
       : await res.text();
 
-    throw new Error(`Request failed (${res.status}): ${text}`);
+    throw new Error(`Request failed (${res.status}): ${message}`);
   }
 
   return type.includes("json") ? res.json() : res.text();
 }
 
 /* =====================================================
-   GET ALL PROJECTS
+   GET ALL PROJECTS (PUBLIC)
 ===================================================== */
 export async function getAllProjects() {
-  const res = await fetch(API_URL, { cache: "no-store" });
+  const res = await fetch(API_URL, {
+    cache: "no-store",
+  });
+
   return handleResponse(res);
 }
 
 /* =====================================================
-   CREATE PROJECT (MULTIPLE MEMBERS + FILES)
+   CREATE PROJECT (JWT REQUIRED)
 ===================================================== */
 export async function createProject(data: any) {
   const form = new FormData();
 
-  // TITLE
   form.append("teamTitle", data.teamTitle);
-
-  // MEMBERS JSON
   form.append("teamMembers", JSON.stringify(data.teamMembers));
 
-  // FILES (WAJIB SAMA: field name = "images")
   data.teamMembers.forEach((m: any, i: number) => {
     if (m.imageFile instanceof File) {
       form.append("images", m.imageFile, `member-${i}.png`);
@@ -48,6 +61,7 @@ export async function createProject(data: any) {
 
   const res = await fetch(API_URL, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: form,
   });
 
@@ -55,25 +69,28 @@ export async function createProject(data: any) {
 }
 
 /* =====================================================
-   ADD MEMBER (SINGLE FILE)
+   ADD MEMBER (JWT REQUIRED)
 ===================================================== */
 export async function addMember(projectId: number, member: any) {
   const form = new FormData();
 
-  // TEXT FIELDS ONLY
   Object.keys(member).forEach((key) => {
-    if (key !== "image" && key !== "imageFile" && member[key] != null) {
+    if (
+      key !== "image" &&
+      key !== "imageFile" &&
+      member[key] != null
+    ) {
       form.append(key, member[key]);
     }
   });
 
-  // FILE FIELD (WAJIB NAMANYA "image")
   if (member.imageFile instanceof File) {
     form.append("image", member.imageFile, "member.png");
   }
 
   const res = await fetch(`${API_URL}/${projectId}/member`, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: form,
   });
 
@@ -81,24 +98,28 @@ export async function addMember(projectId: number, member: any) {
 }
 
 /* =====================================================
-   UPDATE MEMBER (WITH OPTIONAL IMAGE FILE)
+   UPDATE MEMBER (JWT REQUIRED)
 ===================================================== */
 export async function updateMember(memberId: number, data: any) {
   const form = new FormData();
 
   Object.keys(data).forEach((key) => {
-    if (key !== "image" && key !== "imageFile" && data[key] != null) {
+    if (
+      key !== "image" &&
+      key !== "imageFile" &&
+      data[key] != null
+    ) {
       form.append(key, data[key]);
     }
   });
 
-  // Gambar baru dikirim jika user upload file
   if (data.imageFile instanceof File) {
     form.append("image", data.imageFile, "update.png");
   }
 
   const res = await fetch(`${API_URL}/member/${memberId}`, {
     method: "PUT",
+    headers: getAuthHeaders(),
     body: form,
   });
 
@@ -106,22 +127,24 @@ export async function updateMember(memberId: number, data: any) {
 }
 
 /* =====================================================
-   DELETE MEMBER
+   DELETE MEMBER (JWT REQUIRED)
 ===================================================== */
 export async function deleteMember(memberId: number) {
   const res = await fetch(`${API_URL}/member/${memberId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
 
   return handleResponse(res);
 }
 
 /* =====================================================
-   DELETE PROJECT
+   DELETE PROJECT (JWT REQUIRED)
 ===================================================== */
 export async function deleteProject(projectId: number) {
   const res = await fetch(`${API_URL}/${projectId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
 
   return handleResponse(res);

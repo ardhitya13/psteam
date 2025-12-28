@@ -57,18 +57,18 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh] p-6">
 
         {/* HEADER */}
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-xl font-bold">{data.title}</h2>
-            <p className="text-sm text-gray-500">{(data.type || "").toUpperCase()}</p>
+            <h2 className="text-xl font-bold text-black">{data.title}</h2>
+            <p className="text-sm text-black">{(data.type || "").toUpperCase()}</p>
           </div>
 
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded">
+          <button onClick={onClose} className="p-2 text-black hover:bg-gray-100 rounded">
             <X />
           </button>
         </div>
@@ -91,36 +91,36 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
             )}
 
             <div className="mt-4">
-              <p className="text-sm text-gray-500">Harga Pelatihan</p>
+              <p className="text-sm text-black">Harga Pelatihan</p>
               <p className="text-lg font-semibold text-orange-600">
                 Rp {Number(data.price || 0).toLocaleString()}
               </p>
             </div>
 
-            <div className="mt-3 text-xs text-gray-500">
+            <div className="mt-3 text-xs text-black">
               Penyelenggara: {data.organizer || "-"}
             </div>
 
             {data.duration && (
-              <div className="mt-2 text-sm text-gray-700">
+              <div className="mt-2 text-sm text-black">
                 Durasi: {data.duration}
               </div>
             )}
 
             {data.location && (
-              <div className="mt-1 text-sm text-gray-700">
+              <div className="mt-1 text-sm text-black">
                 Lokasi: {data.location}
               </div>
             )}
 
             {data.certificate && (
-              <div className="mt-1 text-sm text-gray-700">
+              <div className="mt-1 text-sm text-black">
                 Sertifikat: {data.certificate}
               </div>
             )}
 
             {data.instructor && (
-              <div className="mt-1 text-sm text-gray-700">
+              <div className="mt-1 text-sm text-black">
                 Instruktur: {data.instructor}
               </div>
             )}
@@ -131,14 +131,14 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
 
             {/* DESKRIPSI */}
             <div>
-              <h3 className="font-semibold">Deskripsi Pelatihan</h3>
-              <p className="text-sm text-gray-700 mt-1">{data.description || "-"}</p>
+              <h3 className="font-semibold text-black">Deskripsi Pelatihan</h3>
+              <p className="text-sm text-black mt-1">{data.description || "-"}</p>
             </div>
 
             {/* COST DETAILS */}
             <div>
-              <h4 className="font-semibold text-sm">Rincian Biaya</h4>
-              <ul className="list-disc list-inside text-sm mt-1">
+              <h4 className="font-semibold text-sm text-black">Rincian Biaya</h4>
+              <ul className="list-disc list-inside text-sm mt-1 text-black">
                 {costDetails.length
                   ? costDetails.map((c: any, i: number) => <li key={i}>{String(c)}</li>)
                   : <li>-</li>}
@@ -147,8 +147,8 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
 
             {/* REQUIREMENTS */}
             <div>
-              <h4 className="font-semibold text-sm">Syarat Peserta</h4>
-              <ul className="list-disc list-inside text-sm mt-1">
+              <h4 className="font-semibold text-sm text-black">Syarat Peserta</h4>
+              <ul className="list-disc list-inside text-sm mt-1 text-black">
                 {requirements.length
                   ? requirements.map((r: any, i: number) => <li key={i}>{String(r)}</li>)
                   : <li>-</li>}
@@ -157,9 +157,9 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
 
             {/* SCHEDULE */}
             <div>
-              <h4 className="font-semibold text-sm">Jadwal Pelaksanaan</h4>
+              <h4 className="font-semibold text-sm text-black">Jadwal Pelaksanaan</h4>
 
-              <table className="min-w-full text-sm mt-2 border-collapse">
+              <table className="min-w-full text-sm mt-2 border-collapse text-black">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="py-2 px-3 border">Batch</th>
@@ -179,7 +179,7 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} className="py-3 text-center italic text-gray-500">
+                      <td colSpan={3} className="py-3 text-center italic text-black">
                         Belum ada jadwal
                       </td>
                     </tr>
@@ -190,9 +190,9 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
 
             {/* RUNDOWN */}
             <div>
-              <h4 className="font-semibold text-sm">Rundown Kegiatan</h4>
+              <h4 className="font-semibold text-sm text-black">Rundown Kegiatan</h4>
 
-              <table className="min-w-full text-sm mt-2 border-collapse">
+              <table className="min-w-full text-sm mt-2 border-collapse text-black">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="py-2 px-3 border">Hari</th>
@@ -210,7 +210,7 @@ export default function DetailTrainingModal({ data, onClose }: Props) {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={2} className="py-3 text-center italic text-gray-500">
+                      <td colSpan={2} className="py-3 text-center italic text-black">
                         Belum ada rundown
                       </td>
                     </tr>

@@ -28,18 +28,26 @@ export default function LecturerProfile() {
 
   const [userId, setUserId] = useState<number | null>(null);
 
-  // PROFILE
+  /* ================= PROFILE ================= */
   const [profile, setProfile] = useState({
     name: "",
     email: "",
     studyProgram: "",
     specialization: "",
-    photo: "/default-user.png",
+    photo: "/images/default-user.png",
   });
 
   const [education, setEducation] = useState<any[]>([]);
 
-  // ===================== LOAD USER =====================
+  /* ================= STATISTIK AKADEMIK ================= */
+  const [stats, setStats] = useState({
+    research: 0,
+    communityService: 0,
+    intellectualProperty: 0,
+    scientificWork: 0,
+  });
+
+  /* ================= LOAD USER ================= */
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) return;
@@ -51,48 +59,53 @@ export default function LecturerProfile() {
     loadProfile(user.id);
   }, []);
 
-  // ===================== LOAD PROFILE =====================
+  /* ================= LOAD PROFILE ================= */
   const loadProfile = async (uid: number) => {
-    try {
-      const data = await getLecturerProfile(uid);
+  try {
+    const prof = await getLecturerProfile(uid);
 
-      const user = data?.user ?? {};
-      const prof = data?.profile ?? {};
-
-      // === FIX FOTO ===
-      let photoUrl = "/default-user.png";
-
-      if (prof.imageUrl) {
-        if (prof.imageUrl.startsWith("/uploads")) {
-          photoUrl = `${BACKEND_URL}${prof.imageUrl}`;
-        } else if (prof.imageUrl.length > 50) {
-          photoUrl = prof.imageUrl; // base64
-        }
-      }
-
-      const finalProfile = {
-        name: user.name ?? "",
-        email: user.email ?? "",
-        studyProgram: prof.studyProgram ?? "",
-        specialization: prof.specialization ?? "",
-        photo: photoUrl,
-      };
-
-      setProfile(finalProfile);
-
-      // SAVE FOR NAVBAR
-      localStorage.setItem("userName", finalProfile.name);
-      localStorage.setItem("userEmail", finalProfile.email);
-      localStorage.setItem("userPhoto", finalProfile.photo);
-      localStorage.setItem("userStudyProgram", finalProfile.studyProgram);
-
-      setEducation(Array.isArray(prof.educationhistory) ? prof.educationhistory : []);
-    } catch (err) {
-      console.error("loadProfile err", err);
+    /* FOTO */
+    let photoUrl = "/images/default-user.png";
+    if (prof?.imageUrl) {
+      photoUrl = prof.imageUrl.startsWith("/uploads")
+        ? `${BACKEND_URL}${prof.imageUrl}`
+        : prof.imageUrl;
     }
-  };
 
-  // ===================== SAVE PROFILE =====================
+    /* 🔥 AMBIL LANGSUNG DARI DATABASE */
+    setProfile({
+      name: prof.user?.name ?? "",
+      email: prof.user?.email ?? "",
+      studyProgram: prof.studyProgram ?? "",
+      specialization: prof.specialization ?? "",
+      photo: photoUrl,
+    });
+
+    /* SIMPAN UNTUK NAVBAR (OPSIONAL) */
+    localStorage.setItem("userName", prof.user?.name ?? "");
+    localStorage.setItem("userEmail", prof.user?.email ?? "");
+    localStorage.setItem("userStudyProgram", prof.studyProgram ?? "");
+    localStorage.setItem("userPhoto", photoUrl);
+
+    setEducation(
+      Array.isArray(prof.educationhistory)
+        ? prof.educationhistory
+        : []
+    );
+
+    /* STATISTIK AKADEMIK */
+    setStats({
+      research: prof.research?.length ?? 0,
+      communityService: prof.communityservice?.length ?? 0,
+      intellectualProperty: prof.intellectualproperty?.length ?? 0,
+      scientificWork: prof.scientificwork?.length ?? 0,
+    });
+  } catch (err) {
+    console.error("LOAD PROFILE ERROR:", err);
+  }
+};
+
+  /* ================= SAVE PROFILE ================= */
   const handleSave = async (updated: any) => {
     if (!userId) return;
 
@@ -106,71 +119,55 @@ export default function LecturerProfile() {
       }
 
       await updateLecturerProfile(userId, formData);
-
       loadProfile(userId);
       setIsModalOpen(false);
     } catch (err) {
-      console.error("update error:", err);
+      console.error(err);
       alert("Gagal update profil");
     }
   };
 
-  // ===================== EDUCATION CRUD =====================
+  /* ================= EDUCATION CRUD ================= */
   const handleAddEducation = async (newEdu: any) => {
     if (!userId) return;
-
-    try {
-      const added = await addEducation(userId, newEdu);
-      setEducation((prev) => [...prev, added]);
-      setIsAddEduOpen(false);
-    } catch {
-      alert("Gagal tambah pendidikan");
-    }
+    const added = await addEducation(userId, newEdu);
+    setEducation((prev) => [...prev, added]);
+    setIsAddEduOpen(false);
   };
 
   const handleUpdateEducation = async (updatedEdu: any) => {
     if (editingIndex === null) return;
-
-    try {
-      const target = education[editingIndex];
-      const updated = await updateEducation(target.id, updatedEdu);
-
-      setEducation((prev) =>
-        prev.map((item, idx) => (idx === editingIndex ? updated : item))
-      );
-
-      setIsEditEduOpen(false);
-    } catch {
-      alert("Gagal update pendidikan");
-    }
+    const target = education[editingIndex];
+    const updated = await updateEducation(target.id, updatedEdu);
+    setEducation((prev) =>
+      prev.map((item, idx) => (idx === editingIndex ? updated : item))
+    );
+    setIsEditEduOpen(false);
   };
 
   const handleDeleteEducation = async (index: number) => {
     const target = education[index];
     if (!target) return;
-
     if (!confirm("Yakin ingin menghapus data ini?")) return;
-
-    try {
-      await deleteEducation(target.id);
-      setEducation((prev) => prev.filter((_, i) => i !== index));
-    } catch {
-      alert("Gagal hapus pendidikan");
-    }
+    await deleteEducation(target.id);
+    setEducation((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ===================== UI =====================
+  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gray-100 overflow-x-hidden">
       <NavbarLecturer toggle={() => setIsSidebarOpen((s) => !s)} />
-      <SidebarLecturer isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen((s) => !s)} />
+      <SidebarLecturer
+        isOpen={isSidebarOpen}
+        toggle={() => setIsSidebarOpen((s) => !s)}
+      />
 
       <main
         className={`transition-all duration-300 pt-4 px-6 pb-10 ${
           isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
         } mt-[80px]`}
       >
-        {/* HEADER */}
+        {/* ================= HEADER ================= */}
         <motion.div
           initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -181,7 +178,7 @@ export default function LecturerProfile() {
             <img
               src={profile.photo}
               alt="Foto Profil"
-              onError={(e) => (e.currentTarget.src = "/default-user.png")}
+              onError={(e) => (e.currentTarget.src = "/images/default-user.png")}
               className="w-28 h-28 rounded-full border-4 border-[#facc15] object-cover shadow"
             />
 
@@ -208,10 +205,9 @@ export default function LecturerProfile() {
           </button>
         </motion.div>
 
-        {/* --------------------- */}
-        {/* Informasi pribadi     */}
-        {/* --------------------- */}
+        {/* ================= INFO + AKTIVITAS ================= */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Informasi Pribadi */}
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -219,7 +215,6 @@ export default function LecturerProfile() {
             className="bg-white border rounded-2xl p-6 shadow-sm"
           >
             <h2 className="text-black font-semibold mb-4">Informasi Pribadi</h2>
-
             <ul className="text-gray-700 text-sm space-y-3">
               <li><strong className="inline-block w-36">Nama:</strong> {profile.name}</li>
               <li><strong className="inline-block w-36">Program Studi:</strong> {profile.studyProgram}</li>
@@ -228,9 +223,7 @@ export default function LecturerProfile() {
             </ul>
           </motion.div>
 
-          {/* --------------------- */}
-          {/* Aktivitas Akademik   */}
-          {/* --------------------- */}
+          {/* Aktivitas Akademik */}
           <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -241,10 +234,10 @@ export default function LecturerProfile() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { icon: BookOpen, label: "Penelitian", value: 8 },
-                { icon: Users, label: "Pengabdian", value: 5 },
-                { icon: ShieldCheck, label: "HKI", value: 3 },
-                { icon: Briefcase, label: "Karya Ilmiah", value: 10 },
+                { icon: BookOpen, label: "Penelitian", value: stats.research },
+                { icon: Users, label: "Pengabdian", value: stats.communityService },
+                { icon: Briefcase, label: "Karya Ilmiah", value: stats.scientificWork },
+                { icon: ShieldCheck, label: "HKI / Paten", value: stats.intellectualProperty },
               ].map((item, i) => (
                 <div
                   key={i}
@@ -259,9 +252,7 @@ export default function LecturerProfile() {
           </motion.div>
         </div>
 
-        {/* --------------------- */}
-        {/* Riwayat Pendidikan    */}
-        {/* --------------------- */}
+        {/* ================= RIWAYAT PENDIDIKAN ================= */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -270,7 +261,6 @@ export default function LecturerProfile() {
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-black font-semibold text-lg">Riwayat Pendidikan</h2>
-
             <button
               onClick={() => setIsAddEduOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-black px-4 py-2 rounded-xl shadow text-sm"
@@ -283,34 +273,31 @@ export default function LecturerProfile() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#dbe7ff] text-black">
-                  <th className="p-4 font-semibold text-center">Jenjang</th>
-                  <th className="p-4 font-semibold text-center">Universitas</th>
-                  <th className="p-4 font-semibold text-center">Jurusan</th>
-                  <th className="p-4 font-semibold text-center">Aksi</th>
+                  <th className="p-4 text-center">Jenjang</th>
+                  <th className="p-4 text-center">Universitas</th>
+                  <th className="p-4 text-center">Jurusan</th>
+                  <th className="p-4 text-center">Aksi</th>
                 </tr>
               </thead>
-
-              <tbody className="bg-white">
+              <tbody>
                 {education.map((e, i) => (
-                  <tr key={e.id ?? i} className="text-black  hover:bg-[#f3f6ff] transition">
+                  <tr key={e.id ?? i} className="hover:bg-[#f3f6ff] text-black">
                     <td className="p-4 text-center">{e.degree}</td>
                     <td className="p-4 text-center">{e.university}</td>
                     <td className="p-4 text-center">{e.major}</td>
-
-                    <td className="p-4 flex items-center justify-center gap-3">
+                    <td className="p-4 flex justify-center gap-3">
                       <button
                         onClick={() => {
                           setEditingIndex(i);
                           setIsEditEduOpen(true);
                         }}
-                        className="px-4 py-1.5 bg-yellow-400 rounded-lg hover:bg-yellow-500 shadow-sm"
+                        className="px-4 py-1.5 bg-yellow-400 rounded-lg"
                       >
                         Edit
                       </button>
-
                       <button
                         onClick={() => handleDeleteEducation(i)}
-                        className="px-4 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 shadow-sm"
+                        className="px-4 py-1.5 bg-red-500 text-white rounded-lg"
                       >
                         Hapus
                       </button>
@@ -320,7 +307,7 @@ export default function LecturerProfile() {
 
                 {education.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-6 text-center text-gray-500 italic">
+                    <td colSpan={4} className="p-6 text-center italic text-gray-500">
                       Belum ada riwayat pendidikan.
                     </td>
                   </tr>
@@ -331,7 +318,7 @@ export default function LecturerProfile() {
         </motion.div>
       </main>
 
-      {/* MODALS */}
+      {/* ================= MODALS ================= */}
       <EditLecturerProfileModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

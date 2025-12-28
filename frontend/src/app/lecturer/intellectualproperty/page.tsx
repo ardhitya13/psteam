@@ -1,14 +1,22 @@
 "use client";
 
-import { ChevronDown, Search, Plus, Edit, Trash2 } from "lucide-react";
-import React, { useState, useMemo, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import Swal from "sweetalert2";
 
 import NavbarDosen from "../components/NavbarLecturer";
 import SidebarDosen from "../components/SidebarLecturer";
 import TambahHkiCard from "../components/AddIntellectualPropertyCard";
 import EditHkiCard from "../components/EditIntellectualPropertyCard";
 
+import {
+  getMyIntellectualProperty,
+  addIntellectualProperty,
+  updateIntellectualProperty,
+  deleteIntellectualProperty,
+} from "@/lib/lecturer";
+
+/* ================= TYPES ================= */
 type HkiItem = {
   id: number;
   title: string;
@@ -17,208 +25,189 @@ type HkiItem = {
 };
 
 export default function DaftarHkiPage() {
+  /* ================= STATE ================= */
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const [data, setData] = useState<HkiItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<HkiItem | null>(null);
 
+  /* MODAL */
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  /* SEARCH */
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  /* FILTER */
   const [selectedYear, setSelectedYear] = useState("Semua");
+  const [selectedType, setSelectedType] = useState("");
 
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
-  const [deleteSuccess, setDeleteSuccess] = useState(false);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-
-  const [updateSuccess, setUpdateSuccess] = useState(false);
-  const [addSuccess, setAddSuccess] = useState(false);
-  const [successTitle, setSuccessTitle] = useState("");
-
+  /* PAGINATION */
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageStart, setPageStart] = useState(1);
-
-  const itemsPerPage = 10;
-  const maxVisiblePages = 2;
-  const userId = 2;
 
   /* ================= FETCH ================= */
   const fetchData = async () => {
-    const res = await fetch(
-      `http://localhost:4000/api/lecturer/${userId}/intellectual-property`
-    );
-    const json = await res.json();
-    setData(json.data || []);
+    try {
+      const res = await getMyIntellectualProperty();
+      setData(Array.isArray(res) ? res : []);
+    } catch {
+      setData([]);
+    }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  /* RESET PAGE JIKA FILTER BERUBAH */
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedYear, selectedType, itemsPerPage]);
+
+  useEffect(() => {
+    if (isSearchOpen && searchRef.current) {
+      searchRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
   /* ================= ADD ================= */
-  const handleAddData = async (payload: {
+  const handleAdd = async (payload: {
     title: string;
     type: string;
     year: number;
   }) => {
-    await fetch(
-      `http://localhost:4000/api/lecturer/${userId}/intellectual-property`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
-    );
+    try {
+      await addIntellectualProperty(payload);
+      setIsAddOpen(false);
+      await fetchData();
 
-    await fetchData();
-    setIsModalOpen(false);
-    setSuccessTitle(payload.title);
-    setAddSuccess(true);
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil Menambahkan HKI",
+        html: `
+          <div style="text-align:left">
+            <b>Judul:</b> ${payload.title}<br/>
+            <b>Jenis:</b> ${payload.type}<br/>
+            <b>Tahun:</b> ${payload.year}
+          </div>
+        `,
+      });
+    } catch (err: any) {
+      Swal.fire("Gagal", err.message || "Terjadi kesalahan", "error");
+    }
   };
 
   /* ================= EDIT ================= */
-  const handleEdit = (item: HkiItem) => {
-    setAddSuccess(false);
-    setUpdateSuccess(false);
-    setDeleteSuccess(false);
-    setSelectedItem(item);
-    setIsEditModalOpen(true);
-  };
+  const handleEdit = async (updated: HkiItem) => {
+    if (!selectedItem) return;
 
-  const handleUpdateData = async (updated: HkiItem) => {
-    await fetch(
-      `http://localhost:4000/api/lecturer/intellectual-property/${updated.id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: updated.title,
-          type: updated.type,
-          year: updated.year,
-        }),
-      }
-    );
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "Yakin mengubah data ini?",
+      html: `
+        <div style="text-align:left">
+          <b>Judul:</b><br/>
+          ${selectedItem.title} → <b>${updated.title}</b><br/><br/>
 
+          <b>Jenis:</b><br/>
+          ${selectedItem.type} → <b>${updated.type}</b><br/><br/>
+
+          <b>Tahun:</b><br/>
+          ${selectedItem.year} → <b>${updated.year}</b>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Ubah",
+      cancelButtonText: "Batal",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    await updateIntellectualProperty(updated.id, {
+      title: updated.title,
+      type: updated.type,
+      year: updated.year,
+    });
+
+    setIsEditOpen(false);
+    setSelectedItem(null);
     await fetchData();
-    setIsEditModalOpen(false);
-    setSuccessTitle(updated.title);
-    setUpdateSuccess(true);
+
+    Swal.fire({
+      icon: "success",
+      title: "Berhasil",
+      text: "Data HKI berhasil diperbarui",
+    });
   };
 
   /* ================= DELETE ================= */
-  const openDeleteModal = (id: number) => {
-    setAddSuccess(false);
-    setUpdateSuccess(false);
-    setDeleteSuccess(false);
-    setDeleteId(id);
-    setDeleteConfirm(true);
-  };
+  const handleDelete = async (id: number) => {
+    const item = data.find((d) => d.id === id);
+    if (!item) return;
 
-  const confirmDelete = async () => {
-    if (!deleteId) return;
-    await fetch(
-      `http://localhost:4000/api/lecturer/intellectual-property/${deleteId}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "Yakin ingin menghapus data ini?",
+      html: `
+        <div style="text-align:left">
+          <b>Judul:</b> ${item.title}<br/>
+          <b>Jenis:</b> ${item.type}<br/>
+          <b>Tahun:</b> ${item.year}
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d33",
+    });
 
+    if (!confirm.isConfirmed) return;
+
+    await deleteIntellectualProperty(id);
     await fetchData();
-    setDeleteConfirm(false);
-    setDeleteSuccess(true);
-    setDeleteId(null);
+
+    Swal.fire({
+      icon: "success",
+      title: "Dihapus",
+      text: "Data HKI berhasil dihapus",
+    });
   };
 
   /* ================= FILTER ================= */
+  const yearOptions = useMemo(
+    () =>
+      Array.from(new Set(data.map((d) => d.year))).sort((a, b) => b - a),
+    [data]
+  );
+
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const cocokYear =
+      const byYear =
         selectedYear === "Semua" || item.year === Number(selectedYear);
-      const cocokTitle = item.title
+      const byType = !selectedType || item.type === selectedType;
+      const bySearch = item.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      return cocokYear && cocokTitle;
+
+      return byYear && byType && bySearch;
     });
-  }, [data, searchTerm, selectedYear]);
+  }, [data, selectedYear, selectedType, searchTerm]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-    setPageStart(1);
-  }, [searchTerm, selectedYear]);
-
-  /* ================= PAGINATION ================= */
   const totalPages = Math.max(
     1,
     Math.ceil(filteredData.length / itemsPerPage)
   );
+
   const visibleData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const visiblePages = Array.from(
-    { length: Math.min(maxVisiblePages, totalPages - pageStart + 1) },
-    (_, i) => pageStart + i
-  );
-
-  /* ================= ALERT COMPONENTS ================= */
-  const SuccessAlert = ({
-    message,
-    onOk,
-  }: {
-    message: string;
-    onOk: () => void;
-  }) =>
-    createPortal(
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[99999]">
-        <div className="bg-white p-6 rounded-lg w-80 text-center">
-          <h3 className="font-bold text-blue-600 mb-2">Berhasil!</h3>
-          <p className="mb-4">{message}</p>
-          <button
-            onClick={onOk}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-          >
-            OK
-          </button>
-        </div>
-      </div>,
-      document.body
-    );
-
-  const DeleteAlert = ({
-    onCancel,
-    onOk,
-  }: {
-    onCancel: () => void;
-    onOk: () => void;
-  }) =>
-    createPortal(
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[99999]">
-        <div className="bg-white p-6 rounded-lg w-80 text-center">
-          <h3 className="font-bold text-red-600 mb-2">Hapus Data?</h3>
-          <p className="mb-4">Data akan dihapus permanen!</p>
-          <div className="flex justify-center gap-3">
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-300 rounded-lg"
-            >
-              Batal
-            </button>
-            <button
-              onClick={onOk}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg"
-            >
-              Hapus
-            </button>
-          </div>
-        </div>
-      </div>,
-      document.body
-    );
-
-  /* ================= RENDER ================= */
+  /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-100 pt-6">
       <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <SidebarDosen
         isOpen={isSidebarOpen}
@@ -226,178 +215,175 @@ export default function DaftarHkiPage() {
       />
 
       <main
-        className={`transition-all duration-300 pt-0 px-8 pb-10 ${
+        className={`pt-6 px-8 pb-10 transition-all ${
           isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
         } mt-[85px]`}
       >
-        <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">
+        <h1 className="text-2xl font-semibold text-center mb-6 text-gray-900">
           DAFTAR HKI / PATEN DOSEN
         </h1>
 
-        <div className="flex justify-end items-center mb-4 gap-3 flex-wrap">
-          <button
-            onClick={() => {
-              setAddSuccess(false);
-              setUpdateSuccess(false);
-              setDeleteSuccess(false);
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 border rounded-lg shadow-sm text-sm"
+        {/* TOOLBAR */}
+        <div className="flex justify-end items-center gap-3 mb-4 flex-wrap">
+          <div className="relative">
+            <button
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className="p-2 bg-blue-600 rounded"
+            >
+              <Search size={16} className="text-white" />
+            </button>
+            {isSearchOpen && (
+              <input
+                ref={searchRef}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="absolute right-12 top-0 px-3 py-2 border rounded bg-white text-black"
+                placeholder="Cari judul..."
+              />
+            )}
+          </div>
+
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="px-3 py-2 border rounded bg-white text-black"
           >
-            <Plus size={16} /> Tambah HKI
-          </button>
+            <option value="">Pilih jenis HKI</option>
+            <option value="Paten">Paten</option>
+            <option value="Hak Cipta">Hak Cipta</option>
+            <option value="Merek">Merek</option>
+            <option value="Desain Industri">Desain Industri</option>
+            <option value="Rahasia Dagang">Rahasia Dagang</option>
+            <option value="Lain-Lain">Lain-Lain</option>
+          </select>
 
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="border rounded-lg px-3 pr-8 py-2 text-black"
+            className="px-3 py-2 border rounded bg-white text-black"
           >
             <option value="Semua">Semua Tahun</option>
-            {[2025, 2024, 2023, 2022, 2021, 2020].map((y) => (
+            {yearOptions.map((y) => (
               <option key={y} value={y}>
                 {y}
               </option>
             ))}
           </select>
 
-          <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden w-64 text-black">
-            <input
-              type="text"
-              placeholder="Cari Judul HKI..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-grow px-3 py-2.5 focus:outline-none text-sm"
-            />
-            <div className="bg-blue-600 text-white px-3 py-3 border-l">
-              <Search size={16} />
-            </div>
-          </div>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            className="px-3 py-2 border rounded bg-white text-black"
+          >
+            {[10, 20, 30, 40, 50].map((n) => (
+              <option key={n} value={n}>
+                {n} / halaman
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => {
+              setSelectedItem(null);
+              setIsAddOpen(true);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded flex gap-2"
+          >
+            <Plus size={16} /> Tambah
+          </button>
         </div>
 
-        <div className="overflow-x-auto bg-white shadow-lg rounded-lg border">
-          <table className="w-full border-collapse text-sm text-gray-700">
-            <thead className="bg-gray-300">
+        {/* TABLE */}
+        <div className="bg-white rounded shadow overflow-hidden">
+          <table className="w-full text-sm text-gray-900">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="border px-4 py-2 text-center">NO</th>
-                <th className="border px-4 py-2">JUDUL KARYA</th>
-                <th className="border px-4 py-2 text-center">JENIS HKI</th>
-                <th className="border px-4 py-2 text-center">TAHUN</th>
-                <th className="border px-4 py-2 text-center">AKSI</th>
+                <th className="px-4 py-3 w-16 text-center">NO</th>
+                <th className="px-4 py-3 text-left">JUDUL</th>
+                <th className="px-4 py-3 w-40 text-center">JENIS</th>
+                <th className="px-4 py-3 w-24 text-center">TAHUN</th>
+                <th className="px-4 py-3 w-32 text-center">AKSI</th>
               </tr>
             </thead>
 
             <tbody>
-              {visibleData.length > 0 ? (
-                visibleData.map((item, index) => (
+              {visibleData.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-gray-500">
+                    Tidak ada data
+                  </td>
+                </tr>
+              ) : (
+                visibleData.map((item, i) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="border px-4 py-2 text-center">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    <td className="text-center px-4 py-3">
+                      {(currentPage - 1) * itemsPerPage + i + 1}
                     </td>
-                    <td className="border px-4 py-2">{item.title}</td>
-                    <td className="border px-4 py-2 text-center">{item.type}</td>
-                    <td className="border px-4 py-2 text-center">{item.year}</td>
-
-                    <td className="border px-4 py-2 text-center">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="bg-yellow-400 text-white text-xs px-3 py-1 rounded flex items-center gap-1"
-                        >
-                          <Edit size={14} /> Edit
-                        </button>
-
-                        <button
-                          onClick={() => openDeleteModal(item.id)}
-                          className="bg-red-500 text-white text-xs px-3 py-1 rounded flex items-center gap-1"
-                        >
-                          <Trash2 size={14} /> Hapus
-                        </button>
-                      </div>
+                    <td className="px-4 py-3">{item.title}</td>
+                    <td className="text-center px-4 py-3">{item.type}</td>
+                    <td className="text-center px-4 py-3">{item.year}</td>
+                    <td className="text-center px-4 py-3 space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setIsEditOpen(true);
+                        }}
+                        className="bg-yellow-500 text-white px-3 py-1 rounded"
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="text-center py-4">
-                    Tidak ada data ditemukan
-                  </td>
-                </tr>
               )}
             </tbody>
+
+            <tfoot>
+              <tr>
+                <td colSpan={5} className="px-4 py-3 bg-gray-50 text-right">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                    className="px-2 py-1 border rounded mx-1"
+                  >
+                    &lt;
+                  </button>
+                  <span className="px-3 py-1 bg-blue-600 text-white rounded">
+                    {currentPage}
+                  </span>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    className="px-2 py-1 border rounded mx-1"
+                  >
+                    &gt;
+                  </button>
+                </td>
+              </tr>
+            </tfoot>
           </table>
-
-          <div className="p-3 flex justify-end gap-2">
-            <button onClick={() => pageStart > 1 && (setPageStart(pageStart - 1), setCurrentPage(pageStart - 1))}>
-              &lt;
-            </button>
-
-            {visiblePages.map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={currentPage === page ? "bg-blue-600 text-white" : ""}
-              >
-                {page}
-              </button>
-            ))}
-
-            <button
-              onClick={() =>
-                pageStart + maxVisiblePages - 1 < totalPages &&
-                (setPageStart(pageStart + 1), setCurrentPage(pageStart + 1))
-              }
-            >
-              &gt;
-            </button>
-          </div>
         </div>
-
-        {/* ADD MODAL */}
-        <TambahHkiCard
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleAddData}
-        />
-
-        {addSuccess && (
-          <SuccessAlert
-            message={`"${successTitle}" berhasil ditambahkan.`}
-            onOk={() => setAddSuccess(false)}
-          />
-        )}
-
-        {/* EDIT MODAL */}
-        <EditHkiCard
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSubmit={handleUpdateData}
-          defaultData={selectedItem}
-        />
-
-        {/* UPDATE SUCCESS */}
-        {updateSuccess && (
-          <SuccessAlert
-            message={`Perubahan pada "${successTitle}" berhasil disimpan.`}
-            onOk={() => setUpdateSuccess(false)}
-          />
-        )}
-
-        {/* DELETE CONFIRM */}
-        {deleteConfirm && (
-          <DeleteAlert
-            onCancel={() => setDeleteConfirm(false)}
-            onOk={confirmDelete}
-          />
-        )}
-
-        {/* DELETE SUCCESS */}
-        {deleteSuccess && (
-          <SuccessAlert
-            message="Data berhasil dihapus."
-            onOk={() => setDeleteSuccess(false)}
-          />
-        )}
       </main>
+
+      {/* MODALS */}
+      <TambahHkiCard
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSubmit={handleAdd}
+      />
+
+      <EditHkiCard
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        defaultData={selectedItem}
+        onSubmit={handleEdit}
+      />
     </div>
   );
 }

@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FileText, Search, ChevronDown, Check,Trash2 } from "lucide-react";
+import { FileText, Search, ChevronDown, Check, Trash2 } from "lucide-react";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminSidebar from "../../components/AdminSidebar";
 import ProjectDetailModal from "../../components/ProjectVerifyDetailModal";
 
 export default function VerifikasiProyekPage() {
+
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token")
+      : null;
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +25,9 @@ export default function VerifikasiProyekPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageGroup, setPageGroup] = useState(0);
+  const [selectedType, setSelectedType] = useState<
+    "all" | "web" | "mobile" | "iot" | "ai"
+  >("all");
 
   // 🔥 Alert TERIMA + TOLAK
   const [confirmAccept, setConfirmAccept] = useState<any>(null);
@@ -29,10 +38,25 @@ export default function VerifikasiProyekPage() {
   // =====================================================
   const loadData = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/submissions/pending");
-      if (!res.ok) return;
+      const res = await fetch("http://localhost:4000/api/submissions/pending", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      console.log("PENDING STATUS:", res.status);
+
+      if (!res.ok) {
+        const err = await res.text();
+        console.error("PENDING ERROR:", err);
+        return;
+      }
 
       const json = await res.json();
+      console.log("PENDING DATA:", json);
+
       const list = Array.isArray(json) ? json : json.data || [];
 
       const mapped = list.map((item: any, i: number) => ({
@@ -48,39 +72,107 @@ export default function VerifikasiProyekPage() {
 
       setData(mapped);
     } catch (err) {
-      console.error(err);
+      console.error("LOAD PENDING ERROR:", err);
     }
   };
 
   useEffect(() => {
+    if (!token) {
+      console.warn("TOKEN TIDAK ADA, FETCH DIBATALKAN");
+      return;
+    }
+
     loadData();
-  }, []);
+  }, [token]);
+
 
   // =====================================================
   // UPDATE STATUS
   // =====================================================
   const approveNow = async (id: number) => {
-    await fetch(`http://localhost:4000/api/submissions/${id}/approve`, {
-      method: "PATCH",
-    });
-    setConfirmAccept(null);
-    loadData();
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/submissions/${id}/approve`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+
+      console.log("APPROVE STATUS:", res.status);
+
+      if (!res.ok) {
+        const err = await res.text();
+        console.error("APPROVE ERROR:", err);
+        return;
+      }
+
+      setConfirmAccept(null);
+      loadData();
+    } catch (err) {
+      console.error("APPROVE FAILED:", err);
+    }
   };
 
+
   const rejectNow = async (id: number) => {
-    await fetch(`http://localhost:4000/api/submissions/${id}/reject`, {
-      method: "PATCH",
-    });
-    setConfirmReject(null);
-    loadData();
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/submissions/${id}/reject`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+
+      console.log("REJECT STATUS:", res.status);
+
+      if (!res.ok) {
+        const err = await res.text();
+        console.error("REJECT ERROR:", err);
+        return;
+      }
+
+      setConfirmReject(null);
+      loadData();
+    } catch (err) {
+      console.error("REJECT FAILED:", err);
+    }
   };
+
+  function normalizeType(str: string) {
+    if (!str) return "";
+    const s = str.toLowerCase();
+    if (s.includes("web")) return "web";
+    if (s.includes("mobile")) return "mobile";
+    if (s.includes("iot") || s.includes("internet")) return "iot";
+    if (s.includes("ai") || s.includes("machine") || s.includes("artificial"))
+      return "ai";
+    return s;
+  }
 
   // =====================================================
   // FILTER & PAGINATION
   // =====================================================
-  const filteredData = data.filter((item) =>
-    `${item.email} ${item.judul}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = data.filter((item) => {
+    const textMatch =
+      `${item.email} ${item.judul}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const typeMatch =
+      selectedType === "all"
+        ? true
+        : normalizeType(item.tipe) === selectedType;
+
+    return textMatch && typeMatch;
+  });
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
@@ -101,9 +193,8 @@ export default function VerifikasiProyekPage() {
       <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       <main
-        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        }`}
+        className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          }`}
       >
         {/* TITLE */}
         <div className="text-center mb-8">
@@ -137,10 +228,28 @@ export default function VerifikasiProyekPage() {
                 if (!searchTerm.trim()) setIsSearchOpen(false);
               }}
               placeholder="Cari proyek..."
-              className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${
-                isSearchOpen ? "w-56 pl-10 pr-3 opacity-100" : "w-10 opacity-0 pointer-events-none"
-              }`}
+              className={`transition-all duration-300 border border-gray-300 bg-white text-black rounded-md shadow-sm text-sm h-10 ${isSearchOpen ? "w-56 pl-10 pr-3 opacity-100" : "w-10 opacity-0 pointer-events-none"
+                }`}
             />
+          </div>
+
+          {/* FILTER JENIS */}
+          <div className="relative">
+            <select
+              value={selectedType}
+              onChange={(e) =>
+                setSelectedType(
+                  e.target.value as "all" | "web" | "mobile" | "iot" | "ai"
+                )
+              }
+              className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
+            >
+              <option value="all">Semua Jenis</option>
+              <option value="web">Web</option>
+              <option value="mobile">Mobile</option>
+              <option value="iot">IoT</option>
+              <option value="ai">AI</option>
+            </select>
           </div>
 
           {/* Items per page */}
@@ -150,17 +259,12 @@ export default function VerifikasiProyekPage() {
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
               className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
             >
-              {[5, 10, 15, 20, 30].map((n) => (
+              {[5, 10, 15, 20, 30, 40, 50].map((n) => (
                 <option key={n} value={n}>
                   {n} Halaman
                 </option>
               ))}
             </select>
-
-            <ChevronDown
-              size={16}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
-            />
           </div>
         </div>
 
@@ -218,7 +322,7 @@ export default function VerifikasiProyekPage() {
                           onClick={() => setConfirmReject(item)}
                           className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                         >
-                         <Trash2 size={14} /> Tolak
+                          <Trash2 size={14} /> Tolak
                         </button>
                       </div>
                     </td>
@@ -244,11 +348,10 @@ export default function VerifikasiProyekPage() {
                 }
               }}
               disabled={currentPage === 1}
-              className={`px-2 py-1 rounded border text-xs ${
-                currentPage === 1
+              className={`px-2 py-1 rounded border text-xs ${currentPage === 1
                   ? "bg-gray-200 text-gray-400"
                   : "bg-gray-100 hover:bg-gray-300"
-              }`}
+                }`}
             >
               &lt;
             </button>
@@ -261,11 +364,10 @@ export default function VerifikasiProyekPage() {
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`px-2 py-1 rounded text-xs border ${
-                    currentPage === pageNum
+                  className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 hover:bg-gray-300"
-                  }`}
+                    }`}
                 >
                   {pageNum}
                 </button>
@@ -280,11 +382,10 @@ export default function VerifikasiProyekPage() {
                 }
               }}
               disabled={currentPage === totalPages}
-              className={`px-2 py-1 rounded border text-xs ${
-                currentPage === totalPages
+              className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
                   ? "bg-gray-200 text-gray-400"
                   : "bg-gray-100 hover:bg-gray-300"
-              }`}
+                }`}
             >
               &gt;
             </button>
@@ -306,7 +407,7 @@ export default function VerifikasiProyekPage() {
       {confirmAccept && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
-            <h3 className="text-lg font-semibold mb-3">Konfirmasi Terima</h3>
+            <h3 className="text-lg font-semibold mb-3 text-green-600">Konfirmasi Terima</h3>
             <p className="text-sm text-gray-700 mb-6">
               Apakah Anda yakin ingin menerima proyek{" "}
               <b>{confirmAccept.judul}</b>?

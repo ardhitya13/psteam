@@ -127,12 +127,13 @@ export default function NavBar() {
 
         {/* LOGIN + MOBILE MENU BUTTON */}
         <div className="flex items-center space-x-4 md:order-2">
-          <Link
-            href="/login"
-            className="hidden md:block bg-gradient-to-r from-blue-800 to-blue-500 px-5 py-2 rounded-lg"
-          >
-            Masuk
-          </Link>
+         <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="block bg-gradient-to-r from-blue-800 to-blue-500 py-2 px-3 rounded-lg text-white"
+                >
+                  Masuk
+                </Link>
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}

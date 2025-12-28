@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function Logincard() {
   const router = useRouter();
@@ -10,21 +11,50 @@ export default function Logincard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     if (loading) return;
 
-    if (!role || !email || !password) {
-      setError("Semua field wajib diisi");
+    /* =========================
+       VALIDASI BERURUTAN (FIX)
+    ========================= */
+
+    if (!role) {
+      Swal.fire({
+        icon: "warning",
+        title: "Role belum dipilih",
+        text: "Silakan pilih jenis user terlebih dahulu.",
+        confirmButtonColor: "#2563eb",
+      });
       return;
     }
 
-    // 🔥 FIX PENTING: BERSIHKAN SESSION LAMA
+    if (!email) {
+      Swal.fire({
+        icon: "warning",
+        title: "Email belum diisi",
+        text: "Silakan masukkan email Anda.",
+        confirmButtonColor: "#2563eb",
+      });
+      return;
+    }
+
+    if (!password) {
+      Swal.fire({
+        icon: "warning",
+        title: "Kata sandi belum diisi",
+        text: "Silakan masukkan kata sandi Anda.",
+        confirmButtonColor: "#2563eb",
+      });
+      return;
+    }
+
+    /* =========================
+       RESET SESSION LAMA
+    ========================= */
     localStorage.clear();
     document.cookie = "token=; path=/;";
     document.cookie = "role=; path=/;";
@@ -41,11 +71,18 @@ export default function Logincard() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login gagal");
+        Swal.fire({
+          icon: "error",
+          title: "Login gagal",
+          text: data?.error || "Email atau kata sandi salah.",
+          confirmButtonColor: "#dc2626",
+        });
         return;
       }
 
-      // SIMPAN SESSION BARU
+      /* =========================
+         SIMPAN SESSION
+      ========================= */
       localStorage.setItem("token", data.token);
       localStorage.setItem(
         "user",
@@ -60,19 +97,47 @@ export default function Logincard() {
       document.cookie = `token=${data.token}; path=/`;
       document.cookie = `role=${data.user.role}; path=/`;
 
+      /* =========================
+         ALERT + REDIRECT
+      ========================= */
       if (data.user.role === "admin" || data.user.role === "superadmin") {
+        const displayName =
+          data.user.role === "superadmin"
+            ? "Super Admin"
+            : data.user.name; // 🔥 NAMA DARI DATABASE
+
+        await Swal.fire({
+          icon: "success",
+          title: `Halo, ${displayName} 👋`,
+          text: "Selamat datang di Dashboard Admin.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
         router.replace("/admin");
         return;
       }
-
       if (data.user.role === "dosen") {
+        await Swal.fire({
+          icon: "success",
+          title: `Halo, ${data.user.name}`,
+          text: "Selamat datang di Dashboard Dosen.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
         router.replace("/lecturer/profil");
         return;
       }
 
       router.replace("/login");
     } catch {
-      setError("Server tidak merespons");
+      Swal.fire({
+        icon: "error",
+        title: "Server error",
+        text: "Server tidak merespons. Coba lagi nanti.",
+        confirmButtonColor: "#dc2626",
+      });
     } finally {
       setLoading(false);
     }
@@ -80,18 +145,24 @@ export default function Logincard() {
 
   return (
     <div className="flex flex-col items-center">
-      <img src="/logopsteam1.png" alt="Logo Polibatam" className="w-28 mb-3" />
+      <img
+        src="/logopsteam1.png"
+        alt="Logo PSTEAM"
+        className="w-28 mb-3"
+      />
 
-      <h1 className="text-center text-[15px] text-gray-700 font-medium leading-tight mb-6">
-        Polibatam Software Team <br /> Politeknik Negeri Batam
+      <h1 className="text-center text-[15px] text-gray-700 font-medium mb-6">
+        Polibatam Software Team <br />
+        Politeknik Negeri Batam
       </h1>
 
       <form onSubmit={handleSubmit} className="w-full">
+        {/* ROLE */}
         <div className="mb-3">
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="w-full bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="w-full bg-white border border-gray-300 text-black rounded-md px-3 py-2 text-sm"
           >
             <option value="">Pilih Jenis User</option>
             <option value="admin">Admin</option>
@@ -99,25 +170,26 @@ export default function Logincard() {
           </select>
         </div>
 
+        {/* EMAIL */}
         <div className="mb-3">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="w-full bg-white border border-gray-300 text-black rounded-md px-3 py-2 text-sm"
           />
         </div>
 
+        {/* PASSWORD */}
         <div className="mb-2 relative">
           <input
             type={showPass ? "text" : "password"}
             placeholder="Kata Sandi"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm pr-12"
+            className="w-full bg-white border border-gray-300 text-black rounded-md px-3 py-2 text-sm pr-12"
           />
-
           <button
             type="button"
             onClick={() => setShowPass(!showPass)}
@@ -127,18 +199,12 @@ export default function Logincard() {
           </button>
         </div>
 
-        {error && (
-          <p className="text-red-600 text-sm mb-3 text-center">
-            {error}
-          </p>
-        )}
-
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md text-sm"
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2 rounded-md text-sm mt-4"
         >
-          {loading ? "Loading..." : "Masuk"}
+          {loading ? "Memproses..." : "Masuk"}
         </button>
       </form>
     </div>

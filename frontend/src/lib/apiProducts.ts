@@ -1,56 +1,72 @@
 "use client";
 
-export type ProductPayload = {
-  image?: string; // optional untuk update
-  title: string;
-  category: string;
-  academicYear: string;
-  description: string;
-  link: string;
-  publishDate: string;
-};
-
 const BASE_URL = "http://localhost:4000/api/products";
 
-/* GET ALL */
+/* =========================
+   AUTH HEADER
+========================= */
+function getAuthHeaders(): HeadersInit {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("token");
+  if (!token) return {};
+  return { Authorization: `Bearer ${token}` };
+}
+
+/* =========================
+   GET ALL (PUBLIC)
+========================= */
 export async function getAllProducts() {
   const res = await fetch(BASE_URL, { cache: "no-store" });
   if (!res.ok) throw new Error("Gagal mengambil produk");
   return res.json();
 }
 
-/* GET BY ID */
+/* =========================
+   GET BY ID (PUBLIC)
+========================= */
 export async function getProductById(id: number) {
   const res = await fetch(`${BASE_URL}/${id}`);
   if (!res.ok) throw new Error("Produk tidak ditemukan");
   return res.json();
 }
 
-/* CREATE (POST + FILE UPLOAD) */
+/* =========================
+   CREATE (ADMIN)
+========================= */
 export async function createProduct(formData: FormData) {
   const res = await fetch(BASE_URL, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: formData,
   });
+
   if (!res.ok) throw new Error("Gagal membuat produk");
   return res.json();
 }
 
-/* UPDATE (PUT) */
+/* =========================
+   UPDATE (ADMIN)
+========================= */
 export async function updateProduct(id: number, formData: FormData) {
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
+    headers: getAuthHeaders(),
     body: formData,
   });
+
   if (!res.ok) throw new Error("Gagal mengupdate produk");
   return res.json();
 }
 
-/* DELETE */
+/* =========================
+   DELETE (ADMIN)
+========================= */
 export async function deleteProduct(id: number) {
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
+
   if (!res.ok) throw new Error("Gagal menghapus produk");
   return res.json();
 }

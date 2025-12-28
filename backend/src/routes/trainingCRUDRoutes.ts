@@ -1,7 +1,10 @@
-// src/routes/trainingRoutes.ts
 import express from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+
+import { authMiddleware } from "../middleware/authMiddleware";
+import { allowRoles } from "../middleware/roleMiddleware";
 
 import {
   createTraining,
@@ -13,24 +16,81 @@ import {
 
 const router = express.Router();
 
-// Multer storage
+/* ===============================
+   ENSURE UPLOAD FOLDER EXISTS
+================================ */
+const uploadDir = path.join(process.cwd(), "uploads", "training");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+/* ===============================
+   MULTER CONFIG (SAFE)
+================================ */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(process.cwd(), "uploads", "training"));
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
   },
-  filename: (req, file, cb) => {
-    const fileName = Date.now() + "-" + file.originalname;
-    cb(null, fileName);
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const safeName = file.fieldname + "-" + Date.now() + ext;
+    cb(null, safeName);
   },
 });
 
-const upload = multer({ storage });
+const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
+  if (!file.mimetype.startsWith("image/")) {
+    return cb(new Error("Only image files are allowed"));
+  }
+  cb(null, true);
+};
 
-// ROUTES
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB
+  },
+});
+
+/* ===============================
+   PUBLIC ROUTES
+================================ */
+
+// 🔓 lihat semua training
 router.get("/", getAllTraining);
-router.post("/", upload.single("thumbnail"), createTraining);
-router.put("/:id", upload.single("thumbnail"), updateTraining);
-router.delete("/:id", deleteTraining);
-router.get("/:id", getTrainingById); 
+
+// 🔓 detail training
+router.get("/:id", getTrainingById);
+
+/* ===============================
+   ADMIN ONLY (JWT)
+================================ */
+
+// 🔐 create training
+router.post(
+  "/",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  upload.single("thumbnail"),
+  createTraining
+);
+
+// 🔐 update training (WAJIB UPDATE, BUKAN CREATE)
+router.put(
+  "/:id",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  upload.single("thumbnail"),
+  updateTraining
+);
+
+// 🔐 delete training
+router.delete(
+  "/:id",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  deleteTraining
+);
 
 export default router;

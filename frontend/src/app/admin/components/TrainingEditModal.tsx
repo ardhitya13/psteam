@@ -152,8 +152,8 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Edit Pelatihan</h2>
-          <button onClick={onClose} className="p-2"><X /></button>
+          <h2 className="text-lg font-semibold text-black">Edit Pelatihan</h2>
+          <button onClick={onClose} className="p-2 text-black hover:bg-gray-100 rounded"><X /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -161,7 +161,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
           {/* THUMBNAIL */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium">Thumbnail (file)</label>
+              <label className="text-sm font-medium text-black">Thumbnail (file)</label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -171,40 +171,40 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
               />
 
               <div className="mt-3 w-full h-40 bg-gray-200 rounded overflow-hidden">
-                <img src={thumbnailUrl} className="w-full h-full object-cover" />
+                <img src={thumbnailUrl} className="w-full h-full object-cove text-black" />
               </div>
             </div>
 
             <div className="md:col-span-2 space-y-2">
               {/* title */}
               <div>
-                <label className="text-sm font-medium">Judul</label>
+                <label className="text-sm font-medium text-black">Judul</label>
                 <input
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm mt-1"
+                  className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
                 />
               </div>
 
               {/* short desc */}
               <div>
-                <label className="text-sm font-medium">Deskripsi Singkat</label>
+                <label className="text-sm font-medium text-black">Deskripsi Singkat</label>
                 <input
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm mt-1"
+                  className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
                 />
               </div>
 
               {/* type + price */}
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-sm font-medium">Tipe</label>
+                  <label className="text-sm font-medium text-black">Tipe</label>
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value as any)}
-                    className="w-full border rounded px-3 py-2 text-sm mt-1"
+                    className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
                   >
                     <option value="web">Web Development</option>
                     <option value="mobile">Mobile Development</option>
@@ -214,11 +214,11 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                 </div>
 
                 <div className="w-44">
-                  <label className="text-sm font-medium">Harga</label>
+                  <label className="text-sm font-medium text-black">Harga</label>
                   <input
                     value={priceNum == null ? "" : formatRp(priceNum)}
                     onChange={handlePriceInput}
-                    className="w-full border rounded px-3 py-2 text-sm mt-1"
+                    className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
                   />
                 </div>
               </div>
@@ -228,50 +228,50 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
           {/* EXTRA */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">Durasi</label>
+              <label className="text-sm font-medium text-black">Durasi</label>
               <input
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm mt-1"
+                className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Lokasi</label>
+              <label className="text-sm font-medium text-black">Lokasi</label>
               <input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm mt-1"
+                className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Sertifikat</label>
+              <label className="text-sm font-medium text-black">Sertifikat</label>
               <input
                 value={certificate}
                 onChange={(e) => setCertificate(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm mt-1"
+                className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Instruktur</label>
+              <label className="text-sm font-medium text-black">Instruktur</label>
               <input
                 value={instructor}
                 onChange={(e) => setInstructor(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm mt-1"
+                className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
               />
             </div>
           </div>
 
           {/* DESCRIPTION */}
           <div>
-            <label className="text-sm font-medium">Deskripsi Lengkap</label>
+            <label className="text-sm font-medium text-black">Deskripsi Lengkap</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full border rounded px-3 py-2 text-sm mt-1"
+              className="w-full border rounded px-3 py-2 text-sm mt-1 text-black"
             />
           </div>
 
@@ -280,7 +280,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
             <div>
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium">Rincian Biaya</label>
+                <label className="text-sm font-medium text-black">Rincian Biaya</label>
                 <button
                   type="button"
                   onClick={() => setCostDetails((d) => [...d, ""])}
@@ -300,7 +300,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                           d.map((v, idx) => (idx === i ? e.target.value : v))
                         )
                       }
-                      className="flex-1 border rounded px-2 py-1 text-sm"
+                      className="flex-1 border rounded px-2 py-1 text-sm text-black"
                     />
                     <button
                       type="button"
@@ -319,7 +319,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             {/* REQUIREMENTS */}
             <div>
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium">Syarat Peserta</label>
+                <label className="text-sm font-medium text-black">Syarat Peserta</label>
                 <button
                   type="button"
                   onClick={() => setRequirements((r) => [...r, ""])}
@@ -339,7 +339,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                           rr.map((v, idx) => (idx === i ? e.target.value : v))
                         )
                       }
-                      className="flex-1 border rounded px-2 py-1 text-sm"
+                      className="flex-1 border rounded px-2 py-1 text-sm text-black"
                     />
                     <button
                       type="button"
@@ -360,7 +360,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
           {/* SCHEDULE */}
           <div>
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Jadwal Pelaksanaan</label>
+              <label className="text-sm font-medium text-black">Jadwal Pelaksanaan</label>
               <button type="button" onClick={addScheduleRow} className="text-sm text-blue-600">
                 + Tambah Batch
               </button>
@@ -372,21 +372,21 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                   <input
                     value={s.batchName}
                     onChange={(e) => updateSchedule(i, "batchName", e.target.value)}
-                    className="w-44 border rounded px-2 py-1 text-sm"
+                    className="w-44 border rounded px-2 py-1 text-sm text-black"
                   />
 
                   <input
                     type="date"
                     value={s.startDate}
                     onChange={(e) => updateSchedule(i, "startDate", e.target.value)}
-                    className="border rounded px-2 py-1 text-sm"
+                    className="border rounded px-2 py-1 text-sm text-black"
                   />
 
                   <input
                     type="date"
                     value={s.endDate}
                     onChange={(e) => updateSchedule(i, "endDate", e.target.value)}
-                    className="border rounded px-2 py-1 text-sm"
+                    className="border rounded px-2 py-1 text-sm text-black"
                   />
 
                   <button
@@ -404,7 +404,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
           {/* RUNDOWN */}
           <div>
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Rundown Pelatihan</label>
+              <label className="text-sm font-medium text-black">Rundown Pelatihan</label>
               <button type="button" onClick={addRundownRow} className="text-sm text-blue-600">
                 + Tambah Hari
               </button>
@@ -416,13 +416,13 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                   <input
                     value={r.day}
                     onChange={(e) => updateRundown(i, "day", e.target.value)}
-                    className="w-28 border rounded px-2 py-1 text-sm"
+                    className="w-28 border rounded px-2 py-1 text-sm text-black"
                   />
 
                   <input
                     value={r.activity}
                     onChange={(e) => updateRundown(i, "activity", e.target.value)}
-                    className="flex-1 border rounded px-2 py-1 text-sm"
+                    className="flex-1 border rounded px-2 py-1 text-sm text-black"
                   />
 
                   <button
@@ -439,17 +439,17 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
           {/* ORGANIZER */}
           <div>
-            <label className="text-sm font-medium">Penyelenggara</label>
+            <label className="text-sm font-medium text-black">Penyelenggara</label>
             <input
               value={organizer}
               onChange={(e) => setOrganizer(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
             />
           </div>
 
           {/* BUTTONS */}
           <div className="flex justify-end gap-3 pt-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded">
+            <button type="button" onClick={onClose} className="px-4 py-2 border bg-black/50 rounded">
               Batal
             </button>
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">

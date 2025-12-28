@@ -3,110 +3,137 @@
 import React, { useState, useRef } from "react";
 import { X } from "lucide-react";
 import { Training } from "./TrainingAdmin";
-import { createTraining } from "../../../lib/apiTraining"; // IMPORT API BARU
+import { createTraining } from "../../../lib/apiTraining";
 
 type Props = {
-    onClose: () => void;
-    onAdd: (data: Training) => void;
+  onClose: () => void;
+  onAdd: (data: Training) => void;
 };
 
 function formatRp(n: number | null) {
-    if (n == null) return "";
-    return "Rp " + n.toLocaleString("id-ID");
+  if (n == null) return "";
+  return "Rp " + n.toLocaleString("id-ID");
 }
 function onlyDigits(s: string) {
-    return s.replace(/\D/g, "");
+  return s.replace(/\D/g, "");
 }
 
-export default function AddTrainingModal({ onClose, onAdd }: Props) {
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
+export default function TrainingAddModal({ onClose, onAdd }: Props) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const [title, setTitle] = useState("");
-    const [shortDescription, setShortDescription] = useState("");
-    const [type, setType] = useState<Training["type"]>("web");
-    const [priceNum, setPriceNum] = useState<number | null>(null);
-    const [thumbnailUrl, setThumbnailUrl] = useState<string>("");
-    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
+  const [type, setType] = useState<Training["type"]>("web");
+  const [priceNum, setPriceNum] = useState<number | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
-    const [description, setDescription] = useState("");
-    const [costDetails, setCostDetails] = useState<string[]>([]);
-    const [requirements, setRequirements] = useState<string[]>([]);
-    const [schedule, setSchedule] = useState<{ batchName: string; startDate: string; endDate: string }[]>([]);
-    const [rundown, setRundown] = useState<{ day: string; activity: string }[]>([]);
-    const [organizer, setOrganizer] = useState("PSTeam Academy");
+  const [description, setDescription] = useState("");
+  const [costDetails, setCostDetails] = useState<string[]>([]);
+  const [requirements, setRequirements] = useState<string[]>([]);
+  const [schedule, setSchedule] = useState<
+    { batchName: string; startDate: string; endDate: string }[]
+  >([]);
+  const [rundown, setRundown] = useState<
+    { day: string; activity: string }[]
+  >([]);
 
-    const [duration, setDuration] = useState("");
-    const [location, setLocation] = useState("");
-    const [certificate, setCertificate] = useState("");
-    const [instructor, setInstructor] = useState("");
+  const [organizer, setOrganizer] = useState("PSTeam Academy");
+  const [duration, setDuration] = useState("");
+  const [location, setLocation] = useState("");
+  const [certificate, setCertificate] = useState("");
+  const [instructor, setInstructor] = useState("");
 
-    const [successAlert, setSuccessAlert] = useState(false);
+  const [successAlert, setSuccessAlert] = useState(false);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] ?? null;
-        if (!file) return;
-        setThumbnailFile(file);
-        setThumbnailUrl(URL.createObjectURL(file));
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    if (!file) return;
+    setThumbnailFile(file);
+    setThumbnailUrl(URL.createObjectURL(file));
+  };
+
+  const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = onlyDigits(e.target.value);
+    setPriceNum(digits ? parseInt(digits, 10) : null);
+  };
+
+  const addScheduleRow = () =>
+    setSchedule((s) => [
+      ...s,
+      { batchName: `Batch ${s.length + 1}`, startDate: "", endDate: "" },
+    ]);
+
+  const updateScheduleRow = (
+    idx: number,
+    key: keyof (typeof schedule)[number],
+    val: string
+  ) =>
+    setSchedule((s) =>
+      s.map((row, i) => (i === idx ? { ...row, [key]: val } : row))
+    );
+
+  const removeScheduleRow = (idx: number) =>
+    setSchedule((s) => s.filter((_, i) => i !== idx));
+
+  const addRundownRow = () =>
+    setRundown((r) => [
+      ...r,
+      { day: `Hari ${r.length + 1}`, activity: "" },
+    ]);
+
+  const updateRundownRow = (
+    idx: number,
+    key: keyof (typeof rundown)[number],
+    val: string
+  ) =>
+    setRundown((r) =>
+      r.map((row, i) => (i === idx ? { ...row, [key]: val } : row))
+    );
+
+  const removeRundownRow = (idx: number) =>
+    setRundown((r) => r.filter((_, i) => i !== idx));
+
+  /* ============================================================
+     HANDLE SUBMIT
+  ============================================================ */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 🔐 JWT CHECK (401 FIX)
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Anda belum login sebagai admin.");
+      return;
+    }
+
+    const payload: any = {
+      title,
+      shortDescription,
+      type,
+      price: priceNum ?? 0,
+      thumbnailFile,
+      description,
+      costDetails,
+      requirements,
+      schedule,
+      rundown,
+      organizer,
+      duration,
+      location,
+      certificate,
+      instructor,
     };
 
-    const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const digits = onlyDigits(e.target.value);
-        const num = digits ? parseInt(digits, 10) : null;
-        setPriceNum(num);
-    };
-
-    const addScheduleRow = () =>
-        setSchedule((s) => [...s, { batchName: `Batch ${s.length + 1}`, startDate: "", endDate: "" }]);
-
-    const updateScheduleRow = (idx: number, key: keyof (typeof schedule)[number], val: string) =>
-        setSchedule((s) => s.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
-
-    const removeScheduleRow = (idx: number) =>
-        setSchedule((s) => s.filter((_, i) => i !== idx));
-
-    const addRundownRow = () =>
-        setRundown((r) => [...r, { day: `Hari ${r.length + 1}`, activity: "" }]);
-
-    const updateRundownRow = (idx: number, key: keyof (typeof rundown)[number], val: string) =>
-        setRundown((r) => r.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
-
-    const removeRundownRow = (idx: number) =>
-        setRundown((r) => r.filter((_, i) => i !== idx));
-
-    /* ============================================================
-       HANDLE SUBMIT — FINAL VERSION (FormData Upload)
-    ============================================================ */
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const payload: any = {
-            title,
-            shortDescription,
-            type,
-            price: priceNum ?? 0,
-            thumbnailFile, // FILE UPLOAD
-            description,
-            costDetails,
-            requirements,
-            schedule,
-            rundown,
-            organizer,
-            duration,
-            location,
-            certificate,
-            instructor,
-        };
-
-        try {
-            const created = await createTraining(payload); // API BARU
-
-            onAdd(created); // masukkan ke tabel
-            setSuccessAlert(true);
-        } catch (err) {
-            console.error("CREATE TRAINING ERROR:", err);
-            alert("Gagal menyimpan pelatihan.");
-        }
-    };
+    try {
+      const created = await createTraining(payload);
+      onAdd(created);
+      setSuccessAlert(true);
+    } catch (err) {
+      console.error("CREATE TRAINING ERROR:", err);
+      alert("Gagal menyimpan pelatihan (401 / token invalid).");
+    }
+  };
 
     return (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
@@ -114,7 +141,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
 
             <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh] p-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Tambah Pelatihan Baru</h2>
+                    <h2 className="text-lg font-semibold text-black">Tambah Pelatihan Baru</h2>
                     <button onClick={onClose} className="p-2"><X /></button>
                 </div>
 
@@ -123,7 +150,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                     {/* === Thumbnail, Title, Desc, Price, Type === */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="text-sm font-medium">Thumbnail</label>
+                            <label className="text-sm font-medium text-black">Thumbnail</label>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -142,33 +169,33 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
 
                         <div className="md:col-span-2 space-y-2">
                             <div>
-                                <label className="text-sm font-medium">Judul</label>
+                                <label className="text-sm font-medium text-black">Judul</label>
                                 <input
                                     required
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                    className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                 />
                             </div>
 
                             <div>
-                                <label className="text-sm font-medium">Deskripsi Singkat</label>
+                                <label className="text-sm font-medium text-black">Deskripsi Singkat</label>
                                 <input
                                     value={shortDescription}
                                     onChange={(e) => setShortDescription(e.target.value)}
-                                    className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                    className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                 />
                             </div>
 
                             <div className="flex gap-3">
                                 <div className="flex-1">
-                                    <label className="text-sm font-medium">Tipe</label>
+                                    <label className="text-sm font-medium text-black">Tipe</label>
                                     <select
                                         value={type}
                                         onChange={(e) =>
                                             setType(e.target.value as Training["type"])
                                         }
-                                        className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                        className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                     >
                                         <option value="web">Web Development</option>
                                         <option value="mobile">Mobile Development</option>
@@ -178,11 +205,11 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                 </div>
 
                                 <div className="w-44">
-                                    <label className="text-sm font-medium">Harga</label>
+                                    <label className="text-sm font-medium text-black">Harga</label>
                                     <input
                                         value={priceNum == null ? "" : formatRp(priceNum)}
                                         onChange={handlePriceInput}
-                                        className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                        className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                     />
                                 </div>
                             </div>
@@ -192,41 +219,41 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                     {/* === New Extra Fields === */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-sm font-medium">Durasi Pelatihan</label>
+                            <label className="text-sm font-medium text-black">Durasi Pelatihan</label>
                             <input
                                 value={duration}
                                 onChange={(e) => setDuration(e.target.value)}
-                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                 placeholder="Contoh: 8 Minggu"
                             />
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium">Lokasi</label>
+                            <label className="text-sm font-medium text-black">Lokasi</label>
                             <input
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                 placeholder="Contoh: Online (Zoom)"
                             />
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium">Sertifikat</label>
+                            <label className="text-sm font-medium text-black">Sertifikat</label>
                             <input
                                 value={certificate}
                                 onChange={(e) => setCertificate(e.target.value)}
-                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                 placeholder="Contoh: Disediakan setelah kelulusan"
                             />
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium">Instruktur</label>
+                            <label className="text-sm font-medium text-black">Instruktur</label>
                             <input
                                 value={instructor}
                                 onChange={(e) => setInstructor(e.target.value)}
-                                className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                                className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                                 placeholder="Contoh: Tim Fullstack PSTeam"
                             />
                         </div>
@@ -234,12 +261,12 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
 
                     {/* Description */}
                     <div>
-                        <label className="text-sm font-medium">Deskripsi Lengkap</label>
+                        <label className="text-sm font-medium text-black">Deskripsi Lengkap</label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
-                            className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                            className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                         />
                     </div>
 
@@ -247,7 +274,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <div className="flex justify-between items-center">
-                                <label className="text-sm font-medium">Rincian Biaya</label>
+                                <label className="text-sm font-medium text-black">Rincian Biaya</label>
                                 <button
                                     type="button"
                                     onClick={() => setCostDetails((d) => [...d, ""])}
@@ -268,7 +295,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                                     )
                                                 )
                                             }
-                                            className="flex-1 border rounded px-2 py-1 text-sm"
+                                            className="flex-1 border rounded px-2 py-1 text-sm text-black"
                                         />
                                         <button
                                             type="button"
@@ -288,7 +315,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
 
                         <div>
                             <div className="flex justify-between items-center">
-                                <label className="text-sm font-medium">Syarat Peserta</label>
+                                <label className="text-sm font-medium text-black">Syarat Peserta</label>
                                 <button
                                     type="button"
                                     onClick={() => setRequirements((r) => [...r, ""])}
@@ -309,7 +336,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                                     )
                                                 )
                                             }
-                                            className="flex-1 border rounded px-2 py-1 text-sm"
+                                            className="flex-1 border rounded px-2 py-1 text-sm text-black"
                                         />
                                         <button
                                             type="button"
@@ -331,7 +358,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                     {/* Schedule */}
                     <div>
                         <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium">Jadwal Pelaksanaan</label>
+                            <label className="text-sm font-medium text-black">Jadwal Pelaksanaan</label>
                             <button
                                 type="button"
                                 onClick={addScheduleRow}
@@ -349,7 +376,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                         onChange={(e) =>
                                             updateScheduleRow(i, "batchName", e.target.value)
                                         }
-                                        className="w-44 border rounded px-2 py-1 text-sm"
+                                        className="w-44 border rounded px-2 py-1 text-sm text-black"
                                     />
                                     <input
                                         type="date"
@@ -357,7 +384,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                         onChange={(e) =>
                                             updateScheduleRow(i, "startDate", e.target.value)
                                         }
-                                        className="border rounded px-2 py-1 text-sm"
+                                        className="border rounded px-2 py-1 text-sm text-black"
                                     />
                                     <input
                                         type="date"
@@ -365,7 +392,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                         onChange={(e) =>
                                             updateScheduleRow(i, "endDate", e.target.value)
                                         }
-                                        className="border rounded px-2 py-1 text-sm"
+                                        className="border rounded px-2 py-1 text-sm text-black"
                                     />
                                     <button
                                         type="button"
@@ -382,7 +409,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                     {/* Rundown */}
                     <div>
                         <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium">Rundown Kegiatan</label>
+                            <label className="text-sm font-medium text-black">Rundown Kegiatan</label>
                             <button
                                 type="button"
                                 onClick={addRundownRow}
@@ -400,14 +427,14 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                                         onChange={(e) =>
                                             updateRundownRow(i, "day", e.target.value)
                                         }
-                                        className="w-28 border rounded px-2 py-1 text-sm"
+                                        className="w-28 border rounded px-2 py-1 text-sm text-black"
                                     />
                                     <input
                                         value={r.activity}
                                         onChange={(e) =>
                                             updateRundownRow(i, "activity", e.target.value)
                                         }
-                                        className="flex-1 border rounded px-2 py-1 text-sm"
+                                        className="flex-1 border rounded px-2 py-1 text-sm text-black"
                                     />
                                     <button
                                         type="button"
@@ -423,11 +450,11 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
 
                     {/* Organizer */}
                     <div>
-                        <label className="text-sm font-medium">Penyelenggara</label>
+                        <label className="text-sm font-medium text-black">Penyelenggara</label>
                         <input
                             value={organizer}
                             onChange={(e) => setOrganizer(e.target.value)}
-                            className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                            className="mt-1 w-full border rounded px-3 py-2 text-sm text-black"
                         />
                     </div>
 
@@ -435,7 +462,7 @@ export default function AddTrainingModal({ onClose, onAdd }: Props) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 border rounded"
+                            className="px-4 py-2 border bg-black/50 rounded"
                         >
                             Batal
                         </button>

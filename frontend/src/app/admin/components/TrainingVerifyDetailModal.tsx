@@ -1,61 +1,74 @@
 "use client";
 
 import React from "react";
-import { X } from "lucide-react";
 import ModalWrapper from "./ModalWrapper";
-import { Registration } from "./TrainingVerifyAdmin";
+import type { Registration } from "@/types/trainingRegistration";
 
-export default function TrainingVerificationDetailModal({
+const BASE_URL = "http://localhost:4000";
+
+export default function TrainingVerifyDetailModal({
   data,
   onClose,
 }: {
   data: Registration;
   onClose: () => void;
 }) {
+  const thumbnail = data.trainingThumbnail
+    ? `${BASE_URL}${data.trainingThumbnail}`
+    : "/default-training.png";
+
   return (
-    <ModalWrapper isOpen={true} onClose={onClose} width="max-w-xl">
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Detail Pendaftaran</h2>
+    <ModalWrapper isOpen={true} onClose={onClose} width="max-w-2xl">
+      <div className="p-6 space-y-5">
+        <h2 className="text-xl font-bold text-black">Detail Pendaftaran Pelatihan</h2>
+
+        <div className="flex gap-4 p-4 bg-gray-50 border text-black rounded">
+          <img
+            src={thumbnail}
+            alt={data.trainingTitle}
+            className="w-28 h-20 rounded object-cover border text-black"
+          />
+
+          <div>
+            <p className="font-semibold text-black">{data.trainingTitle}</p>
+            <p className="text-sm text-black">Tipe: {data.trainingType}</p>
+            <p className="text-sm text-black">Batch: {data.batch}</p>
+          </div>
         </div>
 
-        <table className="w-full text-sm border border-gray-300 rounded">
-          <tbody>
-            <tr>
-              <td className="p-2 border font-semibold">Nama</td>
-              <td className="p-2 border">{data.name}</td>
-            </tr>
-            <tr>
-              <td className="p-2 border font-semibold">Email</td>
-              <td className="p-2 border">{data.email}</td>
-            </tr>
-            <tr>
-              <td className="p-2 border font-semibold">Telepon</td>
-              <td className="p-2 border">{data.phone}</td>
-            </tr>
-            <tr>
-              <td className="p-2 border font-semibold">Pelatihan</td>
-              <td className="p-2 border">{data.trainingTitle}</td>
-            </tr>
-            <tr>
-              <td className="p-2 border font-semibold">Tipe</td>
-              <td className="p-2 border capitalize">{data.trainingType}</td>
-            </tr>
-            <tr>
-              <td className="p-2 border font-semibold">Batch</td>
-              <td className="p-2 border">{data.batch}</td>
-            </tr>
-            <tr>
-              <td className="p-2 border font-semibold">Catatan</td>
-              <td className="p-2 border">{data.notes || "-"}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="grid grid-cols-2 gap-4 text-sm text-black">
+          <div>
+            <p className="text-black ">Nama</p>
+            <p className="font-semibold">{data.name}</p>
+          </div>
 
-        <div className="flex justify-end mt-4">
+          <div>
+            <p className="text-black">Email</p>
+            <p className="font-semibold">{data.email}</p>
+          </div>
+
+          <div>
+            <p className="text-black">Telepon</p>
+            <p className="font-semibold">{data.phone}</p>
+          </div>
+
+          <div>
+            <p className="text-black">Status</p>
+            <p className="font-semibold capitalize">{data.status}</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-black text-sm">Catatan</p>
+          <div className="bg-gray-100 p-3 rounded text-sm text-black">
+            {data.notes || "Tidak ada catatan"}
+          </div>
+        </div>
+
+        <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+            className="px-4 py-2 bg-blue-600 text-white rounded"
           >
             Tutup
           </button>

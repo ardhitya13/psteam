@@ -188,7 +188,7 @@ export default function ScientificWorkTable() {
         >
           {/* TITLE */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold uppercase">
+            <h1 className="text-3xl font-bold uppercase text-gray-900">
               Daftar Karya Ilmiah Dosen
             </h1>
             <p className="text-gray-600 text-sm">
@@ -234,13 +234,16 @@ export default function ScientificWorkTable() {
 
             <select
               value={itemsPerPage}
-              onChange={(e) =>
-                setItemsPerPage(Number(e.target.value))
-              }
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setItemsPerPage(isNaN(value) ? 10 : value);
+              }}
               className="ml-3 text-black bg-white rounded-md px-6 py-2"
             >
-              {[10, 20, 30].map((n) => (
-                <option key={n}>{n} / halaman</option>
+              {[10, 20, 30, 40, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n} / halaman
+                </option>
               ))}
             </select>
           </div>
@@ -355,6 +358,7 @@ export default function ScientificWorkTable() {
                                 <table className="w-full text-sm border">
                                   <thead className="bg-blue-100">
                                     <tr>
+                                      <th className="border px-3 py-2 w-12 text-center">No</th>
                                       <th className="border px-3 py-2">Judul</th>
                                       <th className="border px-3 py-2 w-80">
                                         <div className="flex items-center justify-center gap-2">
@@ -380,12 +384,11 @@ export default function ScientificWorkTable() {
                                   <tbody>
                                     {lec.scientificwork
                                       .filter((s) =>
-                                        filterType === "Semua"
-                                          ? true
-                                          : s.type === filterType
+                                        filterType === "Semua" ? true : s.type === filterType
                                       )
-                                      .map((s) => (
-                                        <tr key={s.id}>
+                                      .map((s, idx) => (
+                                        <tr key={s.id ?? idx}>
+                                          <td className="border px-3 py-2 text-center">{idx + 1}</td>
                                           <td className="border px-3 py-2">{s.title}</td>
                                           <td className="border px-3 py-2">{s.type}</td>
                                           <td className="border px-3 py-2 text-center">{s.year}</td>
@@ -394,7 +397,10 @@ export default function ScientificWorkTable() {
 
                                     {lec.scientificwork.length === 0 && (
                                       <tr>
-                                        <td colSpan={3} className="text-center py-4 text-gray-500 italic">
+                                        <td
+                                          colSpan={4}
+                                          className="text-center py-4 text-gray-500 italic"
+                                        >
                                           Tidak ada karya ilmiah.
                                         </td>
                                       </tr>

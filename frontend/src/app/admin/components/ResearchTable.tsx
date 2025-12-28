@@ -11,6 +11,7 @@ import {
   addResearch,
   updateResearch,
   deleteResearch,
+  addResearchByAdmin,
 } from "../../../lib/lecturer";
 
 import EditResearchCard from "./ResearchEditCard";
@@ -43,15 +44,16 @@ export default function ResearchTable() {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
 
+
   const [editPayload, setEditPayload] = useState<
     | {
-        lecId: number;
-        researchList: ResearchItem[];
-        lecturer_name: string;
-        email: string;
-        studyProgram: string;
-        specialization: string;
-      }
+      lecId: number;
+      researchList: ResearchItem[];
+      lecturer_name: string;
+      email: string;
+      studyProgram: string;
+      specialization: string;
+    }
     | null
   >(null);
 
@@ -81,8 +83,13 @@ export default function ResearchTable() {
             ? `http://localhost:4000${profile.imageUrl}`
             : "/no-photo.png",
           research: Array.isArray(profile.research)
-            ? profile.research
+            ? profile.research.map((item: any) => ({
+              id: item.id,
+              title: item.title ?? "",
+              year: Number(item.year), // 🔥 FIX UTAMA
+            }))
             : [],
+
         } as Lecturer;
       });
 
@@ -123,7 +130,7 @@ export default function ResearchTable() {
         if (!item.title.trim()) continue;
 
         if (!item.id) {
-          await addResearch(lecId, {
+          await addResearchByAdmin(lecId, {
             title: item.title,
             year: item.year,
           });
@@ -133,6 +140,7 @@ export default function ResearchTable() {
             year: item.year,
           });
         }
+
       }
 
       await loadLecturers();
@@ -204,9 +212,8 @@ export default function ResearchTable() {
         />
 
         <main
-          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
         >
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-black uppercase">
@@ -246,23 +253,25 @@ export default function ResearchTable() {
                   if (!searchQuery.trim()) setSearchOpen(false);
                 }}
                 placeholder="Cari nama / prodi / email..."
-                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${
-                  searchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
-                }`}
+                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${searchOpen
+                  ? "w-56 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
+                  }`}
               />
             </div>
 
             <select
               value={itemsPerPage}
-              onChange={(e) =>
-                setItemsPerPage(Number(e.target.value))
-              }
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setItemsPerPage(isNaN(value) ? 10 : value);
+              }}
               className="ml-3 text-black bg-white rounded-md px-6 py-2"
             >
-              {[10, 20, 30].map((n) => (
-                <option key={n}>{n} / halaman</option>
+              {[10, 20, 30, 40, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n} / halaman
+                </option>
               ))}
             </select>
           </div>
@@ -296,98 +305,102 @@ export default function ResearchTable() {
 
                   return (
                     <React.Fragment key={lec.id}>
-                    <tr className="hover:bg-blue-50">
-                      <td className="py-3 px-4 text-center border border-gray-300">{index + 1}</td>
+                      <tr className="hover:bg-blue-50">
+                        <td className="py-3 px-4 text-center border border-gray-300">{index + 1}</td>
 
-                      <td className="px-4 py-3 border border-gray-300 flex items-center gap-3">
-                        <img src={lec.imageUrl} className="w-10 h-10 rounded-full border object-cover" />
-                        <div>
-                          <div className="font-semibold">{lec.name}</div>
-                          <div className="text-xs text-gray-500">{lec.specialization}</div>
-                        </div>
-                      </td>
+                        <td className="px-4 py-3 border border-gray-300 flex items-center gap-3">
+                          <img src={lec.imageUrl} className="w-10 h-10 rounded-full border object-cover" />
+                          <div>
+                            <div className="font-semibold">{lec.name}</div>
+                            <div className="text-xs text-gray-500">{lec.specialization}</div>
+                          </div>
+                        </td>
 
-                      <td className="px-4 py-3 border border-gray-300">{lec.studyProgram}</td>
-                      <td className="px-4 py-3 border border-gray-300">{lec.email}</td>
+                        <td className="px-4 py-3 border border-gray-300">{lec.studyProgram}</td>
+                        <td className="px-4 py-3 border border-gray-300">{lec.email}</td>
 
-                      <td className="px-4 py-3 border border-gray-300 text-center">
-                        <div className="flex justify-center gap-2">
-                          <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md flex gap-1" onClick={() => setExpandedId(expandedId === lec.id ? null : lec.id)}>
-                            <Users size={15} className="pt-1" /> Detail
-                          </button>
+                        <td className="px-4 py-3 border border-gray-300 text-center">
+                          <div className="flex justify-center gap-2">
+                            <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md flex gap-1" onClick={() => setExpandedId(expandedId === lec.id ? null : lec.id)}>
+                              <Users size={15} className="pt-1" /> Detail
+                            </button>
 
-                          <button
-                            className="px-3 py-1 bg-yellow-500 text-white rounded-md flex gap-1"
-                            onClick={() => {
-                              const list = lec.research && lec.research.length > 0 ? lec.research : [newEmptyResearch()];
-                              setEditPayload({
-                                lecId: lec.id,
-                                researchList: list,
-                                lecturer_name: lec.name,
-                                email: lec.email,
-                                studyProgram: lec.studyProgram || "",
-                                specialization: lec.specialization || "",
-                              });
-                              setIsEditOpen(true);
-                            }}
-                          >
-                            <Edit size={15} className="pt-1" /> Edit
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {expandedId === lec.id && (
-                      <tr>
-                        <td colSpan={5} className="p-0 border border-gray-300 bg-[#f5f7fb]">
-                          <div className="p-6">
-                            <div className="bg-white p-6 rounded-lg shadow border mb-6">
-                              <div className="flex items-center gap-6">
-                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-300">
-                                  <img src={lec.imageUrl} className="object-cover w-full h-full" />
-                                </div>
-                                <div>
-                                  <h2 className="text-2xl font-bold text-[#0a3b91]">{lec.name}</h2>
-                                  <p className="text-gray-700 text-lg font-semibold">Dosen</p>
-                                  <div className="mt-3 space-y-1 text-gray-700 text-sm">
-                                    <p><strong>Program Studi:</strong> {lec.studyProgram}</p>
-                                    <p><strong>Email:</strong> {lec.email}</p>
-                                    <p><strong>Bidang Spesialis:</strong> {lec.specialization}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="bg-white p-6 rounded-lg shadow border">
-                              <h3 className="text-xl font-bold mb-3 text-[#0a3b91]">Penelitian Dosen</h3>
-                              <table className="w-full text-sm border bg-white rounded">
-                                <thead className="bg-blue-100 font-semibold">
-                                  <tr>
-                                    <th className="border px-3 py-2">Judul Penelitian</th>
-                                    <th className="border px-3 py-2 w-32">Tahun</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {lec.research.length > 0 ? (
-                                    lec.research.map((r) => (
-                                      <tr key={r.id} className="hover:bg-blue-50">
-                                        <td className="border px-3 py-2">{r.title}</td>
-                                        <td className="border px-3 py-2 text-center">{r.year}</td>
-                                      </tr>
-                                    ))
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={2} className="text-center py-4 text-gray-500 italic">Tidak ada penelitian.</td>
-                                    </tr>
-                                  )}
-                                </tbody>
-                              </table>
-                            </div>
+                            <button
+                              className="px-3 py-1 bg-yellow-500 text-white rounded-md flex gap-1"
+                              onClick={() => {
+                                const list = lec.research && lec.research.length > 0 ? lec.research : [newEmptyResearch()];
+                                setEditPayload({
+                                  lecId: lec.id,
+                                  researchList: list,
+                                  lecturer_name: lec.name,
+                                  email: lec.email,
+                                  studyProgram: lec.studyProgram || "",
+                                  specialization: lec.specialization || "",
+                                });
+                                setIsEditOpen(true);
+                              }}
+                            >
+                              <Edit size={15} className="pt-1" /> Edit
+                            </button>
                           </div>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
+
+                      {expandedId === lec.id && (
+                        <tr>
+                          <td colSpan={5} className="p-0 border border-gray-300 bg-[#f5f7fb]">
+                            <div className="p-6">
+                              <div className="bg-white p-6 rounded-lg shadow border mb-6">
+                                <div className="flex items-center gap-6">
+                                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-300">
+                                    <img src={lec.imageUrl} className="object-cover w-full h-full" />
+                                  </div>
+                                  <div>
+                                    <h2 className="text-2xl font-bold text-[#0a3b91]">{lec.name}</h2>
+                                    <p className="text-gray-700 text-lg font-semibold">Dosen</p>
+                                    <div className="mt-3 space-y-1 text-gray-700 text-sm">
+                                      <p><strong>Program Studi:</strong> {lec.studyProgram}</p>
+                                      <p><strong>Email:</strong> {lec.email}</p>
+                                      <p><strong>Bidang Spesialis:</strong> {lec.specialization}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="bg-white p-6 rounded-lg shadow border">
+                                <h3 className="text-xl font-bold mb-3 text-[#0a3b91]">Penelitian Dosen</h3>
+                                <table className="w-full text-sm border bg-white rounded">
+                                  <thead className="bg-blue-100 font-semibold">
+                                    <tr>
+                                      <th className="border px-3 py-2 w-12 text-center">No</th>
+                                      <th className="border px-3 py-2">Judul Penelitian</th>
+                                      <th className="border px-3 py-2 w-32">Tahun</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {lec.research.length > 0 ? (
+                                      lec.research.map((r, idx) => (
+                                        <tr key={r.id} className="hover:bg-blue-50">
+                                          <td className="border px-3 py-2 text-center">{idx + 1}</td>
+                                          <td className="border px-3 py-2">{r.title}</td>
+                                          <td className="border px-3 py-2 text-center">{r.year}</td>
+                                        </tr>
+                                      ))
+                                    ) : (
+                                      <tr>
+                                        <td colSpan={3} className="text-center py-4 text-gray-500 italic">
+                                          Tidak ada penelitian.
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -405,11 +418,10 @@ export default function ResearchTable() {
                   }
                 }}
                 disabled={currentPage === 1}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
-                }`}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
+                  }`}
               >
                 &lt;
               </button>
@@ -422,11 +434,10 @@ export default function ResearchTable() {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-2 py-1 rounded text-xs border ${
-                      currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-300"
+                      }`}
                   >
                     {pageNum}
                   </button>
@@ -443,11 +454,10 @@ export default function ResearchTable() {
                   }
                 }}
                 disabled={currentPage === totalPages}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
-                }`}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
+                  }`}
               >
                 &gt;
               </button>
@@ -470,5 +480,4 @@ export default function ResearchTable() {
   );
 }
 
-                  
-          
+

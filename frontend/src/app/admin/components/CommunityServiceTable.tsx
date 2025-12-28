@@ -9,6 +9,7 @@ import AdminSidebar from "./AdminSidebar";
 import {
   getAllLecturers,
   addCommunityService,
+  addCommunityServiceByAdmin,
   updateCommunityService,
   deleteCommunityService,
 } from "../../../lib/lecturer";
@@ -125,7 +126,7 @@ export default function CommunityServiceTable() {
         if (!item.title.trim()) continue;
 
         if (!item.id) {
-          await addCommunityService(lecId, {
+          await addCommunityServiceByAdmin(lecId, {
             title: item.title,
             year: item.year,
           });
@@ -247,21 +248,24 @@ export default function CommunityServiceTable() {
                 }}
                 placeholder="Cari nama / prodi / email..."
                 className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${searchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
+                  ? "w-56 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
                   }`}
               />
             </div>
 
             <select
               value={itemsPerPage}
-              onChange={(e) =>
-                setItemsPerPage(Number(e.target.value))
-              }
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setItemsPerPage(isNaN(value) ? 10 : value);
+              }}
               className="ml-3 text-black bg-white rounded-md px-6 py-2"
             >
-              {[10, 20, 30].map((n) => (
-                <option key={n}>{n} / halaman</option>
+              {[10, 20, 30, 40, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n} / halaman
+                </option>
               ))}
             </select>
           </div>
@@ -371,18 +375,20 @@ export default function CommunityServiceTable() {
                                 <table className="w-full text-sm border bg-white rounded">
                                   <thead className="bg-blue-100 font-semibold">
                                     <tr>
-                                      <th className="border px-3 py-2">Judul</th>
+                                      <th className="border px-3 py-2 w-12 text-center">No</th>
+                                      <th className="border px-3 py-2">Judul Pengabdian</th>
                                       <th className="border px-3 py-2 w-32">Tahun</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     {lec.communityservice.length > 0 ? (
-                                      lec.communityservice.map((c) => (
+                                      lec.communityservice.map((c, idx) => (
                                         <tr key={c.id} className="hover:bg-blue-50">
-                                          <td className="border px-3 py-2">{c.title}
+                                          <td className="border px-3 py-2 text-center">
+                                            {idx + 1}
                                           </td>
-                                          <td className="border px-3 py-2 text-center">{c.year}
-                                          </td>
+                                          <td className="border px-3 py-2">{c.title}</td>
+                                          <td className="border px-3 py-2 text-center">{c.year}</td>
                                         </tr>
                                       ))
                                     ) : (
@@ -416,8 +422,8 @@ export default function CommunityServiceTable() {
                 }}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &lt;
@@ -432,8 +438,8 @@ export default function CommunityServiceTable() {
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-300"
                       }`}
                   >
                     {pageNum}
@@ -450,8 +456,8 @@ export default function CommunityServiceTable() {
                 }}
                 disabled={currentPage === totalPages}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &gt;

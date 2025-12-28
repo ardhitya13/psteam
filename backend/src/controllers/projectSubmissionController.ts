@@ -1,35 +1,70 @@
-// controllers/projectSubmissionController.ts
-
 import { Request, Response } from "express";
 import { prisma } from "../db";
 
-// ==============================
-// CREATE SUBMISSION
-// ==============================
+/* =====================================================
+   CREATE SUBMISSION (PUBLIC — TANPA LOGIN)
+===================================================== */
 export const createSubmission = async (req: Request, res: Response) => {
   try {
-    const data = req.body;
+    const {
+      fullName,
+      email,
+      phoneNumber,
+      projectTitle,
+      projectDescription,
+      projectType,
+    } = req.body;
 
+    // ================= VALIDATION =================
+    const missingFields: string[] = [];
+
+    if (!fullName?.trim()) missingFields.push("Nama Lengkap");
+    if (!email?.trim()) missingFields.push("Email");
+    if (!phoneNumber?.trim()) missingFields.push("Nomor Telepon");
+    if (!projectTitle?.trim()) missingFields.push("Judul Proyek");
+    if (!projectDescription?.trim()) missingFields.push("Deskripsi Proyek");
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: "Data belum lengkap",
+        missingFields,
+      });
+    }
+
+    // ================= CREATE =================
     const submission = await prisma.projectsubmission.create({
-      data,
+      data: {
+        fullName,
+        email,
+        phoneNumber,
+        projectTitle,
+        projectDescription,
+        projectType: projectType || null,
+        status: "pending", // 🔒 PENTING
+      },
     });
 
-    return res.status(201).json(submission);
+    return res.status(201).json({
+      message: "Pengajuan proyek berhasil dikirim",
+      data: submission,
+    });
   } catch (err) {
     console.error("createSubmission error:", err);
-    return res.status(500).json({ error: "Failed to create submission" });
+    return res.status(500).json({
+      message: "Terjadi kesalahan saat mengirim pengajuan",
+    });
   }
 };
 
-// ==============================
-// GET APPROVED + FINISHED SUBMISSIONS (FIXED)
-// ==============================
-export const getApprovedSubmissions = async (req: Request, res: Response) => {
+/* =====================================================
+   GET APPROVED + FINISHED (ADMIN)
+===================================================== */
+export const getApprovedSubmissions = async (_: Request, res: Response) => {
   try {
     const submissions = await prisma.projectsubmission.findMany({
       where: {
         status: {
-          in: ["approved", "finished"],  // <— FIX PALING PENTING
+          in: ["approved", "finished"],
         },
       },
       orderBy: { createdAt: "desc" },
@@ -38,14 +73,16 @@ export const getApprovedSubmissions = async (req: Request, res: Response) => {
     return res.json(submissions);
   } catch (err) {
     console.error("getApprovedSubmissions error:", err);
-    return res.status(500).json({ error: "Failed to fetch submissions" });
+    return res.status(500).json({
+      message: "Gagal mengambil data proyek",
+    });
   }
 };
 
-// ==============================
-// GET PENDING SUBMISSIONS
-// ==============================
-export const getPendingSubmissions = async (req: Request, res: Response) => {
+/* =====================================================
+   GET PENDING (ADMIN)
+===================================================== */
+export const getPendingSubmissions = async (_: Request, res: Response) => {
   try {
     const submissions = await prisma.projectsubmission.findMany({
       where: { status: "pending" },
@@ -55,16 +92,30 @@ export const getPendingSubmissions = async (req: Request, res: Response) => {
     return res.json(submissions);
   } catch (err) {
     console.error("getPendingSubmissions error:", err);
-    return res.status(500).json({ error: "Failed to fetch pending submissions" });
+    return res.status(500).json({
+      message: "Gagal mengambil data pengajuan",
+    });
   }
 };
 
-// ==============================
-// APPROVE SUBMISSION
-// ==============================
+/* =====================================================
+   APPROVE SUBMISSION (ADMIN)
+===================================================== */
 export const approveSubmission = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "ID tidak valid" });
+    }
+
+    const existing = await prisma.projectsubmission.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: "Pengajuan tidak ditemukan" });
+    }
 
     const updated = await prisma.projectsubmission.update({
       where: { id },
@@ -72,52 +123,81 @@ export const approveSubmission = async (req: Request, res: Response) => {
     });
 
     return res.json({
-      message: "Submission approved",
+      message: "Pengajuan berhasil disetujui",
       data: updated,
     });
   } catch (err) {
     console.error("approveSubmission error:", err);
-    return res.status(500).json({ error: "Failed to approve submission" });
+    return res.status(500).json({
+      message: "Gagal menyetujui pengajuan",
+    });
   }
 };
 
-// ==============================
-// REJECT SUBMISSION
-// ==============================
+/* =====================================================
+   REJECT SUBMISSION (ADMIN)
+===================================================== */
 export const rejectSubmission = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     const { adminNote } = req.body;
 
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "ID tidak valid" });
+    }
+
+    const existing = await prisma.projectsubmission.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: "Pengajuan tidak ditemukan" });
+    }
+
     const updated = await prisma.projectsubmission.update({
       where: { id },
       data: {
         status: "rejected",
-        adminNote: adminNote || null,
+        adminNote: adminNote?.trim() || null,
       },
     });
 
     return res.json({
-      message: "Submission rejected",
+      message: "Pengajuan berhasil ditolak",
       data: updated,
     });
   } catch (err) {
     console.error("rejectSubmission error:", err);
-    return res.status(500).json({ error: "Failed to reject submission" });
+    return res.status(500).json({
+      message: "Gagal menolak pengajuan",
+    });
   }
 };
 
-// ==============================
-// UPDATE STATUS (ADMIN EDIT — FINISH INCLUDED)
-// ==============================
+/* =====================================================
+   UPDATE STATUS (ADMIN — MANUAL EDIT)
+===================================================== */
 export const updateSubmissionStatus = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     const { status } = req.body;
 
+    const ALLOWED_STATUS = ["pending", "approved", "rejected", "finished"];
+
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "ID tidak valid" });
+    }
+
+    if (!ALLOWED_STATUS.includes(status)) {
+      return res.status(400).json({
+        message: "Status tidak valid",
+        allowed: ALLOWED_STATUS,
+      });
+    }
+
     const updated = await prisma.projectsubmission.update({
       where: { id },
-      data: { status }, // bisa "approved", "finished", dll
+      data: { status },
     });
 
     return res.json({
@@ -126,6 +206,8 @@ export const updateSubmissionStatus = async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error("updateSubmissionStatus error:", err);
-    return res.status(500).json({ error: "Failed to update status" });
+    return res.status(500).json({
+      message: "Gagal memperbarui status proyek",
+    });
   }
 };

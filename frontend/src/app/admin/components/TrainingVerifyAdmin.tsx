@@ -5,39 +5,19 @@ import { Search, ChevronDown, Trash2, FileText, Check } from "lucide-react";
 
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
-import DetailTrainingModal from "../components/TrainingDetailModal";
+import TrainingVerifyDetailModal from "../components/TrainingVerifyDetailModal";
 
 import {
   getPendingRegistrations,
   updateTrainingStatus,
 } from "../../../lib/apiTrainingRegistration";
 
-// ========================
-// TYPE
-// ========================
-export type Training = {
-  id: number;
-  title: string;
-  shortDescription?: string;
-  type: "web" | "mobile" | "iot" | "ai" | string;
-  price: number;
-  thumbnail?: string;
-  description?: string;
-  costDetails?: string[];
-  requirements?: string[];
-  schedule?: { batchName: string; startDate: string; endDate: string }[];
-  rundown?: { day: string; activity: string }[];
-  organizer?: string;
-  duration?: string;
-  location?: string;
-  certificate?: string;
-  instructor?: string;
-};
+import type { Registration } from "@/types/trainingRegistration";
 
 export default function VerifyTrainingAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,90 +27,55 @@ export default function VerifyTrainingAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageGroup, setPageGroup] = useState(0);
 
-  // 🔵 Modal konfirmasi
-  const [confirmAccept, setConfirmAccept] = useState<any>(null);
-  const [confirmReject, setConfirmReject] = useState<any>(null);
+  const [confirmAccept, setConfirmAccept] = useState<Registration | null>(null);
+  const [confirmReject, setConfirmReject] = useState<Registration | null>(null);
+  const [detailData, setDetailData] = useState<Registration | null>(null);
+  const [selectedType, setSelectedType] = useState<
+    "all" | "web" | "mobile" | "iot" | "ai"
+  >("all");
 
-  // 🔵 Modal detail
-  const [detailData, setDetailData] = useState<Training | null>(null);
-
-  // ========================
-  // NORMALIZER TYPE
-  // ========================
   function normalizeType(str: string) {
     if (!str) return "";
     const s = str.toLowerCase();
-
     if (s.includes("web")) return "web";
     if (s.includes("mobile")) return "mobile";
     if (s.includes("iot") || s.includes("internet")) return "iot";
     if (s.includes("ai") || s.includes("machine")) return "ai";
-
     return s;
   }
 
-  // ========================
-  // SHOW DETAIL
-  // ========================
-  async function showDetail(trainingId: number) {
-    try {
-      const res = await fetch(`http://localhost:4000/api/training/${trainingId}`);
-      const data = await res.json();
-
-      const normalized: Training = {
-        ...data,
-        costDetails: Array.isArray(data.costDetails)
-          ? data.costDetails
-          : JSON.parse(data.costDetails || "[]"),
-        requirements: Array.isArray(data.requirements)
-          ? data.requirements
-          : JSON.parse(data.requirements || "[]"),
-        schedule: Array.isArray(data.schedule)
-          ? data.schedule
-          : JSON.parse(data.schedule || "[]"),
-        rundown: Array.isArray(data.rundown)
-          ? data.rundown
-          : JSON.parse(data.rundown || "[]"),
-      };
-
-      setDetailData(normalized);
-    } catch (err) {
-      console.error("Failed loading training detail:", err);
-      alert("Gagal memuat detail pelatihan.");
-    }
-  }
-
-  // ========================
-  // LOAD DATA
-  // ========================
   async function load() {
-    const res = await getPendingRegistrations();
+    try {
+      const res = await getPendingRegistrations();
 
-    const mapped = res.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      email: item.email,
-      phone: item.phone,
-      batch: item.batch,
-      notes: item.notes,
-      status: item.status,
+      const mapped: Registration[] = res.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        phone: item.phone,
+        batch: item.batch,
+        notes: item.notes,
+        status: item.status,
 
-      trainingId: item.training?.id ?? null,
-      trainingTitle: item.training?.title ?? "-",
-      trainingType: item.training?.type ?? "-",
-    }));
+        trainingId: item.training?.id ?? null,
+        trainingTitle: item.training?.title ?? "-",
+        trainingType: item.training?.type ?? "-",
+        trainingThumbnail: item.training?.thumbnail ?? null,
+      }));
 
-    setData(mapped);
-    setLoading(false);
+      setData(mapped);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengambil pendaftaran pending");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     load();
   }, []);
 
-  // ========================
-  // UPDATE STATUS
-  // ========================
   const approveNow = async (id: number) => {
     await updateTrainingStatus(id, "approved");
     setConfirmAccept(null);
@@ -146,11 +91,19 @@ export default function VerifyTrainingAdmin() {
   // ========================
   // FILTER + PAGINATION
   // ========================
-  const filtered = data.filter((item: any) =>
-    `${item.name} ${item.email} ${item.trainingTitle}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  const filtered = data.filter((item) => {
+    const textMatch =
+      `${item.name} ${item.email} ${item.trainingTitle}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const typeMatch =
+      selectedType === "all"
+        ? true
+        : normalizeType(item.trainingType) === selectedType;
+
+    return textMatch && typeMatch;
+  });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
@@ -176,13 +129,12 @@ export default function VerifyTrainingAdmin() {
         />
 
         <main
-          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
         >
           {/* TITLE */}
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold uppercase">
+            <h1 className="text-3xl font-bold text-black uppercase">
               Verifikasi Pelatihan
             </h1>
             <p className="text-gray-600 text-sm">
@@ -212,14 +164,33 @@ export default function VerifyTrainingAdmin() {
                 onBlur={() => {
                   if (!searchTerm.trim()) setIsSearchOpen(false);
                 }}
-                className={`transition-all duration-300 h-10 border bg-white rounded-md shadow-sm text-sm ${
-                  isSearchOpen
-                    ? "w-60 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
-                }`}
+                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-black text-sm h-10 ${isSearchOpen
+                  ? "w-60 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
+                  }`}
                 placeholder="Cari peserta..."
               />
             </div>
+
+            {/* FILTER TIPE */}
+            <div className="relative">
+              <select
+                value={selectedType}
+                onChange={(e) =>
+                  setSelectedType(
+                    e.target.value as "all" | "web" | "mobile" | "iot" | "ai"
+                  )
+                }
+                className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
+              >
+                <option value="all">Semua Tipe</option>
+                <option value="web">Web</option>
+                <option value="mobile">Mobile</option>
+                <option value="iot">IoT</option>
+                <option value="ai">AI</option>
+              </select>
+            </div>
+
 
             {/* ITEMS PER PAGE */}
             <div className="relative">
@@ -287,11 +258,12 @@ export default function VerifyTrainingAdmin() {
                           {/* DETAIL BUTTON */}
                           {p.trainingId && (
                             <button
-                              onClick={() => showDetail(p.trainingId)}
-                               className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
-                          >
+                              onClick={() => setDetailData(p)}
+                              className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                            >
                               <FileText size={14} /> Detail
                             </button>
+
                           )}
 
                           <button
@@ -305,7 +277,7 @@ export default function VerifyTrainingAdmin() {
                             onClick={() => setConfirmReject(p)}
                             className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
                           >
-                          <Trash2 size={14} /> Tolak
+                            <Trash2 size={14} /> Tolak
                           </button>
                         </div>
                       </td>
@@ -326,11 +298,10 @@ export default function VerifyTrainingAdmin() {
                   }
                 }}
                 disabled={currentPage === 1}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
-                }`}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
+                  }`}
               >
                 &lt;
               </button>
@@ -344,11 +315,10 @@ export default function VerifyTrainingAdmin() {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-2 py-1 rounded text-xs border ${
-                      currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-300"
+                      }`}
                   >
                     {pageNum}
                   </button>
@@ -364,11 +334,10 @@ export default function VerifyTrainingAdmin() {
                   }
                 }}
                 disabled={currentPage === totalPages}
-                className={`px-2 py-1 rounded border text-xs ${
-                  currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
-                }`}
+                className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
+                  }`}
               >
                 &gt;
               </button>
@@ -437,7 +406,7 @@ export default function VerifyTrainingAdmin() {
 
       {/* DETAIL MODAL */}
       {detailData && (
-        <DetailTrainingModal
+        <TrainingVerifyDetailModal
           data={detailData}
           onClose={() => setDetailData(null)}
         />

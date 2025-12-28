@@ -223,14 +223,19 @@ export default function LecturersTable() {
               </div>
 
               <select
-                value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="text-black bg-white rounded-md px-6 py-2"
-              >
-                {[10, 20, 30].map((n) => (
-                  <option key={n}>{n} / halaman</option>
-                ))}
-              </select>
+              value={itemsPerPage}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setItemsPerPage(isNaN(value) ? 10 : value);
+              }}
+              className="ml-3 text-black bg-white rounded-md px-6 py-2"
+            >
+              {[10, 20, 30, 40, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n} / halaman
+                </option>
+              ))}
+            </select>
             </div>
           </div>
 

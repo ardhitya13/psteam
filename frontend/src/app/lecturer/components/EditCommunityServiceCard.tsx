@@ -16,7 +16,11 @@ export default function EditCommunityServiceCard({
   defaultData,
   onSubmit,
 }: Props) {
-  const [form, setForm] = useState({ id: 0, title: "", year: new Date().getFullYear() });
+  const [form, setForm] = useState({
+    id: 0,
+    title: "",
+    year: new Date().getFullYear(),
+  });
 
   useEffect(() => {
     if (defaultData) {
@@ -26,49 +30,111 @@ export default function EditCommunityServiceCard({
 
   if (!isOpen || !defaultData) return null;
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim()) return alert("Judul wajib diisi!");
+    if (!form.title.trim()) {
+      alert("Judul wajib diisi!");
+      return;
+    }
     onSubmit(form);
   };
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="bg-white p-5 rounded-lg w-[400px] space-y-4">
-        <h2 className="text-lg font-semibold text-center">Edit Pengabdian</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="
+          bg-white
+          p-6
+          rounded-lg
+          w-[400px]
+          space-y-4
+          text-gray-900
+        "
+      >
+        <h2 className="text-lg font-semibold text-center text-gray-800">
+          Edit Pengabdian
+        </h2>
 
+        {/* JUDUL */}
         <div className="space-y-1">
-          <label className="text-sm font-medium">Judul</label>
+          <label className="text-sm font-medium text-gray-700">
+            Judul
+          </label>
           <input
             type="text"
-            className="border w-full rounded px-3 py-2"
+            className="
+              w-full
+              rounded
+              border border-gray-300
+              px-3 py-2
+              bg-white
+              text-gray-900
+              placeholder-gray-400
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-500
+            "
             placeholder="Judul Pengabdian"
             value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, title: e.target.value })
+            }
+            required
           />
         </div>
 
+        {/* TAHUN */}
         <div className="space-y-1">
-          <label className="text-sm font-medium">Tahun</label>
+          <label className="text-sm font-medium text-gray-700">
+            Tahun
+          </label>
           <input
             type="number"
-            className="border w-full rounded px-3 py-2"
+            className="
+              w-full
+              rounded
+              border border-gray-300
+              px-3 py-2
+              bg-white
+              text-gray-900
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-500
+            "
             value={form.year}
-            onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
+            onChange={(e) =>
+              setForm({ ...form, year: Number(e.target.value) })
+            }
+            required
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        {/* ACTION */}
+        <div className="flex justify-end gap-2 pt-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded bg-gray-300"
+            className="
+              px-4 py-2
+              rounded
+              bg-gray-200
+              text-gray-800
+              hover:bg-gray-300
+            "
           >
             Batal
           </button>
+
           <button
             type="submit"
-            className="px-4 py-2 rounded bg-blue-600 text-white"
+            className="
+              px-4 py-2
+              rounded
+              bg-blue-600
+              text-white
+              hover:bg-blue-700
+            "
           >
             Simpan
           </button>

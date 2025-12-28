@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import {
@@ -21,16 +22,13 @@ import RegisterTrainingModal from "./RegisterTrainingModal";
 function parseArray(value: any) {
   if (!value) return [];
 
-  // Kalau sudah array
   if (Array.isArray(value)) return value;
 
-  // Kalau string JSON array
   try {
     const parsed = JSON.parse(value);
     if (Array.isArray(parsed)) return parsed;
   } catch (e) {}
 
-  // Fallback: split string biasa
   return String(value).split("|");
 }
 
@@ -45,11 +43,17 @@ export default function CourseDetailModal({
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     AOS.init({ duration: 800, easing: "ease-out-cubic", once: true });
-    if (open) setTimeout(() => setIsVisible(true), 100);
-    else setIsVisible(false);
+
+    if (open) {
+      setTimeout(() => setIsVisible(true), 100);
+    } else {
+      setIsVisible(false);
+    }
   }, [open]);
 
   if (!open || !course) return null;
@@ -82,8 +86,12 @@ export default function CourseDetailModal({
           {/* Header */}
           <div className="flex items-start justify-between p-6 border-b bg-gray-50 rounded-t-2xl">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{course.title}</h2>
-              <p className="text-sm text-gray-500 mt-1">{course.category}</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {course.title}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {course.category}
+              </p>
             </div>
 
             <button
@@ -154,7 +162,9 @@ export default function CourseDetailModal({
                 </h3>
                 <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
                   {safeCostDetails.length
-                    ? safeCostDetails.map((c, i) => <li key={i}>{c}</li>)
+                    ? safeCostDetails.map((c, i) => (
+                        <li key={i}>{c}</li>
+                      ))
                     : "−"}
                 </ul>
               </section>
@@ -166,7 +176,9 @@ export default function CourseDetailModal({
                 </h3>
                 <ul className="list-disc ml-5 text-sm text-gray-700 space-y-1">
                   {safeRequirements.length
-                    ? safeRequirements.map((r, i) => <li key={i}>{r}</li>)
+                    ? safeRequirements.map((r, i) => (
+                        <li key={i}>{r}</li>
+                      ))
                     : "−"}
                 </ul>
               </section>
@@ -195,7 +207,10 @@ export default function CourseDetailModal({
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={3} className="py-3 text-center text-gray-500">
+                        <td
+                          colSpan={3}
+                          className="py-3 text-center text-gray-500"
+                        >
                           Belum ada jadwal
                         </td>
                       </tr>
@@ -226,7 +241,10 @@ export default function CourseDetailModal({
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={2} className="py-3 text-center text-gray-500">
+                        <td
+                          colSpan={2}
+                          className="py-3 text-center text-gray-500"
+                        >
                           Belum ada rundown
                         </td>
                       </tr>
@@ -266,12 +284,17 @@ export default function CourseDetailModal({
         </div>
       </div>
 
-      {/* Modal Daftar */}
-      <RegisterTrainingModal
-        open={registerOpen}
-        course={course}
-        onClose={() => setRegisterOpen(false)}
-      />
+      {/* ================= MODAL DAFTAR (PORTAL – FIX REACT) ================= */}
+      {mounted &&
+        registerOpen &&
+        createPortal(
+          <RegisterTrainingModal
+            open={registerOpen}
+            course={course}
+            onClose={() => setRegisterOpen(false)}
+          />,
+          document.body
+        )}
     </>
   );
 }

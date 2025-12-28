@@ -1,3 +1,4 @@
+// src/routes/trainingRegistrationRoutes.ts
 import express from "express";
 import {
   getRegistrations,
@@ -8,24 +9,60 @@ import {
   deleteRegistration,
 } from "../controllers/trainingController";
 
+import { authMiddleware } from "../middleware/authMiddleware";
+import { allowRoles } from "../middleware/roleMiddleware";
+
 const router = express.Router();
 
-// Create new registration
+/* ===============================
+   PUBLIC
+================================ */
+
+// 🔓 peserta daftar training
 router.post("/", createRegistration);
 
-// Get all registrations
-router.get("/", getRegistrations);
+/* ===============================
+   ADMIN ONLY (JWT)
+================================ */
 
-// Get only pending registrations
-router.get("/pending", getPendingRegistrations);
+// 🔐 semua registration
+router.get(
+  "/",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  getRegistrations
+);
 
-// Get only approved registrations
-router.get("/approved", getApprovedRegistrations);
+// 🔐 pending
+router.get(
+  "/pending",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  getPendingRegistrations
+);
 
-// Update registration status (approve/reject)
-router.put("/:id/status", updateStatus);
+// 🔐 approved
+router.get(
+  "/approved",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  getApprovedRegistrations
+);
 
-// Delete registration
-router.delete("/:id", deleteRegistration);
+// 🔐 update status
+router.put(
+  "/:id/status",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  updateStatus
+);
+
+// 🔐 delete
+router.delete(
+  "/:id",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  deleteRegistration
+);
 
 export default router;

@@ -1,138 +1,273 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AdminNavbar from "./components/AdminNavbar";
 import AdminSidebar from "./components/AdminSidebar";
 import DashboardCard from "./components/DashboardCard";
 import DashboardTeamCard from "./components/DashboardTeamCard";
+
 import {
   CheckCircle,
   FolderKanban,
+  Lightbulb,
   BookOpen,
   FileText,
   ShieldCheck,
-  Lightbulb,
   UserCog,
 } from "lucide-react";
 
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+import { fetchDashboardData } from "@/lib/apiDashboard";
+
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [stats, setStats] = useState<any>(null);
+  const [displayName, setDisplayName] = useState("Admin");
 
-  // 3 Card Utama
-  const topCards = [
+  /* =========================
+     LOAD DASHBOARD DATA
+  ========================= */
+  useEffect(() => {
+    fetchDashboardData().then(setStats);
+  }, []);
+
+  /* =========================
+     LOAD USER NAME (FINAL FIX)
+     -> AMBIL LANGSUNG DARI LOCALSTORAGE
+     -> PASTI SESUAI DATABASE
+  ========================= */
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (!stored) return;
+
+    try {
+      const user = JSON.parse(stored);
+      if (user?.name) {
+        setDisplayName(user.name);
+      }
+    } catch {
+      setDisplayName("Admin");
+    }
+  }, []);
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-600">
+        Memuat dashboard…
+      </div>
+    );
+  }
+
+  /* =========================
+     PORTOFOLIO META (WARNA KONSISTEN)
+  ========================= */
+  const PORTFOLIO = [
     {
-      title: "Verifikasi Proyek",
-      value: 12,
-      color: "bg-blue-600",
-      icon: <CheckCircle className="text-blue-700" />,
-      showProgress: true,
-      percent: 80,
-      path: "/admin/project/verification",
+      key: "research",
+      label: "Penelitian",
+      value: stats.research,
+      color: "#2563eb",
+      border: "border-blue-600",
+      text: "text-blue-700",
+      icon: <BookOpen size={18} />,
     },
     {
-      title: "Kelola Daftar Proyek",
-      value: 45,
-      color: "bg-green-500",
-      icon: <FolderKanban className="text-green-600" />,
-      showProgress: true,
-      percent: 90,
-      path: "/admin/project",
+      key: "community",
+      label: "Pengabdian",
+      value: stats.communityService,
+      color: "#16a34a",
+      border: "border-green-600",
+      text: "text-green-700",
+      icon: <FileText size={18} />,
     },
     {
-      title: "Kelola Daftar Pelatihan",
-      value: 22,
-      color: "bg-yellow-500",
-      icon: <Lightbulb className="text-yellow-600" />,
-      showProgress: true,
-      percent: 70,
-      path: "/admin/training",
+      key: "scientific",
+      label: "Karya Ilmiah",
+      value: stats.scientificWork,
+      color: "#ca8a04",
+      border: "border-yellow-500",
+      text: "text-yellow-600",
+      icon: <ShieldCheck size={18} />,
+    },
+    {
+      key: "hki",
+      label: "HKI",
+      value: stats.intellectualProperty,
+      color: "#7c3aed",
+      border: "border-purple-600",
+      text: "text-purple-700",
+      icon: <UserCog size={18} />,
     },
   ];
 
-  // 4 Card Portofolio Dosen
-  const bottomCards = [
-    {
-      title: "Penelitian Dosen",
-      value: 20,
-      color: "bg-blue-600",
-      icon: <BookOpen className="text-blue-700" />,
-      path: "/admin/portofolio/research",
-    },
-    {
-      title: "Pengabdian Dosen",
-      value: 15,
-      color: "bg-green-500",
-      icon: <FileText className="text-green-600" />,
-      path: "/admin/portofolio/communityservice"
-    },
-    {
-      title: "Karya Ilmiah Dosen",
-      value: 30,
-      color: "bg-yellow-500",
-      icon: <ShieldCheck className="text-yellow-600" />,
-      path: "/admin/portofolio/scientificwork"
-    },
-    {
-      title: "HKI Dosen",
-      value: 12,
-      color: "bg-purple-600",
-      icon: <UserCog className="text-purple-700" />,
-      path: "/admin/portofolio/intellectualproperty"
-    },
+  const PROJECT_STATUS = [
+    { name: "Pending", value: stats.pendingProjects, color: "#facc15" },
+    { name: "Approved", value: stats.approvedProjects, color: "#22c55e" },
   ];
-
-
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-[#f5f7fb] overflow-x-hidden">
       <AdminNavbar toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <AdminSidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <AdminSidebar
+        isOpen={isSidebarOpen}
+        toggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
 
-      {/* Konten Utama */}
       <main
-        className={`transition-all duration-300 pt-0 px-8 pb-6 space-y-8 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+        className={`transition-all duration-300 px-8 pb-10 space-y-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
           } mt-[85px]`}
       >
-        {/* 🟦 Header Card Selamat Datang */}
-        <div className="relative overflow-hidden bg-[#0a3b91] text-white rounded-3xl shadow-xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-center">
-          <div className="z-10 max-w-lg">
-            <h1 className="text-3xl font-bold mb-2">
-              Selamat Datang,{" "}
-              <span className="text-[#facc15]">Admin PSTEAM 👋</span>
-            </h1>
-            <p className="text-blue-100 text-sm leading-relaxed">
-              Kelola seluruh data sistem akademik, termasuk{" "}
-              <span className="font-semibold text-white">
-                verifikasi proyek, daftar pelatihan, tim pengembang, dan portofolio dosen.
-              </span>
-            </p>
-          </div>
-
-          <div className="absolute inset-0">
-            <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-3xl opacity-20"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#facc15]/10 rounded-full blur-3xl opacity-10"></div>
-          </div>
+        {/* =========================
+           HEADER
+        ========================= */}
+        <div className="bg-gradient-to-br from-blue-800 to-blue-600 text-white rounded-3xl shadow-xl p-10">
+          <h1 className="text-3xl font-bold mb-2">
+            Halo <span className="text-yellow-300">{displayName}</span> 👋
+          </h1>
+          <p className="text-blue-100 text-sm max-w-2xl">
+            Dashboard ini digunakan untuk mengelola verifikasi proyek, pelatihan,
+            tim pengembang, portofolio dosen, manajemen user, dan data akademik
+            PSTEAM secara terpusat.
+          </p>
         </div>
 
-        {/* Grid 3 Card Utama */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topCards.map((card, i) => (
-            <DashboardCard key={i} {...card} />
+        {/* =========================
+           KPI CARDS
+        ========================= */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <DashboardCard
+            title="Pending Proyek"
+            value={stats.pendingProjects}
+            color="bg-yellow-500"
+            icon={<CheckCircle className="text-yellow-600" />}
+          />
+
+          <DashboardCard
+            title="Total Proyek"
+            value={stats.totalProjects}
+            color="bg-green-600"
+            icon={<FolderKanban className="text-green-700" />}
+          />
+
+          <DashboardCard
+            title="Pelatihan"
+            value={stats.trainings.total}   // ✅ FIX
+            color="bg-blue-600"
+            icon={<Lightbulb className="text-blue-700" />}
+          />
+
+          <DashboardCard
+            title="User"
+            value={stats.users.total}       // ✅ FIX
+            color="bg-purple-600"
+            icon={<UserCog className="text-purple-700" />}
+          />
+        </div>
+
+        {/* =========================
+           PORTOFOLIO COLORED CARDS
+        ========================= */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {PORTFOLIO.map((item) => (
+            <div
+              key={item.key}
+              className={`bg-white p-5 rounded-xl shadow border-l-4 ${item.border}`}
+            >
+              <div className={`flex items-center gap-2 font-semibold ${item.text}`}>
+                {item.icon} {item.label}
+              </div>
+              <p className="text-3xl font-bold text-black mt-1">
+                {item.value}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Total {item.label.toLowerCase()}
+              </p>
+            </div>
           ))}
         </div>
 
-        {/* Grid 4 Card Portofolio */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {bottomCards.map((card, i) => (
-            <DashboardCard key={i} {...card} showProgress={false} />
-          ))}
+        {/* =========================
+           CHARTS
+        ========================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* BAR */}
+          <div className="bg-white p-6 rounded-xl shadow border text-black">
+            <h3 className="font-semibold mb-4">Statistik Portofolio</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={PORTFOLIO}>
+                <XAxis dataKey="label" stroke="#000" />
+                <YAxis stroke="#000" />
+                <Tooltip />
+                <Bar dataKey="value">
+                  {PORTFOLIO.map((item, i) => (
+                    <Cell key={i} fill={item.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 justify-center mt-4 text-sm">
+              {PORTFOLIO.map((item) => (
+                <span key={item.key} className="flex items-center gap-2">
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  {item.label} ({item.value})
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* PIE */}
+          <div className="bg-white p-6 rounded-xl shadow border text-black">
+            <h3 className="font-semibold mb-4">Status Proyek</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={PROJECT_STATUS}
+                  dataKey="value"
+                  innerRadius={65}
+                  outerRadius={95}
+                >
+                  {PROJECT_STATUS.map((item, i) => (
+                    <Cell key={i} fill={item.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+
+            <div className="flex gap-6 justify-center mt-4 text-sm">
+              {PROJECT_STATUS.map((s) => (
+                <span key={s.name} className="flex items-center gap-2">
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: s.color }}
+                  />
+                  {s.name} ({s.value})
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Section Tim Pengembang */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <DashboardTeamCard totalTeam={8} totalMembers={26} />
-        </div>
-
+        {/* =========================
+           TEAM
+        ========================= */}
+        <DashboardTeamCard />
       </main>
     </div>
   );

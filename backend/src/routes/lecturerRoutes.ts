@@ -1,33 +1,29 @@
 import { Router, json } from "express";
 import {
-  // ===== LECTURER PROFILE =====
   getAllLecturers,
   getLecturerProfile,
   updateLecturerProfile,
 
-  // ===== EDUCATION =====
   addEducationHistory,
   updateEducationHistory,
   deleteEducationHistory,
 
-  // ===== RESEARCH =====
   getResearchByLecturer,
   addResearch,
+  addResearchByAdmin,
   updateResearch,
   deleteResearch,
 
-  // ===== COMMUNITY SERVICE (Pengabdian) =====
   getCommunityServiceByLecturer,
   addCommunityService,
   updateCommunityService,
   deleteCommunityService,
 
-  // ===== SCIENTIFIC WORK =====
   getScientificWorkByLecturer,
-  deleteScientificWork,
   saveScientificWorkBulk,
+  deleteScientificWork,
+  updateScientificWork, // ✅ WAJIB ADA
 
-  // ===== INTELLECTUAL PROPERTY =====
   getIntellectualPropertyByLecturer,
   addIntellectualProperty,
   updateIntellectualProperty,
@@ -35,63 +31,216 @@ import {
 } from "../controllers/lecturerController";
 
 import { uploadLecturer } from "../middleware/uploadLecturer";
+import { authMiddleware } from "../middleware/authMiddleware";
+import { allowRoles } from "../middleware/roleMiddleware";
+import { allowSelfOrAdmin } from "../middleware/ownershipMiddleware";
+import { allowResearchOwnerOrAdmin } from "../middleware/researchOwnerMiddleware";
+import { allowCommunityServiceOwnerOrAdmin } from "../middleware/communityServiceOwnerMiddleware";
+import { allowScientificWorkOwnerOrAdmin } from "../middleware/scientificWorkOwnerMiddleware";
+import { allowIntellectualPropertyOwnerOrAdmin } from "../middleware/allowIntellectualPropertyOwnerOrAdmin"; // ✅ TAMBAHAN SAJA
 
 const router = Router();
 
 /* ======================================================
-   LECTURER LIST
+   LECTURER LIST (ADMIN ONLY)
 ====================================================== */
-router.get("/", getAllLecturers);
+router.get(
+  "/",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  getAllLecturers
+);
 
 /* ======================================================
    LECTURER PROFILE
 ====================================================== */
-router.get("/:userId", getLecturerProfile);
+router.get(
+  "/:userId",
+  authMiddleware,
+  allowSelfOrAdmin,
+  getLecturerProfile
+);
 
 router.put(
   "/:userId/photo",
+  authMiddleware,
+  allowSelfOrAdmin,
   uploadLecturer.single("photo"),
   updateLecturerProfile
 );
 
-router.put("/:userId", json(), updateLecturerProfile);
+router.put(
+  "/:userId",
+  authMiddleware,
+  allowSelfOrAdmin,
+  json(),
+  updateLecturerProfile
+);
 
 /* ======================================================
-   RESEARCH CRUD  
+   RESEARCH ✅ (OWNER BASED)
 ====================================================== */
-router.get("/:userId/research", getResearchByLecturer);
-router.post("/:userId/research", addResearch);
-router.put("/research/:id", updateResearch);
-router.delete("/research/:id", deleteResearch);
+router.get(
+  "/:userId/research",
+  authMiddleware,
+  allowSelfOrAdmin,
+  getResearchByLecturer
+);
+
+router.post(
+  "/:userId/research",
+  authMiddleware,
+  allowSelfOrAdmin,
+  json(),
+  addResearch
+);
+
+router.post(
+  "/:userId/research/admin",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  json(),
+  addResearchByAdmin
+);
+
+router.put(
+  "/research/:id",
+  authMiddleware,
+  allowResearchOwnerOrAdmin,
+  json(),
+  updateResearch
+);
+
+router.delete(
+  "/research/:id",
+  authMiddleware,
+  allowResearchOwnerOrAdmin,
+  deleteResearch
+);
 
 /* ======================================================
-   EDUCATION HISTORY
+   EDUCATION
 ====================================================== */
-router.post("/:userId/education", addEducationHistory);
-router.put("/education/:id", updateEducationHistory);
-router.delete("/education/:id", deleteEducationHistory);
+router.post(
+  "/:userId/education",
+  authMiddleware,
+  allowSelfOrAdmin,
+  json(),
+  addEducationHistory
+);
+
+router.put(
+  "/education/:id",
+  authMiddleware,
+  allowSelfOrAdmin,
+  json(),
+  updateEducationHistory
+);
+
+router.delete(
+  "/education/:id",
+  authMiddleware,
+  allowSelfOrAdmin,
+  deleteEducationHistory
+);
 
 /* ======================================================
-   COMMUNITY SERVICE (PENGABDIAN)
+   COMMUNITY SERVICE ✅ (OWNER BASED)
 ====================================================== */
-router.get("/:userId/community-service", getCommunityServiceByLecturer);
-router.post("/:userId/community-service", addCommunityService);
-router.put("/community-service/:id", updateCommunityService);
-router.delete("/community-service/:id", deleteCommunityService);
+router.get(
+  "/:userId/community-service",
+  authMiddleware,
+  allowSelfOrAdmin,
+  getCommunityServiceByLecturer
+);
+
+router.post(
+  "/:userId/community-service",
+  authMiddleware,
+  allowSelfOrAdmin,
+  json(),
+  addCommunityService
+);
+
+router.put(
+  "/community-service/:id",
+  authMiddleware,
+  allowCommunityServiceOwnerOrAdmin,
+  json(),
+  updateCommunityService
+);
+
+router.delete(
+  "/community-service/:id",
+  authMiddleware,
+  allowCommunityServiceOwnerOrAdmin,
+  deleteCommunityService
+);
 
 /* ======================================================
-   SCIENTIFIC WORK (KARYA ILMIAH)
+   SCIENTIFIC WORK ✅ (OWNER BASED — FIX)
 ====================================================== */
-router.get("/lecturer/:userId/scientific-work",getScientificWorkByLecturer);
-router.post("/lecturer/:userId/scientific-work/bulk",saveScientificWorkBulk);
-router.delete("/scientific-work/:id",deleteScientificWork);
+router.get(
+  "/:userId/scientific-work",
+  authMiddleware,
+  allowSelfOrAdmin,
+  getScientificWorkByLecturer
+);
+
+router.post(
+  "/:userId/scientific-work/bulk",
+  authMiddleware,
+  allowSelfOrAdmin,
+  json(),
+  saveScientificWorkBulk
+);
+
+router.put(
+  "/scientific-work/:id",
+  authMiddleware,
+  allowScientificWorkOwnerOrAdmin, // ✅ FIX
+  json(),
+  updateScientificWork
+);
+
+router.delete(
+  "/scientific-work/:id",
+  authMiddleware,
+  allowScientificWorkOwnerOrAdmin, // ✅ FIX
+  deleteScientificWork
+);
 
 /* ======================================================
-   INTELLECTUAL PROPERTY (HKI)
+   INTELLECTUAL PROPERTY ✅ (OWNER BASED — FINAL FIX)
 ====================================================== */
-router.get("/:userId/intellectual-property", getIntellectualPropertyByLecturer);
-router.post("/:userId/intellectual-property", addIntellectualProperty);
-router.put("/intellectual-property/:id", updateIntellectualProperty);
-router.delete("/intellectual-property/:id", deleteIntellectualProperty);
+router.get(
+  "/:userId/intellectual-property",
+  authMiddleware,
+  allowSelfOrAdmin,
+  getIntellectualPropertyByLecturer
+);
+
+router.post(
+  "/:userId/intellectual-property",
+  authMiddleware,
+  allowSelfOrAdmin,
+  json(),
+  addIntellectualProperty
+);
+
+router.put(
+  "/intellectual-property/:id",
+  authMiddleware,
+  allowIntellectualPropertyOwnerOrAdmin, // ✅ SATU-SATUNYA PERUBAHAN LOGIKA
+  json(),
+  updateIntellectualProperty
+);
+
+router.delete(
+  "/intellectual-property/:id",
+  authMiddleware,
+  allowIntellectualPropertyOwnerOrAdmin, // ✅ SATU-SATUNYA PERUBAHAN LOGIKA
+  deleteIntellectualProperty
+);
 
 export default router;

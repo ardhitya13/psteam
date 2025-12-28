@@ -2,10 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import Swal from "sweetalert2";
 import { ProductItem } from "./ProductManager";
 
 const API_URL = "http://localhost:4000/api/products";
 const BASE_URL = "http://localhost:4000";
+
+/* ==============================
+   JWT AUTH HEADER
+================================ */
+const getAuthHeaders = (): HeadersInit => {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export default function EditProductModal({
   data,
@@ -14,7 +24,7 @@ export default function EditProductModal({
 }: {
   data: ProductItem;
   onClose: () => void;
-  onSubmit: () => void; // FIX
+  onSubmit: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
 
@@ -48,13 +58,50 @@ export default function EditProductModal({
   }, [file]);
 
   const generateYears = () => {
-    let arr: string[] = [];
+    const arr: string[] = [];
     for (let y = 2010; y <= 2035; y++) arr.push(`${y}/${y + 1}`);
     return arr;
   };
 
+  /* ==============================
+     VALIDATION
+  ================================ */
+  const validateForm = () => {
+    const errors: string[] = [];
+
+    if (!form.title.trim()) errors.push("Judul");
+    if (!form.description.trim()) errors.push("Deskripsi");
+    if (!form.category) errors.push("Kategori");
+    if (!form.academicYear) errors.push("Tahun Akademik");
+    if (!form.publishDate) errors.push("Tanggal Publish");
+
+    return errors;
+  };
+
+  /* ==============================
+     SUBMIT EDIT (JWT PROTECTED)
+  ================================ */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors = validateForm();
+
+    if (errors.length > 0) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Data Belum Lengkap",
+        html: `
+          <div style="text-align:left">
+            <p>Mohon lengkapi field berikut:</p>
+            <ul style="margin-top:8px">
+              ${errors.map((e) => `<li>• ${e}</li>`).join("")}
+            </ul>
+          </div>
+        `,
+        confirmButtonColor: "#2563eb",
+      });
+      return;
+    }
 
     const fd = new FormData();
     fd.append("title", form.title);
@@ -66,12 +113,31 @@ export default function EditProductModal({
 
     if (file) fd.append("image", file);
 
-    await fetch(`${API_URL}/${form.id}`, {
+    const res = await fetch(`${API_URL}/${form.id}`, {
       method: "PUT",
+      headers: getAuthHeaders(), // 🔐 JWT FIX
       body: fd,
     });
 
-    await onSubmit(); // FIX
+    if (!res.ok) {
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan Perubahan",
+        text: "Terjadi kesalahan pada server. Silakan coba lagi.",
+        confirmButtonColor: "#dc2626",
+      });
+      return;
+    }
+
+    await Swal.fire({
+      icon: "success",
+      title: "Berhasil",
+      text: "Produk berhasil diperbarui.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+
+    await onSubmit();
     onClose();
   };
 
@@ -84,8 +150,11 @@ export default function EditProductModal({
           <X />
         </button>
 
-        <h2 className="text-xl font-bold mb-4 text-blue-900">Edit Produk</h2>
+        <h2 className="text-xl font-bold mb-4 text-blue-900">
+          Edit Produk
+        </h2>
 
+        {/* === UI TIDAK DIUBAH === */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Thumbnail */}
           <div>

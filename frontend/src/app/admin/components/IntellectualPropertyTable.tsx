@@ -9,6 +9,7 @@ import AdminSidebar from "./AdminSidebar";
 import {
   getAllLecturers,
   addIntellectualProperty,
+  addIntellectualPropertyByAdmin,
   updateIntellectualProperty,
   deleteIntellectualProperty,
 } from "../../../lib/lecturer";
@@ -110,40 +111,53 @@ export default function IntellectualPropertyTable() {
      CRUD HANDLER
   ========================= */
   async function handleUpdateIP(payload: {
-    lecId: number;
-    intellectualpropertyList: IPItem[];
-  }) {
-    const { lecId, intellectualpropertyList } = payload;
+  lecId: number;
+  intellectualpropertyList: IPItem[];
+}) {
+  const { lecId, intellectualpropertyList } = payload;
 
-    try {
-      const lecturer = lecturers.find((l) => l.id === lecId);
-      const original = lecturer?.intellectualproperty || [];
+  try {
+    const lecturer = lecturers.find((l) => l.id === lecId);
+    const original = lecturer?.intellectualproperty || [];
 
-      for (const old of original) {
-        const stillExist = intellectualpropertyList.some(
-          (i) => i.id === old.id
-        );
-        if (!stillExist && old.id) {
-          await deleteIntellectualProperty(old.id);
-        }
+    // 🔴 HAPUS DATA YANG DIHILANGKAN
+    for (const old of original) {
+      const stillExist = intellectualpropertyList.some(
+        (i) => i.id === old.id
+      );
+      if (!stillExist && old.id) {
+        await deleteIntellectualProperty(old.id);
       }
-
-      for (const item of intellectualpropertyList) {
-        if (!item.title.trim()) continue;
-
-        if (!item.id) {
-          await addIntellectualProperty(lecId, item);
-        } else {
-          await updateIntellectualProperty(item.id, item);
-        }
-      }
-
-      await loadLecturers();
-    } catch (err) {
-      console.error("UPDATE HKI ERROR:", err);
-      alert("Gagal menyimpan HKI.");
     }
+
+    // 🟢 ADD / UPDATE
+    for (const item of intellectualpropertyList) {
+      if (!item.title.trim()) continue;
+
+      if (!item.id) {
+        // ADD (ADMIN)
+        await addIntellectualPropertyByAdmin(lecId, {
+          title: item.title,
+          type: item.type,
+          year: item.year,
+        });
+      } else {
+        // UPDATE
+        await updateIntellectualProperty(item.id, {
+          title: item.title,
+          type: item.type,
+          year: item.year,
+        });
+      }
+    }
+
+    // 🔥 LOAD ULANG SETELAH SEMUA SELESAI
+    await loadLecturers();
+  } catch (err) {
+    console.error("UPDATE HKI ERROR:", err);
+    alert("Gagal menyimpan HKI.");
   }
+}
 
   /* =========================
      SEARCH FILTER
@@ -211,7 +225,7 @@ export default function IntellectualPropertyTable() {
         >
           {/* TITLE */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold uppercase">
+            <h1 className="text-3xl font-bold uppercase tracking-wide text-gray-900">
               HKI / PATEN DOSEN
             </h1>
             <p className="text-gray-600 text-sm">
@@ -249,8 +263,8 @@ export default function IntellectualPropertyTable() {
                 }}
                 placeholder="Cari nama / prodi / email..."
                 className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 ${searchOpen
-                    ? "w-56 pl-10 pr-3 opacity-100"
-                    : "w-10 opacity-0 pointer-events-none"
+                  ? "w-56 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
                   }`}
               />
             </div>
@@ -381,6 +395,7 @@ export default function IntellectualPropertyTable() {
                                 <table className="w-full text-sm border">
                                   <thead className="bg-blue-100">
                                     <tr>
+                                      <th className="border px-3 py-2 w-12 text-center">No</th>
                                       <th className="border px-3 py-2">
                                         Judul HKI
                                       </th>
@@ -406,12 +421,13 @@ export default function IntellectualPropertyTable() {
                                   <tbody>
                                     {lec.intellectualproperty
                                       .filter((i) =>
-                                        filterType === "Semua"
-                                          ? true
-                                          : i.type === filterType
+                                        filterType === "Semua" ? true : i.type === filterType
                                       )
-                                      .map((i) => (
-                                        <tr key={i.id}>
+                                      .map((i, idx) => (
+                                        <tr key={i.id ?? idx} className="hover:bg-blue-50">
+                                          <td className="border px-3 py-2 text-center">
+                                            {idx + 1}
+                                          </td>
                                           <td className="border px-3 py-2">
                                             {i.title}
                                           </td>
@@ -426,10 +442,7 @@ export default function IntellectualPropertyTable() {
 
                                     {lec.intellectualproperty.length === 0 && (
                                       <tr>
-                                        <td
-                                          colSpan={3}
-                                          className="text-center py-4 text-gray-500 italic"
-                                        >
+                                        <td colSpan={4} className="text-center py-4 text-gray-500 italic">
                                           Tidak ada HKI.
                                         </td>
                                       </tr>
@@ -460,8 +473,8 @@ export default function IntellectualPropertyTable() {
                 }}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === 1
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &lt;
@@ -476,8 +489,8 @@ export default function IntellectualPropertyTable() {
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`px-2 py-1 rounded text-xs border ${currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-300"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-300"
                       }`}
                   >
                     {pageNum}
@@ -494,8 +507,8 @@ export default function IntellectualPropertyTable() {
                 }}
                 disabled={currentPage === totalPages}
                 className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
-                    ? "bg-gray-200 text-gray-400"
-                    : "bg-gray-100 hover:bg-gray-300"
+                  ? "bg-gray-200 text-gray-400"
+                  : "bg-gray-100 hover:bg-gray-300"
                   }`}
               >
                 &gt;

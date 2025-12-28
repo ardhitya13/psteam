@@ -5,9 +5,8 @@ import ModalWrapper from "./ModalWrapper";
 import { Lecturer, EducationHistory } from "./LecturersTable";
 import { createPortal } from "react-dom";
 
-/* =========================
-   COMPONENT
-========================= */
+type SuccessMode = "add" | "edit";
+
 export default function EditLecturerModal({
   isOpen,
   onClose,
@@ -21,15 +20,15 @@ export default function EditLecturerModal({
 }) {
   const [formData, setFormData] = useState<Lecturer | null>(null);
 
-  /* ALERT STATE */
+  /* ALERT */
   const [successAlert, setSuccessAlert] = useState(false);
+  const [successMode, setSuccessMode] = useState<SuccessMode>("add");
+  const [successList, setSuccessList] = useState<EducationHistory[]>([]);
+
   const [deleteAlert, setDeleteAlert] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
-
-  /* =========================
-     LOAD DEFAULT DATA
-  ========================= */
+  /* LOAD DEFAULT */
   useEffect(() => {
     if (defaultData) {
       const clone = JSON.parse(JSON.stringify(defaultData));
@@ -38,23 +37,20 @@ export default function EditLecturerModal({
     }
   }, [defaultData]);
 
-  /* =========================
-     RESET
-  ========================= */
+  /* RESET */
   useEffect(() => {
     if (!isOpen) {
       setFormData(null);
       setSuccessAlert(false);
       setDeleteAlert(false);
       setDeleteIndex(null);
+      setSuccessList([]);
     }
   }, [isOpen]);
 
   if (!isOpen || !formData) return null;
 
-  /* =========================
-     HANDLERS
-  ========================= */
+  /* HANDLERS */
   function handleEduChange(
     index: number,
     key: keyof EducationHistory,
@@ -69,16 +65,17 @@ export default function EditLecturerModal({
   }
 
   function addEduRow() {
-    setFormData((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        educationHistory: [
-          ...prev.educationHistory,
-          { degree: "", university: "", major: "" },
-        ],
-      };
-    });
+    setFormData((prev) =>
+      prev
+        ? {
+            ...prev,
+            educationHistory: [
+              ...prev.educationHistory,
+              { degree: "", university: "", major: "" },
+            ],
+          }
+        : prev
+    );
   }
 
   function askDelete(index: number) {
@@ -103,26 +100,44 @@ export default function EditLecturerModal({
     setDeleteIndex(null);
   }
 
-  /* =========================
-     SUBMIT (AMAN)
-  ========================= */
+  /* SUBMIT */
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData) return;
 
-    const cleanedEducation = formData.educationHistory.filter(
+    const clean = formData.educationHistory.filter(
       (e) =>
-        e.degree.trim() !== "" ||
-        e.university.trim() !== "" ||
-        e.major.trim() !== ""
+        e.degree.trim() ||
+        e.university.trim() ||
+        e.major.trim()
     );
 
-    const cleaned: Lecturer = {
-      ...formData,
-      educationHistory: cleanedEducation,
-    };
+    const original = defaultData?.educationHistory || [];
 
-    onSubmit(cleaned);
+    const added = clean.filter((_, i) => !original[i]);
+    const edited = clean.filter((c, i) => {
+      const o = original[i];
+      return (
+        o &&
+        (o.degree !== c.degree ||
+          o.university !== c.university ||
+          o.major !== c.major)
+      );
+    });
+
+    if (added.length > 0) {
+      setSuccessMode("add");
+      setSuccessList(added);
+    } else {
+      setSuccessMode("edit");
+      setSuccessList(edited);
+    }
+
+    onSubmit({
+      ...formData,
+      educationHistory: clean,
+    });
+
     setSuccessAlert(true);
   }
 
@@ -134,9 +149,7 @@ export default function EditLecturerModal({
     "Doktor (S3)",
   ];
 
-  /* =========================
-     RENDER
-  ========================= */
+  /* RENDER */
   return (
     <ModalWrapper
       isOpen={isOpen}
@@ -144,10 +157,9 @@ export default function EditLecturerModal({
         if (successAlert || deleteAlert) return;
         onClose();
       }}
-      lockScroll={successAlert || deleteAlert} // ✅ SEKARANG VALID
+      lockScroll={successAlert || deleteAlert}
     >
-
-      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl">
+      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl bg-white text-gray-900">
         <h2 className="text-2xl font-bold text-center mb-6">
           Edit Riwayat Pendidikan Dosen
         </h2>
@@ -159,7 +171,10 @@ export default function EditLecturerModal({
             <ReadOnlyField label="Nama" value={formData.name} />
             <ReadOnlyField label="Email" value={formData.email} />
             <ReadOnlyField label="Program Studi" value={formData.studyProgram} />
-            <ReadOnlyField label="Spesialisasi" value={formData.specialization} />
+            <ReadOnlyField
+              label="Spesialisasi"
+              value={formData.specialization}
+            />
           </div>
         </div>
 
@@ -179,10 +194,10 @@ export default function EditLecturerModal({
             {formData.educationHistory.map((edu, index) => (
               <div
                 key={index}
-                className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-3 rounded-lg shadow mb-4"
+                className="bg-white p-4 rounded-lg shadow mb-4"
               >
                 <select
-                  className="border rounded-lg p-2"
+                  className="border rounded-lg p-2 w-full mb-3 text-gray-900 bg-white"
                   value={edu.degree}
                   onChange={(e) =>
                     handleEduChange(index, "degree", e.target.value)
@@ -197,7 +212,7 @@ export default function EditLecturerModal({
                 </select>
 
                 <input
-                  className="border rounded-lg p-2"
+                  className="border rounded-lg p-2 w-full mb-3 text-gray-900"
                   placeholder="Universitas"
                   value={edu.university}
                   onChange={(e) =>
@@ -205,21 +220,23 @@ export default function EditLecturerModal({
                   }
                 />
 
-                <div className="flex gap-2">
-                  <input
-                    className="border rounded-lg p-2 w-full"
-                    placeholder="Jurusan"
-                    value={edu.major}
-                    onChange={(e) =>
-                      handleEduChange(index, "major", e.target.value)
-                    }
-                  />
+                <input
+                  className="border rounded-lg p-2 w-full mb-4 text-gray-900"
+                  placeholder="Jurusan"
+                  value={edu.major}
+                  onChange={(e) =>
+                    handleEduChange(index, "major", e.target.value)
+                  }
+                />
+
+                {/* 🔻 TOMBOL HAPUS DI BAWAH */}
+                <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={() => askDelete(index)}
-                    className="bg-red-500 text-white px-3 rounded-lg"
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg"
                   >
-                    X
+                    Hapus
                   </button>
                 </div>
               </div>
@@ -246,8 +263,27 @@ export default function EditLecturerModal({
         {/* SUCCESS ALERT */}
         {successAlert && (
           <Alert
-            title="Berhasil!"
-            message="Perubahan riwayat pendidikan berhasil disimpan."
+            title={
+              successMode === "add"
+                ? "Riwayat Pendidikan Ditambahkan"
+                : "Riwayat Pendidikan Diperbarui"
+            }
+            message={
+              <div className="text-left text-gray-900">
+                <p className="mb-2 font-semibold">
+                  {successMode === "add"
+                    ? "Riwayat pendidikan baru:"
+                    : "Riwayat pendidikan diperbarui:"}
+                </p>
+                <ul className="list-disc pl-5 space-y-1">
+                  {successList.map((s, idx) => (
+                    <li key={idx}>
+                      {s.degree} — {s.university} ({s.major})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            }
             onOk={() => {
               setSuccessAlert(false);
               onClose();
@@ -270,9 +306,7 @@ export default function EditLecturerModal({
   );
 }
 
-/* =========================
-   HELPERS
-========================= */
+/* HELPERS */
 function ReadOnlyField({ label, value }: { label: string; value: any }) {
   return (
     <div>
@@ -280,41 +314,25 @@ function ReadOnlyField({ label, value }: { label: string; value: any }) {
       <input
         disabled
         value={value || "-"}
-        className="w-full bg-gray-200 border rounded px-3 py-2"
+        className="w-full bg-gray-200 border rounded px-3 py-2 text-gray-900"
       />
     </div>
   );
 }
 
-function Alert({
-  title,
-  message,
-  onOk,
-  onCancel,
-  danger,
-}: any) {
-  // 🔒 LOCK BODY SCROLL
-  useEffect(() => {
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, []);
-
+function Alert({ title, message, onOk, onCancel, danger }: any) {
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg p-6 text-center w-full max-w-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl p-6 w-full max-w-sm border shadow-lg">
         <h3
-          className={`font-bold mb-2 ${
-            danger ? "text-red-600" : "text-blue-600"
+          className={`font-bold mb-3 text-lg ${
+            danger ? "text-red-600" : "text-blue-700"
           }`}
         >
           {title}
         </h3>
 
-        <p className="mb-4">{message}</p>
+        <div className="mb-4 text-sm text-gray-900">{message}</div>
 
         <div className="flex justify-center gap-3">
           {onCancel && (

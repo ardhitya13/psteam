@@ -11,21 +11,26 @@ export type SubmissionPayload = {
 
 const BASE_URL = "http://localhost:4000/api/submissions";
 
-/* GET ALL PENDING */
-export async function getPendingSubmissions() {
-  const res = await fetch(`${BASE_URL}/pending`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Gagal mengambil pengajuan pending");
-  return res.json();
-}
+/* ===============================
+   AUTH HEADER (ADMIN)
+================================ */
+const getAuthHeaders = (): HeadersInit => {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("token");
 
-/* GET ALL APPROVED */
-export async function getApprovedSubmissions() {
-  const res = await fetch(`${BASE_URL}/approved`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Gagal mengambil pengajuan approved");
-  return res.json();
-}
+  if (!token) {
+    console.warn("⚠️ Token tidak ditemukan di localStorage");
+    return {};
+  }
 
-/* CREATE SUBMISSION */
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+/* ===============================
+   PUBLIC — CREATE SUBMISSION
+================================ */
 export async function createSubmission(payload: SubmissionPayload) {
   const res = await fetch(BASE_URL, {
     method: "POST",
@@ -35,30 +40,84 @@ export async function createSubmission(payload: SubmissionPayload) {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Gagal mengirim pengajuan");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Gagal mengirim pengajuan");
+  }
+
   return res.json();
 }
 
-/* APPROVE SUBMISSION */
+/* ===============================
+   ADMIN — GET PENDING
+================================ */
+export async function getPendingSubmissions() {
+  const res = await fetch(`${BASE_URL}/pending`, {
+    headers: {
+      ...getAuthHeaders(),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengambil pengajuan pending (Unauthorized)");
+  }
+
+  return res.json();
+}
+
+/* ===============================
+   ADMIN — GET APPROVED
+================================ */
+export async function getApprovedSubmissions() {
+  const res = await fetch(`${BASE_URL}/approved`, {
+    headers: {
+      ...getAuthHeaders(),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengambil pengajuan approved (Unauthorized)");
+  }
+
+  return res.json();
+}
+
+/* ===============================
+   ADMIN — APPROVE SUBMISSION
+================================ */
 export async function approveSubmission(id: number) {
   const res = await fetch(`${BASE_URL}/${id}/approve`, {
     method: "PATCH",
+    headers: {
+      ...getAuthHeaders(),
+    },
   });
 
-  if (!res.ok) throw new Error("Gagal menyetujui pengajuan");
+  if (!res.ok) {
+    throw new Error("Gagal menyetujui pengajuan");
+  }
+
   return res.json();
 }
 
-/* REJECT SUBMISSION */
+/* ===============================
+   ADMIN — REJECT SUBMISSION
+================================ */
 export async function rejectSubmission(id: number, adminNote?: string) {
   const res = await fetch(`${BASE_URL}/${id}/reject`, {
     method: "PATCH",
     headers: {
+      ...getAuthHeaders(),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ adminNote }),
   });
 
-  if (!res.ok) throw new Error("Gagal menolak pengajuan");
+  if (!res.ok) {
+    throw new Error("Gagal menolak pengajuan");
+  }
+
   return res.json();
 }

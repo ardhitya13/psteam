@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LecturerGuard({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function LecturerGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -21,15 +18,18 @@ export default function LecturerGuard({
 
     try {
       const parsed = JSON.parse(user);
-
       if (parsed.role !== "dosen") {
         router.replace("/login");
+        return;
       }
+      setChecking(false);
     } catch {
       localStorage.clear();
       router.replace("/login");
     }
   }, [router]);
+
+  if (checking) return null; // atau loader
 
   return <>{children}</>;
 }

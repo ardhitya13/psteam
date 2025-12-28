@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { uploadTeam } from "../middleware/uploadTeam";
+import { authMiddleware } from "../middleware/authMiddleware";
+import { allowRoles } from "../middleware/roleMiddleware";
 import {
   getTeams,
   createTeam,
@@ -11,18 +13,58 @@ import {
 
 const router = Router();
 
-// CREATE PROJECT — multiple images
-router.post("/", uploadTeam.array("images"), createTeam);
+/* =====================================================
+   PUBLIC — BOLEH DIAKSES TANPA LOGIN
+===================================================== */
 
-// ADD MEMBER — single image
-router.post("/:id/member", uploadTeam.single("image"), addMember);
-
-// UPDATE MEMBER — single image
-router.put("/member/:memberId", uploadTeam.single("image"), updateMember);
-
-// GET & DELETE
+// 🔓 LIHAT SEMUA PROJECT TEAM (PUBLIC)
 router.get("/", getTeams);
-router.delete("/member/:memberId", deleteMember);
-router.delete("/:id", deleteProject);
+
+/* =====================================================
+   PROTECTED — WAJIB LOGIN (ADMIN / SUPERADMIN)
+===================================================== */
+
+// 🔐 CREATE PROJECT — multiple images
+router.post(
+  "/",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  uploadTeam.array("images"),
+  createTeam
+);
+
+// 🔐 ADD MEMBER — single image
+router.post(
+  "/:id/member",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  uploadTeam.single("image"),
+  addMember
+);
+
+// 🔐 UPDATE MEMBER — single image
+router.put(
+  "/member/:memberId",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  uploadTeam.single("image"),
+  updateMember
+);
+
+// 🔐 DELETE MEMBER
+router.delete(
+  "/member/:memberId",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  deleteMember
+);
+
+// 🔐 DELETE PROJECT
+router.delete(
+  "/:id",
+  authMiddleware,
+  allowRoles("admin", "superadmin"),
+  deleteProject
+);
 
 export default router;

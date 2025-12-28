@@ -13,7 +13,7 @@ export type TrainingRegistrationPayload = {
 const BASE_URL = "http://localhost:4000/api/training-registrations";
 
 /* ================================
-   GET ALL (DEBUG / ADMIN PENUH)
+   GET ALL (ADMIN)
 ================================ */
 export async function getAllRegistrations() {
   const res = await fetch(`${BASE_URL}`, { cache: "no-store" });
@@ -25,8 +25,24 @@ export async function getAllRegistrations() {
    GET PENDING
 ================================ */
 export async function getPendingRegistrations() {
-  const res = await fetch(`${BASE_URL}/pending`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Gagal mengambil pendaftaran pending");
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Token admin tidak ditemukan");
+  }
+
+  const res = await fetch(`${BASE_URL}/pending`, {
+    cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Gagal mengambil pendaftaran pending: ${text}`);
+  }
+
   return res.json();
 }
 
@@ -40,7 +56,7 @@ export async function getApprovedRegistrations() {
 }
 
 /* ================================
-   CREATE REGISTRATION
+   CREATE REGISTRATION (PUBLIC)
 ================================ */
 export async function createTrainingRegistration(
   payload: TrainingRegistrationPayload
@@ -56,21 +72,35 @@ export async function createTrainingRegistration(
 }
 
 /* ================================
-   UPDATE STATUS (APPROVE / REJECT)
+   UPDATE STATUS
 ================================ */
 export async function updateTrainingStatus(
   id: number,
   status: "approved" | "rejected"
 ) {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Token admin tidak ditemukan");
+  }
+
   const res = await fetch(`${BASE_URL}/${id}/status`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, // 🔥 INI YANG HILANG
+    },
     body: JSON.stringify({ status }),
   });
 
-  if (!res.ok) throw new Error("Gagal memperbarui status");
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Gagal memperbarui status: ${text}`);
+  }
+
   return res.json();
 }
+
 
 /* ================================
    DELETE REGISTRATION

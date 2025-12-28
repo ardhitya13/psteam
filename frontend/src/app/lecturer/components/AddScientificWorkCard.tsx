@@ -77,7 +77,7 @@ export default function AddScientificWorkCard({
               <option value="Prosiding Internasional">
                 Prosiding Internasional
               </option>
-              <option value="Buku Ajar">Buku Ajar</option>
+              <option value="Lain-Lain">Lain-Lain</option>
             </select>
           </div>
 

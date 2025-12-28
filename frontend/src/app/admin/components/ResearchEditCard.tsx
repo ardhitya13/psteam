@@ -20,6 +20,8 @@ type LecturerInfo = {
   specialization: string;
 };
 
+type SuccessMode = "add" | "edit";
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -33,7 +35,10 @@ interface Props {
         specialization: string;
       }
     | null;
-  onSubmit: (payload: { lecId: number; researchList: ResearchItem[] }) => void;
+  onSubmit: (payload: {
+    lecId: number;
+    researchList: ResearchItem[];
+  }) => void;
 }
 
 /* =========================
@@ -51,9 +56,10 @@ export default function EditResearchCard({
     lecturer: LecturerInfo;
   } | null>(null);
 
-  /* ALERT STATE */
+  /* ALERT */
   const [successAlert, setSuccessAlert] = useState(false);
-  const [successTitle, setSuccessTitle] = useState("");
+  const [successList, setSuccessList] = useState<ResearchItem[]>([]);
+  const [successMode, setSuccessMode] = useState<SuccessMode>("add");
 
   const [deleteAlert, setDeleteAlert] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
@@ -78,19 +84,19 @@ export default function EditResearchCard({
           specialization: defaultData.specialization,
         },
       });
+    } else {
+      setForm(null);
     }
   }, [defaultData]);
 
-  /* =========================
-     RESET
-  ========================= */
+  /* RESET */
   useEffect(() => {
     if (!isOpen) {
       setForm(null);
       setSuccessAlert(false);
       setDeleteAlert(false);
       setDeleteIndex(null);
-      setSuccessTitle("");
+      setSuccessList([]);
     }
   }, [isOpen]);
 
@@ -136,9 +142,7 @@ export default function EditResearchCard({
       if (!prev) return prev;
       return {
         ...prev,
-        researchList: prev.researchList.filter(
-          (_, i) => i !== deleteIndex
-        ),
+        researchList: prev.researchList.filter((_, i) => i !== deleteIndex),
       };
     });
 
@@ -151,7 +155,7 @@ export default function EditResearchCard({
     if (!form) return;
 
     const clean = form.researchList.filter(
-      (r) => r.title.trim() !== "" && r.year >= 1900
+      (r) => r.title.trim() && r.year >= 1900
     );
 
     if (clean.length === 0) {
@@ -159,12 +163,30 @@ export default function EditResearchCard({
       return;
     }
 
+    const original = defaultData?.researchList || [];
+
+    const added = clean.filter((r) => !r.id);
+    const edited = clean.filter((r) =>
+      original.some(
+        (o) =>
+          o.id === r.id &&
+          (o.title !== r.title || o.year !== r.year)
+      )
+    );
+
+    if (added.length > 0) {
+      setSuccessMode("add");
+      setSuccessList(added);
+    } else {
+      setSuccessMode("edit");
+      setSuccessList(edited);
+    }
+
     onSubmit({
       lecId: form.lecId,
       researchList: clean,
     });
 
-    setSuccessTitle(clean[0]?.title || "Penelitian");
     setSuccessAlert(true);
   }
 
@@ -172,16 +194,8 @@ export default function EditResearchCard({
      RENDER
   ========================= */
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onClose={() => {
-        if (successAlert || deleteAlert) return;
-        onClose();
-      }}
-      lockScroll={successAlert || deleteAlert}
-    >
-      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl text-black">
-        {/* HEADER */}
+    <ModalWrapper isOpen={isOpen} onClose={onClose}>
+      <div className="w-full max-w-3xl mx-auto p-6 rounded-2xl bg-white text-gray-800">
         <h2 className="text-2xl font-bold text-center mb-6">
           Edit Penelitian Dosen
         </h2>
@@ -192,14 +206,8 @@ export default function EditResearchCard({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ReadOnly label="Nama" value={form.lecturer.name} />
             <ReadOnly label="Email" value={form.lecturer.email} />
-            <ReadOnly
-              label="Program Studi"
-              value={form.lecturer.studyProgram}
-            />
-            <ReadOnly
-              label="Spesialisasi"
-              value={form.lecturer.specialization}
-            />
+            <ReadOnly label="Program Studi" value={form.lecturer.studyProgram} />
+            <ReadOnly label="Spesialisasi" value={form.lecturer.specialization} />
           </div>
         </div>
 
@@ -219,13 +227,17 @@ export default function EditResearchCard({
             {form.researchList.map((r, idx) => (
               <div
                 key={idx}
-                className="bg-white p-4 rounded-lg shadow mt-4"
+                className="bg-white p-4 rounded-lg shadow mt-4 border border-gray-300"
               >
-                <label className="text-sm font-semibold">
+                <div className="font-semibold text-sm text-gray-700 mb-2">
+                  No. {idx + 1}
+                </div>
+
+                <label className="text-sm font-semibold text-gray-700">
                   Judul Penelitian
                 </label>
                 <textarea
-                  className="border rounded-lg p-2 w-full mt-1"
+                  className="border rounded-lg p-2 w-full mt-1 bg-white text-gray-900"
                   value={r.title}
                   onChange={(e) =>
                     updateResearchRow(idx, "title", e.target.value)
@@ -236,21 +248,17 @@ export default function EditResearchCard({
                   <input
                     type="number"
                     min={1900}
-                    className="border rounded-lg p-2 w-32"
+                    className="border rounded-lg p-2 w-32 text-gray-900 bg-white"
                     value={r.year}
                     onChange={(e) =>
-                      updateResearchRow(
-                        idx,
-                        "year",
-                        Number(e.target.value)
-                      )
+                      updateResearchRow(idx, "year", Number(e.target.value))
                     }
                   />
 
                   <button
                     type="button"
                     onClick={() => askDelete(idx)}
-                    className="ml-auto bg-red-500 text-white px-3 py-1 rounded"
+                    className="ml-auto bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
                   >
                     Hapus
                   </button>
@@ -263,7 +271,7 @@ export default function EditResearchCard({
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 bg-gray-300 rounded-lg"
+              className="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg"
             >
               Batal
             </button>
@@ -279,8 +287,25 @@ export default function EditResearchCard({
         {/* SUCCESS ALERT */}
         {successAlert && (
           <Alert
-            title="Berhasil!"
-            message={`Penelitian "${successTitle}" berhasil diperbarui.`}
+            title={
+              successMode === "add"
+                ? "Berhasil Menambahkan Penelitian!"
+                : "Berhasil Memperbarui Penelitian!"
+            }
+            message={
+              <div className="text-left text-gray-800">
+                <p className="mb-2 font-semibold">
+                  {successMode === "add"
+                    ? "Penelitian baru berhasil ditambahkan:"
+                    : "Penelitian berhasil diperbarui:"}
+                </p>
+                <ul className="list-decimal pl-5 space-y-1">
+                  {successList.map((r, idx) => (
+                    <li key={idx}>{r.title}</li>
+                  ))}
+                </ul>
+              </div>
+            }
             onOk={() => {
               setSuccessAlert(false);
               onClose();
@@ -309,47 +334,35 @@ export default function EditResearchCard({
 function ReadOnly({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <label className="text-sm font-semibold">{label}</label>
+      <label className="text-sm font-semibold text-gray-700">{label}</label>
       <input
         disabled
         value={value || "-"}
-        className="w-full bg-gray-200 border rounded px-3 py-2"
+        className="w-full bg-gray-200 border rounded px-3 py-2 text-gray-800"
       />
     </div>
   );
 }
 
-function Alert({
-  title,
-  message,
-  onOk,
-  onCancel,
-  danger,
-}: any) {
-  useEffect(() => {
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, []);
-
+function Alert({ title, message, onOk, onCancel, danger }: any) {
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg p-6 text-center w-full max-w-sm">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg p-6 w-full max-w-sm border shadow-lg">
         <h3
-          className={`font-bold mb-2 ${
+          className={`font-bold mb-3 ${
             danger ? "text-red-600" : "text-blue-600"
           }`}
         >
           {title}
         </h3>
-        <p className="mb-4">{message}</p>
+
+        <div className="mb-4 text-sm text-gray-800">{message}</div>
+
         <div className="flex justify-center gap-3">
           {onCancel && (
             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-gray-300 rounded"
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
             >
               Batal
             </button>

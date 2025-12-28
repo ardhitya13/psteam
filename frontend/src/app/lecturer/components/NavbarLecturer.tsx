@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, LogOut, User, KeyRound } from "lucide-react";
+import { LogOut, User, KeyRound } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -16,17 +16,46 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
   const [photo, setPhoto] = useState("");
   const [initial, setInitial] = useState("U");
 
-  // LOAD USER DATA FROM LOCAL STORAGE
+  /* ================= LOAD USER FROM LOCAL STORAGE ================= */
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+  async function loadUser() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-    setName(user.name || "");
-    setStudyProgram(user.studyProgram || "");
-    setPhoto(user.photo || "");
-    setInitial(user.name ? user.name.charAt(0).toUpperCase() : "U");
-  }, []);
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userId = payload.id;
 
-  // CLOSE DROPDOWN WHEN CLICK OUTSIDE
+    // 🔥 FETCH PROFIL LANGSUNG
+    const res = await fetch(
+      `http://localhost:4000/api/lecturer/${userId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const profile = await res.json();
+
+    const name = profile?.user?.name ?? "";
+    const study = profile?.studyProgram ?? "";
+    const photo = profile?.imageUrl
+      ? `http://localhost:4000${profile.imageUrl}`
+      : "";
+
+    setName(name);
+    setStudyProgram(study);
+    setPhoto(photo);
+    setInitial(name ? name[0].toUpperCase() : "U");
+
+    // cache
+    localStorage.setItem("userName", name);
+    localStorage.setItem("userStudyProgram", study);
+    localStorage.setItem("userPhoto", photo);
+  }
+
+  loadUser();
+}, []);
+
+  /* ================= CLOSE DROPDOWN ================= */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -40,7 +69,7 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🔐 LOGOUT JWT (FINAL)
+  /* ================= LOGOUT ================= */
   const handleLogout = () => {
     logout(router);
   };
@@ -50,27 +79,31 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
       <div className="max-w-screen-xl flex items-center justify-between mx-auto p-2">
         
         {/* LOGO */}
-        <a className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3">
           <div className="relative w-[120px] h-[30px] overflow-hidden">
             <Image
               src="/logopsteam1.png"
               alt="PSTEAM Logo"
               fill
               className="object-cover object-center"
+              priority
             />
           </div>
-        </a>
+        </div>
 
         {/* PROFILE DROPDOWN */}
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={() => setIsDropdownOpen((s) => !s)}
             className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-100 transition"
           >
             {photo ? (
               <img
                 src={photo}
                 alt="Profile"
+                onError={(e) =>
+                  (e.currentTarget.src = "/images/default-user.png")
+                }
                 className="w-10 h-10 rounded-full object-cover border border-gray-300"
               />
             ) : (
@@ -81,17 +114,19 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-3 w-56 bg-white shadow-lg rounded-xl border border-gray-100 py-2 text-sm animate-fade-in">
+            <div className="absolute right-0 mt-3 w-56 bg-white shadow-lg rounded-xl border border-gray-100 py-2 text-sm">
               
               {/* USER INFO */}
               <div className="px-4 py-2 border-b border-gray-100">
-                <p className="font-semibold text-gray-800">{name || "User"}</p>
+                <p className="font-semibold text-gray-800">
+                  {name || "User"}
+                </p>
                 <p className="text-gray-500 text-xs">
                   {studyProgram || "Program Studi tidak tersedia"}
                 </p>
               </div>
 
-              {/* PROFILE PAGE */}
+              {/* PROFILE */}
               <button
                 onClick={() => {
                   setIsDropdownOpen(false);

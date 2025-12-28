@@ -3,78 +3,71 @@ import { prisma } from "../db";
 import path from "path";
 import fs from "fs";
 
-// Ensure upload folder exists
+/* ============================================================
+   UPLOAD DIR
+============================================================ */
 const uploadDir = path.join(process.cwd(), "uploads", "training");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-function getPublicPath(file?: Express.Multer.File | undefined) {
+function getPublicPath(file: any) {
   return file ? `/uploads/training/${file.filename}` : null;
 }
 
-/* ===========================
-   HELPERS: safe serialize/parse
-   =========================== */
-function safeStringifyArray(val: any) {
-  // If val already string (assume serialized), return as-is
+/* ============================================================
+   HELPERS
+============================================================ */
+function safeStringify(val: any) {
+  if (val == null) return null;
   if (typeof val === "string") return val;
-  // If val is array/object, stringify
   try {
-    return JSON.stringify(val ?? []);
-  } catch (e) {
+    return JSON.stringify(val);
+  } catch {
     return JSON.stringify([]);
   }
 }
 
-function safeParseMaybeJSON(val: any) {
-  if (val == null) return [];
-  // If already array -> return
+function safeParse(val: any) {
+  if (!val) return [];
   if (Array.isArray(val)) return val;
-  // If string -> try parse
   if (typeof val === "string") {
     try {
       return JSON.parse(val);
-    } catch (e) {
-      // fallback: try to split by pipe (if you used that)
-      if (val.includes("|")) return val.split("|").map((s) => s.trim());
-      return [val];
+    } catch {
+      return [];
     }
   }
-  // any other -> wrap into array
-  return [val];
+  return [];
 }
 
 /* ============================================================
-   CREATE TRAINING
-   - Serialize array-like fields to JSON strings when saving
-   ============================================================ */
+   TRAINING CRUD
+============================================================ */
 export const createTraining = async (req: Request, res: Response) => {
   try {
     const data = req.body;
-    const file = req.file as Express.Multer.File | undefined;
+    const file = req.file as any;
 
     const training = await prisma.training.create({
       data: {
         title: data.title,
-        shortDescription: data.shortDescription ?? null,
-        type: data.type,
+        shortDescription: data.shortDescription || null,
+        type: data.type || "web",
         price: Number(data.price || 0),
-
-        // store thumbnail path
         thumbnail: getPublicPath(file),
+        description: data.description || null,
 
-        description: data.description ?? null,
+        costDetails: safeStringify(data.costDetails),
+        requirements: safeStringify(data.requirements),
+        schedule: safeStringify(data.schedule),
+        rundown: safeStringify(data.rundown),
 
-        // IMPORTANT: store as JSON strings (so reading is consistent)
-        costDetails: data.costDetails ? safeStringifyArray(data.costDetails) : null,
-        requirements: data.requirements ? safeStringifyArray(data.requirements) : null,
-        schedule: data.schedule ? safeStringifyArray(data.schedule) : null,
-        rundown: data.rundown ? safeStringifyArray(data.rundown) : null,
-
-        organizer: data.organizer ?? "PSTeam Academy",
-        duration: data.duration ?? null,
-        location: data.location ?? null,
-        certificate: data.certificate ?? null,
-        instructor: data.instructor ?? null,
+        organizer: data.organizer || "PSTeam Academy",
+        duration: data.duration || null,
+        location: data.location || null,
+        certificate: data.certificate || null,
+        instructor: data.instructor || null,
       },
     });
 
@@ -85,42 +78,32 @@ export const createTraining = async (req: Request, res: Response) => {
   }
 };
 
-/* ============================================================
-   UPDATE TRAINING
-   - Only update thumbnail if new file uploaded
-   - Serialize array fields to JSON strings
-   ============================================================ */
 export const updateTraining = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     const data = req.body;
-    const file = req.file as Express.Multer.File | undefined;
+    const file = req.file as any;
 
     const updated = await prisma.training.update({
       where: { id },
       data: {
         title: data.title,
-        shortDescription: data.shortDescription ?? null,
-        type: data.type,
+        shortDescription: data.shortDescription || null,
+        type: data.type || "web",
         price: Number(data.price || 0),
-
-        // Only update thumbnail if file exists
         ...(file ? { thumbnail: getPublicPath(file) } : {}),
+        description: data.description || null,
 
-        description: data.description ?? null,
+        costDetails: safeStringify(data.costDetails),
+        requirements: safeStringify(data.requirements),
+        schedule: safeStringify(data.schedule),
+        rundown: safeStringify(data.rundown),
 
-        // If frontend sends JSON strings already (like when using form-data),
-        // we accept string or array and always store string.
-        costDetails: data.costDetails ? safeStringifyArray(data.costDetails) : null,
-        requirements: data.requirements ? safeStringifyArray(data.requirements) : null,
-        schedule: data.schedule ? safeStringifyArray(data.schedule) : null,
-        rundown: data.rundown ? safeStringifyArray(data.rundown) : null,
-
-        organizer: data.organizer ?? null,
-        duration: data.duration ?? null,
-        location: data.location ?? null,
-        certificate: data.certificate ?? null,
-        instructor: data.instructor ?? null,
+        organizer: data.organizer || null,
+        duration: data.duration || null,
+        location: data.location || null,
+        certificate: data.certificate || null,
+        instructor: data.instructor || null,
       },
     });
 
@@ -131,15 +114,10 @@ export const updateTraining = async (req: Request, res: Response) => {
   }
 };
 
-/* ============================================================
-   DELETE TRAINING
-   ============================================================ */
 export const deleteTraining = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-
     await prisma.training.delete({ where: { id } });
-
     return res.json({ success: true });
   } catch (err) {
     console.error("deleteTraining error:", err);
@@ -147,22 +125,18 @@ export const deleteTraining = async (req: Request, res: Response) => {
   }
 };
 
-/* ============================================================
-   GET ALL TRAINING
-   - parse JSON safely, but tolerate already-array values
-   ============================================================ */
-export const getAllTraining = async (req: Request, res: Response) => {
+export const getAllTraining = async (_req: Request, res: Response) => {
   try {
-    const all = await prisma.training.findMany({
+    const list = await prisma.training.findMany({
       orderBy: { id: "desc" },
     });
 
-    const parsed = all.map((t) => ({
+    const parsed = list.map((t) => ({
       ...t,
-      costDetails: safeParseMaybeJSON(t.costDetails),
-      requirements: safeParseMaybeJSON(t.requirements),
-      schedule: safeParseMaybeJSON(t.schedule),
-      rundown: safeParseMaybeJSON(t.rundown),
+      costDetails: safeParse(t.costDetails),
+      requirements: safeParse(t.requirements),
+      schedule: safeParse(t.schedule),
+      rundown: safeParse(t.rundown),
     }));
 
     return res.json(parsed);
@@ -172,135 +146,97 @@ export const getAllTraining = async (req: Request, res: Response) => {
   }
 };
 
+export const getTrainingById = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+
+  if (!id || isNaN(id)) {
+    return res.status(400).json({ error: "Invalid training ID" });
+  }
+
+  const t = await prisma.training.findUnique({
+    where: { id },
+  });
+
+  if (!t) {
+    return res.status(404).json({ error: "Training not found" });
+  }
+
+  return res.json({
+    ...t,
+    costDetails: safeParse(t.costDetails),
+    requirements: safeParse(t.requirements),
+    schedule: safeParse(t.schedule),
+    rundown: safeParse(t.rundown),
+  });
+};
 /* ============================================================
-   TRAINING REGISTRATION CONTROLLERS
-   ============================================================ */
-
-export const getRegistrations = async (req: Request, res: Response) => {
-  try {
-    const regs = await prisma.trainingregistration.findMany({
-      orderBy: { id: "desc" },
-      include: { training: true },
-    });
-
-    res.json(regs);
-  } catch (err) {
-    console.error("getRegistrations error:", err);
-    res.status(500).json({ error: "Failed to fetch registrations" });
-  }
-};
-
-export const getPendingRegistrations = async (req: Request, res: Response) => {
-  try {
-    const regs = await prisma.trainingregistration.findMany({
-      where: { status: "pending" },
-      orderBy: { id: "desc" },
-      include: { training: true },
-    });
-
-    res.json(regs);
-  } catch (err) {
-    console.error("getPendingRegistrations error:", err);
-    res.status(500).json({ error: "Failed to fetch pending registrations" });
-  }
-};
-
-export const getApprovedRegistrations = async (req: Request, res: Response) => {
-  try {
-    const regs = await prisma.trainingregistration.findMany({
-      where: { status: "approved" },
-      orderBy: { id: "desc" },
-      include: { training: true },
-    });
-
-    res.json(regs);
-  } catch (err) {
-    console.error("getApprovedRegistrations error:", err);
-    res.status(500).json({ error: "Failed to fetch approved registrations" });
-  }
-};
-
+   REGISTRATION
+============================================================ */
 export const createRegistration = async (req: Request, res: Response) => {
   try {
-    const data = req.body;
+    const d = req.body;
 
     const reg = await prisma.trainingregistration.create({
       data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        trainingId: Number(data.trainingId),
-        batch: data.batch,
-        notes: data.notes || "",
+        name: d.name,
+        email: d.email,
+        phone: d.phone,
+        trainingId: Number(d.trainingId),
+        batch: d.batch,
+        notes: d.notes || "",
         status: "pending",
       },
     });
 
-    res.status(201).json(reg);
+    return res.status(201).json(reg);
   } catch (err) {
     console.error("createRegistration error:", err);
-    res.status(500).json({ error: "Failed to create registration" });
+    return res.status(500).json({ error: "Failed to create registration" });
   }
+};
+
+export const getRegistrations = async (_req: Request, res: Response) => {
+  const data = await prisma.trainingregistration.findMany({
+    include: { training: true },
+    orderBy: { id: "desc" },
+  });
+  res.json(data);
+};
+
+export const getPendingRegistrations = async (_req: Request, res: Response) => {
+  const data = await prisma.trainingregistration.findMany({
+    where: { status: "pending" },
+    include: { training: true },
+  });
+  res.json(data);
+};
+
+export const getApprovedRegistrations = async (_req: Request, res: Response) => {
+  const data = await prisma.trainingregistration.findMany({
+    where: { status: "approved" },
+    include: { training: true },
+  });
+  res.json(data);
 };
 
 export const updateStatus = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    const { status } = req.body;
+  const id = Number(req.params.id);
+  const { status } = req.body;
 
-    if (!["approved", "rejected"].includes(status)) {
-      return res.status(400).json({ error: "Invalid status value" });
-    }
-
-    const updated = await prisma.trainingregistration.update({
-      where: { id },
-      data: { status },
-    });
-
-    res.json(updated);
-  } catch (err) {
-    console.error("updateStatus error:", err);
-    res.status(500).json({ error: "Failed to update status" });
+  if (!["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status" });
   }
+
+  const updated = await prisma.trainingregistration.update({
+    where: { id },
+    data: { status },
+  });
+
+  res.json(updated);
 };
 
 export const deleteRegistration = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-
-    await prisma.trainingregistration.delete({
-      where: { id },
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("deleteRegistration error:", err);
-    res.status(500).json({ error: "Failed to delete registration" });
-  }
-};
-
-export const getTrainingById = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-
-    const t = await prisma.training.findUnique({
-      where: { id },
-    });
-
-    if (!t) return res.status(404).json({ error: "Training not found" });
-
-    // Parse JSON fields
-    const training = {
-      ...t,
-      costDetails: safeParseMaybeJSON(t.costDetails),
-      requirements: safeParseMaybeJSON(t.requirements),
-      schedule: safeParseMaybeJSON(t.schedule),
-      rundown: safeParseMaybeJSON(t.rundown),
-    };
-
-    res.json(training);
-  } catch (err) {
-    console.error("getTrainingById error:", err);
-    res.status(500).json({ error: "Failed to fetch training detail" });
-  }
+  const id = Number(req.params.id);
+  await prisma.trainingregistration.delete({ where: { id } });
+  res.json({ success: true });
 };
