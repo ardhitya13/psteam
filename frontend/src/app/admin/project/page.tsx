@@ -304,7 +304,7 @@ export default function DaftarProyekPage() {
                     setFilterType(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border bg-white text-black rounded-md pl-3 pr-10 py-2 shadow text-sm cursor-pointer"
+                  className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
                 >
                   {TYPE_OPTIONS.map((t) => (
                     <option key={t}>{t}</option>
@@ -319,7 +319,7 @@ export default function DaftarProyekPage() {
                     setFilterStatus(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border bg-white text-black rounded-md pl-3 pr-10 py-2 shadow text-sm cursor-pointer"
+                  className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
                 >
                   <option value="Semua">Semua Status</option>
                   <option value="pending">Pending</option>
@@ -333,7 +333,7 @@ export default function DaftarProyekPage() {
             <select
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-3 pr-10 py-2 text-sm shadow-sm cursor-pointer appearance-none"
+              className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
             >
               {[5, 10, 15, 20, 30, 40, 50].map((n) => (
                 <option key={n} value={n}>

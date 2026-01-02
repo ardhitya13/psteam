@@ -33,13 +33,18 @@ export default function DaftarPengabdianPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  /* SEARCH (SAMA CONTOH) */
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  /* FILTER */
   const [selectedYear, setSelectedYear] = useState("Semua");
+
+  /* PAGINATION (SAMA CONTOH) */
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageGroup, setPageGroup] = useState(0);
 
   /* ================= FETCH DATA (GET) ================= */
   const fetchData = async () => {
@@ -49,8 +54,8 @@ export default function DaftarPengabdianPage() {
       const list = Array.isArray(res)
         ? res
         : Array.isArray(res?.data)
-        ? res.data
-        : [];
+          ? res.data
+          : [];
 
       setData(list);
     } catch (err) {
@@ -147,6 +152,7 @@ export default function DaftarPengabdianPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setPageGroup(0);
   }, [searchTerm, selectedYear, itemsPerPage]);
 
   useEffect(() => {
@@ -183,7 +189,7 @@ export default function DaftarPengabdianPage() {
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen pt-6 bg-gray-100">
+    <div className="min-h-screen pt-0.5 bg-gray-100">
       <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <SidebarDosen
         isOpen={isSidebarOpen}
@@ -191,39 +197,52 @@ export default function DaftarPengabdianPage() {
       />
 
       <main
-        className={`pt-6 px-8 pb-10 transition-all ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[85px]`}
-      >
-        <h1 className="text-2xl font-semibold text-center mb-6 text-black">
-          DAFTAR PENGABDIAN DOSEN
-        </h1>
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-black uppercase">
+              Daftar Pengabdian Masyarakat Dosen
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Detail pengabdian dosen — edit dan tambah melalui modal.
+            </p>
+          </div>
 
         {/* TOOLBAR */}
         <div className="flex justify-end items-center gap-3 mb-4">
-          <div className="relative">
-            <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2 rounded-lg bg-blue-600"
-            >
-              <Search size={18} className="text-white" />
-            </button>
-
-            {isSearchOpen && (
-              <input
-                ref={searchRef}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Cari judul..."
-                className="absolute right-12 top-0 rounded-lg px-4 py-2 text-black bg-white shadow border"
-              />
+          {/* SEARCH (SAMA CONTOH) */}
+          <div className="relative flex items-center h-10">
+            {!isSearchOpen && (
+              <button
+                onClick={() => {
+                  setIsSearchOpen(true);
+                  setTimeout(() => searchRef.current?.focus(), 50);
+                }}
+                className="absolute left-0 w-10 h-10 bg-blue-600 text-white flex items-center justify-center rounded-md"
+              >
+                <Search size={18} />
+              </button>
             )}
+
+            <input
+              ref={searchRef}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onBlur={() => !searchTerm.trim() && setIsSearchOpen(false)}
+              placeholder="Cari judul..."
+              className={`transition-all duration-300 h-10 border bg-white text-black rounded-md shadow-sm text-sm ${isSearchOpen
+                ? "w-56 pl-10 pr-3 opacity-100"
+                : "w-10 opacity-0 pointer-events-none"
+                }`}
+            />
           </div>
 
+          {/* FILTER YEAR */}
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="rounded-lg px-6 py-2 bg-white text-black border"
+            className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
           >
             <option value="Semua">Semua Tahun</option>
             {yearOptions.map((y) => (
@@ -233,14 +252,15 @@ export default function DaftarPengabdianPage() {
             ))}
           </select>
 
+          {/* ITEMS PER PAGE */}
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="rounded-lg px-6 py-2 bg-white text-black border"
+            className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
           >
-            {[10, 20, 30, 40, 50].map((n) => (
+            {[5, 10, 15, 20, 30, 40, 50].map((n) => (
               <option key={n} value={n}>
-                {n} / halaman
+                {n} Halaman
               </option>
             ))}
           </select>
@@ -254,83 +274,125 @@ export default function DaftarPengabdianPage() {
         </div>
 
         {/* TABLE */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full text-sm text-black">
-            <thead className="bg-slate-100">
+        <div
+          className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full"
+            }`}
+        >
+          <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
+            <thead className="bg-[#eaf0fa] text-gray-800 font-semibold uppercase">
               <tr>
-                <th className="px-4 py-3 w-16">NO</th>
-                <th className="px-4 py-3 text-left">JUDUL</th>
-                <th className="px-4 py-3 w-28">TAHUN</th>
-                <th className="px-4 py-3 w-40">AKSI</th>
+                <th className="border px-4 py-3 border-gray-300">NO</th>
+                <th className="border px-4 py-3 border-gray-300 text-left">JUDUL</th>
+                <th className="border px-4 py-3 border-gray-300">TAHUN</th>
+                <th className="border px-4 py-3 border-gray-300">AKSI</th>
               </tr>
             </thead>
 
             <tbody>
               {visibleData.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="border px-4 py-6 border-gray-300 text-gray-500 italic"
+                  >
                     Tidak ada data ditemukan
                   </td>
                 </tr>
               ) : (
                 visibleData.map((item, i) => (
-                  <tr key={item.id} className="hover:bg-slate-50">
-                    <td className="text-center py-3">
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="border px-4 py-2 border-gray-300">
                       {(currentPage - 1) * itemsPerPage + i + 1}
                     </td>
-                    <td className="px-4 py-3">{item.title}</td>
-                    <td className="text-center py-3">{item.year}</td>
-                    <td className="text-center py-3 space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="bg-yellow-500 text-white px-3 py-1 rounded"
-                      >
-                        <Edit size={12} /> Edit
-                      </button>
 
-                      <button
-                        onClick={() => handleDeleteData(item.id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded"
-                      >
-                        <Trash2 size={12} /> Hapus
-                      </button>
+                    <td className="border px-4 py-2 border-gray-300 text-left">
+                      {item.title}
+                    </td>
+
+                    <td className="border px-4 py-2 border-gray-300">
+                      {item.year}
+                    </td>
+
+                    <td className="border px-4 py-2 border-gray-300">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 transition"
+                        >
+                          <Edit size={14} /> Edit
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteData(item.id)}
+                          className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+                        >
+                          <Trash2 size={14} /> Hapus 
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
-
-            <tfoot>
-              <tr>
-                <td colSpan={4} className="px-4 py-3 bg-gray-50">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((p) => p - 1)}
-                      className="px-2 py-1 rounded border"
-                    >
-                      &lt;
-                    </button>
-
-                    <span className="px-3 py-1 bg-blue-600 text-white rounded font-semibold">
-                      {currentPage}
-                    </span>
-
-                    <button
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((p) => p + 1)}
-                      className="px-2 py-1 rounded border"
-                    >
-                      &gt;
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tfoot>
           </table>
+
+          {/* PAGINATION (SAMA CONTOH) */}
+          <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-white">
+            <button
+              onClick={() => {
+                if (currentPage > 1) {
+                  const newGroup = Math.floor((currentPage - 2) / 3);
+                  setCurrentPage((p) => p - 1);
+                  setPageGroup(newGroup);
+                }
+              }}
+              disabled={currentPage === 1}
+              className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                ? "bg-gray-200 text-gray-400"
+                : "bg-gray-100 hover:bg-gray-300"
+                }`}
+            >
+              {"<"}
+            </button>
+
+            {Array.from({ length: 3 }, (_, i) => {
+              const pageNum = pageGroup * 3 + (i + 1);
+              if (pageNum > totalPages) return null;
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-2 py-1 rounded border text-xs ${currentPage === pageNum
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 hover:bg-gray-300"
+                    }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => {
+                if (currentPage < totalPages) {
+                  const newGroup = Math.floor(currentPage / 3);
+                  setCurrentPage((p) => p + 1);
+                  setPageGroup(newGroup);
+                }
+              }}
+              disabled={currentPage === totalPages}
+              className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                ? "bg-gray-200 text-gray-400"
+                : "bg-gray-100 hover:bg-gray-300"
+                }`}
+            >
+              {">"}
+            </button>
+          </div>
         </div>
       </main>
 

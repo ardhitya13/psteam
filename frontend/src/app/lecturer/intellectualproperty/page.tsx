@@ -43,9 +43,10 @@ export default function DaftarHkiPage() {
   const [selectedYear, setSelectedYear] = useState("Semua");
   const [selectedType, setSelectedType] = useState("");
 
-  /* PAGINATION */
+  /* PAGINATION (SAMA DENGAN CONTOH PROYEK) */
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageGroup, setPageGroup] = useState(0);
 
   /* ================= FETCH ================= */
   const fetchData = async () => {
@@ -61,9 +62,9 @@ export default function DaftarHkiPage() {
     fetchData();
   }, []);
 
-  /* RESET PAGE JIKA FILTER BERUBAH */
   useEffect(() => {
     setCurrentPage(1);
+    setPageGroup(0);
   }, [searchTerm, selectedYear, selectedType, itemsPerPage]);
 
   useEffect(() => {
@@ -110,10 +111,8 @@ export default function DaftarHkiPage() {
         <div style="text-align:left">
           <b>Judul:</b><br/>
           ${selectedItem.title} → <b>${updated.title}</b><br/><br/>
-
           <b>Jenis:</b><br/>
           ${selectedItem.type} → <b>${updated.type}</b><br/><br/>
-
           <b>Tahun:</b><br/>
           ${selectedItem.year} → <b>${updated.year}</b>
         </div>
@@ -190,7 +189,6 @@ export default function DaftarHkiPage() {
       const bySearch = item.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-
       return byYear && byType && bySearch;
     });
   }, [data, selectedYear, selectedType, searchTerm]);
@@ -207,7 +205,7 @@ export default function DaftarHkiPage() {
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-gray-100 pt-6">
+    <div className="min-h-screen bg-gray-100 pt-0.5">
       <NavbarDosen toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <SidebarDosen
         isOpen={isSidebarOpen}
@@ -215,38 +213,51 @@ export default function DaftarHkiPage() {
       />
 
       <main
-        className={`pt-6 px-8 pb-10 transition-all ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[85px]`}
-      >
-        <h1 className="text-2xl font-semibold text-center mb-6 text-gray-900">
-          DAFTAR HKI / PATEN DOSEN
-        </h1>
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-black uppercase">
+              Daftar HKI / Paten Dosen
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Detail HKI dosen — edit dan tambah melalui modal.
+            </p>
+          </div>
 
         {/* TOOLBAR */}
         <div className="flex justify-end items-center gap-3 mb-4 flex-wrap">
-          <div className="relative">
-            <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2 bg-blue-600 rounded"
-            >
-              <Search size={16} className="text-white" />
-            </button>
-            {isSearchOpen && (
-              <input
-                ref={searchRef}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="absolute right-12 top-0 px-3 py-2 border rounded bg-white text-black"
-                placeholder="Cari judul..."
-              />
+          <div className="relative flex items-center h-10">
+            {!isSearchOpen && (
+              <button
+                onClick={() => {
+                  setIsSearchOpen(true);
+                  setTimeout(() => searchRef.current?.focus(), 50);
+                }}
+                className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-md absolute left-0"
+              >
+                <Search size={18} />
+              </button>
             )}
+
+            <input
+              ref={searchRef}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onBlur={() => searchTerm === "" && setIsSearchOpen(false)}
+              placeholder="Cari HKI..."
+              className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 
+                ${isSearchOpen
+                  ? "w-56 pl-10 pr-3 opacity-100"
+                  : "w-10 opacity-0 pointer-events-none"
+                }`}
+            />
           </div>
 
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="px-3 py-2 border rounded bg-white text-black"
+            className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
           >
             <option value="">Pilih jenis HKI</option>
             <option value="Paten">Paten</option>
@@ -260,7 +271,7 @@ export default function DaftarHkiPage() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="px-3 py-2 border rounded bg-white text-black"
+            className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
           >
             <option value="Semua">Semua Tahun</option>
             {yearOptions.map((y) => (
@@ -273,11 +284,11 @@ export default function DaftarHkiPage() {
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="px-3 py-2 border rounded bg-white text-black"
+            className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
           >
-            {[10, 20, 30, 40, 50].map((n) => (
+            {[5, 10, 15, 20, 30, 40, 50].map((n) => (
               <option key={n} value={n}>
-                {n} / halaman
+                {n} Halaman
               </option>
             ))}
           </select>
@@ -287,87 +298,134 @@ export default function DaftarHkiPage() {
               setSelectedItem(null);
               setIsAddOpen(true);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded flex gap-2"
+            className="bg-blue-600 text-white px-3 py-2 rounded-md flex items-center gap-1"
           >
             <Plus size={16} /> Tambah
           </button>
         </div>
 
         {/* TABLE */}
-        <div className="bg-white rounded shadow overflow-hidden">
-          <table className="w-full text-sm text-gray-900">
-            <thead className="bg-gray-100">
+        <div className={`bg-white shadow-md rounded-lg border border-gray-300 overflow-auto ${isSidebarOpen ? "min-w-[1057px]" : "w-full"}`} >
+          <table className="min-w-full text-sm text-gray-800 text-center border-collapse border border-gray-300">
+            <thead className="bg-[#eaf0fa] text-gray-800 font-semibold uppercase">
               <tr>
-                <th className="px-4 py-3 w-16 text-center">NO</th>
-                <th className="px-4 py-3 text-left">JUDUL</th>
-                <th className="px-4 py-3 w-40 text-center">JENIS</th>
-                <th className="px-4 py-3 w-24 text-center">TAHUN</th>
-                <th className="px-4 py-3 w-32 text-center">AKSI</th>
+                <th className="border px-4 py-3 border-gray-300">NO</th>
+                <th className="border px-4 py-3 border-gray-300 text-left">JUDUL</th>
+                <th className="border px-4 py-3 border-gray-300">JENIS</th>
+                <th className="border px-4 py-3 border-gray-300">TAHUN</th>
+                <th className="border px-4 py-3 border-gray-300">AKSI</th>
               </tr>
             </thead>
 
             <tbody>
               {visibleData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="border px-4 py-6 border-gray-300 text-gray-500 italic"
+                  >
                     Tidak ada data
                   </td>
                 </tr>
               ) : (
                 visibleData.map((item, i) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="text-center px-4 py-3">
+                    <td className="border px-4 py-2 border-gray-300">
                       {(currentPage - 1) * itemsPerPage + i + 1}
                     </td>
-                    <td className="px-4 py-3">{item.title}</td>
-                    <td className="text-center px-4 py-3">{item.type}</td>
-                    <td className="text-center px-4 py-3">{item.year}</td>
-                    <td className="text-center px-4 py-3 space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setIsEditOpen(true);
-                        }}
-                        className="bg-yellow-500 text-white px-3 py-1 rounded"
-                      >
-                        <Edit size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+
+                    <td className="border px-4 py-2 border-gray-300 text-left">
+                      {item.title}
+                    </td>
+
+                    <td className="border px-4 py-2 border-gray-300">
+                      {item.type}
+                    </td>
+
+                    <td className="border px-4 py-2 border-gray-300">
+                      {item.year}
+                    </td>
+
+                    <td className="border px-4 py-2 border-gray-300">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setIsEditOpen(true);
+                          }}
+                          className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 transition"
+                        >
+                          <Edit size={14} /> Edit
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+                        >
+                          <Trash2 size={14} /> Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
-
-            <tfoot>
-              <tr>
-                <td colSpan={5} className="px-4 py-3 bg-gray-50 text-right">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                    className="px-2 py-1 border rounded mx-1"
-                  >
-                    &lt;
-                  </button>
-                  <span className="px-3 py-1 bg-blue-600 text-white rounded">
-                    {currentPage}
-                  </span>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => p + 1)}
-                    className="px-2 py-1 border rounded mx-1"
-                  >
-                    &gt;
-                  </button>
-                </td>
-              </tr>
-            </tfoot>
           </table>
+
+          {/* PAGINATION (SAMA PERSIS DENGAN CONTOH PROYEK) */}
+          <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-white">
+            <button
+              onClick={() => {
+                if (currentPage > 1) {
+                  const newGroup = Math.floor((currentPage - 2) / 3);
+                  setCurrentPage((p) => p - 1);
+                  setPageGroup(newGroup);
+                }
+              }}
+              disabled={currentPage === 1}
+              className={`px-2 py-1 rounded border text-xs ${currentPage === 1
+                ? "bg-gray-200 text-gray-400"
+                : "bg-gray-100 hover:bg-gray-300"
+                }`}
+            >
+              {"<"}
+            </button>
+
+            {Array.from({ length: 3 }, (_, i) => {
+              const pageNum = pageGroup * 3 + (i + 1);
+              if (pageNum > totalPages) return null;
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-2 py-1 rounded border text-xs ${currentPage === pageNum
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 hover:bg-gray-300"
+                    }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => {
+                if (currentPage < totalPages) {
+                  const newGroup = Math.floor(currentPage / 3);
+                  setCurrentPage((p) => p + 1);
+                  setPageGroup(newGroup);
+                }
+              }}
+              disabled={currentPage === totalPages}
+              className={`px-2 py-1 rounded border text-xs ${currentPage === totalPages
+                ? "bg-gray-200 text-gray-400"
+                : "bg-gray-100 hover:bg-gray-300"
+                }`}
+            >
+              {">"}
+            </button>
+          </div>
         </div>
       </main>
 

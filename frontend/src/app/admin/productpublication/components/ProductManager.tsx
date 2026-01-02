@@ -154,7 +154,7 @@ export default function ProductManager() {
               setSelectedCategory(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-40 border border-gray-300 bg-white text-gray-700 text-sm font-medium rounded-md pl-3 pr-10 py-2 shadow-sm appearance-none"
+            className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
           >
             <option value="all">Semua Kategori</option>
             {categoryOptions
@@ -174,7 +174,7 @@ export default function ProductManager() {
               setItemsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="w-40 border border-gray-300 bg-white text-gray-700 text-sm font-medium rounded-md pl-3 pr-10 py-2 shadow-sm appearance-none"
+            className="border border-gray-300 bg-white text-gray-700 font-medium rounded-md pl-2 pr-7 py-2 text-sm shadow-sm cursor-pointer"
           >
             {[5, 10, 20, 30, 50].map((n) => (
               <option key={n} value={n}>

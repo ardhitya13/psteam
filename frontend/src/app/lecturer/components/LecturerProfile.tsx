@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, BookOpen, Users, ShieldCheck, Briefcase } from "lucide-react";
+import { Mail, BookOpen, Users, ShieldCheck, Briefcase, Edit, Trash2 } from "lucide-react";
 
 import NavbarLecturer from "./NavbarLecturer";
 import SidebarLecturer from "./SidebarLecturer";
@@ -61,49 +61,49 @@ export default function LecturerProfile() {
 
   /* ================= LOAD PROFILE ================= */
   const loadProfile = async (uid: number) => {
-  try {
-    const prof = await getLecturerProfile(uid);
+    try {
+      const prof = await getLecturerProfile(uid);
 
-    /* FOTO */
-    let photoUrl = "/images/default-user.png";
-    if (prof?.imageUrl) {
-      photoUrl = prof.imageUrl.startsWith("/uploads")
-        ? `${BACKEND_URL}${prof.imageUrl}`
-        : prof.imageUrl;
+      /* FOTO */
+      let photoUrl = "/images/default-user.png";
+      if (prof?.imageUrl) {
+        photoUrl = prof.imageUrl.startsWith("/uploads")
+          ? `${BACKEND_URL}${prof.imageUrl}`
+          : prof.imageUrl;
+      }
+
+      /* 🔥 AMBIL LANGSUNG DARI DATABASE */
+      setProfile({
+        name: prof.user?.name ?? "",
+        email: prof.user?.email ?? "",
+        studyProgram: prof.studyProgram ?? "",
+        specialization: prof.specialization ?? "",
+        photo: photoUrl,
+      });
+
+      /* SIMPAN UNTUK NAVBAR (OPSIONAL) */
+      localStorage.setItem("userName", prof.user?.name ?? "");
+      localStorage.setItem("userEmail", prof.user?.email ?? "");
+      localStorage.setItem("userStudyProgram", prof.studyProgram ?? "");
+      localStorage.setItem("userPhoto", photoUrl);
+
+      setEducation(
+        Array.isArray(prof.educationhistory)
+          ? prof.educationhistory
+          : []
+      );
+
+      /* STATISTIK AKADEMIK */
+      setStats({
+        research: prof.research?.length ?? 0,
+        communityService: prof.communityservice?.length ?? 0,
+        intellectualProperty: prof.intellectualproperty?.length ?? 0,
+        scientificWork: prof.scientificwork?.length ?? 0,
+      });
+    } catch (err) {
+      console.error("LOAD PROFILE ERROR:", err);
     }
-
-    /* 🔥 AMBIL LANGSUNG DARI DATABASE */
-    setProfile({
-      name: prof.user?.name ?? "",
-      email: prof.user?.email ?? "",
-      studyProgram: prof.studyProgram ?? "",
-      specialization: prof.specialization ?? "",
-      photo: photoUrl,
-    });
-
-    /* SIMPAN UNTUK NAVBAR (OPSIONAL) */
-    localStorage.setItem("userName", prof.user?.name ?? "");
-    localStorage.setItem("userEmail", prof.user?.email ?? "");
-    localStorage.setItem("userStudyProgram", prof.studyProgram ?? "");
-    localStorage.setItem("userPhoto", photoUrl);
-
-    setEducation(
-      Array.isArray(prof.educationhistory)
-        ? prof.educationhistory
-        : []
-    );
-
-    /* STATISTIK AKADEMIK */
-    setStats({
-      research: prof.research?.length ?? 0,
-      communityService: prof.communityservice?.length ?? 0,
-      intellectualProperty: prof.intellectualproperty?.length ?? 0,
-      scientificWork: prof.scientificwork?.length ?? 0,
-    });
-  } catch (err) {
-    console.error("LOAD PROFILE ERROR:", err);
-  }
-};
+  };
 
   /* ================= SAVE PROFILE ================= */
   const handleSave = async (updated: any) => {
@@ -163,9 +163,8 @@ export default function LecturerProfile() {
       />
 
       <main
-        className={`transition-all duration-300 pt-4 px-6 pb-10 ${
-          isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-        } mt-[80px]`}
+        className={`transition-all duration-300 pt-4 px-6 pb-10 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+          } mt-[80px]`}
       >
         {/* ================= HEADER ================= */}
         <motion.div
@@ -286,21 +285,23 @@ export default function LecturerProfile() {
                     <td className="p-4 text-center">{e.university}</td>
                     <td className="p-4 text-center">{e.major}</td>
                     <td className="p-4 flex justify-center gap-3">
-                      <button
-                        onClick={() => {
-                          setEditingIndex(i);
-                          setIsEditEduOpen(true);
-                        }}
-                        className="px-4 py-1.5 bg-yellow-400 rounded-lg"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEducation(i)}
-                        className="px-4 py-1.5 bg-red-500 text-white rounded-lg"
-                      >
-                        Hapus
-                      </button>
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingIndex(i);
+                            setIsEditEduOpen(true);
+                          }}
+                          className="flex items-center gap-1 px-3 py-1 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 transition"
+                        >
+                          <Edit size={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEducation(i)}
+                          className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+                        >
+                          <Trash2 size={14} /> Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

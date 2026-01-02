@@ -271,7 +271,7 @@ export default function VerifikasiProyekPage() {
         {/* TABLE */}
         <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
           <table className="w-full text-sm text-gray-700 border border-gray-200 border-collapse">
-            <thead className="bg-gray-300 text-gray-800">
+            <thead className="bg-[#eaf0fa] text-gray-800 font-semibold uppercase">
               <tr>
                 <th className="border px-4 py-2 border-gray-300 text-center">NO</th>
                 <th className="border px-4 py-2 border-gray-300 text-center">EMAIL</th>
