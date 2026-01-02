@@ -44,6 +44,14 @@ export default function ResearchTable() {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
 
+  const [filterYear, setFilterYear] = useState("Semua");
+  const [researchPage, setResearchPage] = useState(1);
+
+  useEffect(() => {
+    setResearchPage(1);
+  }, [filterYear]);
+
+
 
   const [editPayload, setEditPayload] = useState<
     | {
@@ -374,26 +382,116 @@ export default function ResearchTable() {
                                     <tr>
                                       <th className="border px-3 py-2 w-12 text-center">No</th>
                                       <th className="border px-3 py-2">Judul Penelitian</th>
-                                      <th className="border px-3 py-2 w-32">Tahun</th>
+                                      <th className="border px-3 py-2 w-32">
+                                        <div className="flex flex-col items-center gap-1">
+                                          <span>Tahun</span>
+                                          <select
+                                            value={filterYear}
+                                            onChange={(e) => setFilterYear(e.target.value)}
+                                            className="border rounded px-6 py-1 text-xs bg-white"
+                                          >
+                                            <option value="Semua">Semua</option>
+                                            {[...new Set(lec.research.map(r => r.year))]
+                                              .sort((a, b) => b - a)
+                                              .map((year) => (
+                                                <option key={year} value={year}>
+                                                  {year}
+                                                </option>
+                                              ))}
+                                          </select>
+                                        </div>
+                                      </th>
+
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {lec.research.length > 0 ? (
-                                      lec.research.map((r, idx) => (
-                                        <tr key={r.id} className="hover:bg-blue-50">
-                                          <td className="border px-3 py-2 text-center">{idx + 1}</td>
-                                          <td className="border px-3 py-2">{r.title}</td>
-                                          <td className="border px-3 py-2 text-center">{r.year}</td>
-                                        </tr>
-                                      ))
-                                    ) : (
-                                      <tr>
-                                        <td colSpan={3} className="text-center py-4 text-gray-500 italic">
-                                          Tidak ada penelitian.
-                                        </td>
-                                      </tr>
-                                    )}
+                                    {(() => {
+                                      /* ===============================
+                                         FILTER RESEARCH
+                                      =============================== */
+                                      const filteredResearch = lec.research.filter((r) => {
+                                        const matchYear =
+                                          filterYear === "Semua" || r.year === Number(filterYear);
+                                        return matchYear;
+                                      });
+
+                                      /* ===============================
+                                         PAGINATION RESEARCH
+                                      =============================== */
+                                      const RESEARCH_PER_PAGE = 10;
+                                      const totalResearchPages = Math.max(
+                                        1,
+                                        Math.ceil(filteredResearch.length / RESEARCH_PER_PAGE)
+                                      );
+
+                                      const start = (researchPage - 1) * RESEARCH_PER_PAGE;
+                                      const paginatedResearch = filteredResearch.slice(
+                                        start,
+                                        start + RESEARCH_PER_PAGE
+                                      );
+
+                                      return (
+                                        <>
+                                          {/* DATA */}
+                                          {paginatedResearch.map((r, idx) => (
+                                            <tr key={r.id ?? idx} className="hover:bg-blue-50">
+                                              <td className="border px-3 py-2 text-center">
+                                                {start + idx + 1}
+                                              </td>
+                                              <td className="border px-3 py-2">
+                                                {r.title}
+                                              </td>
+                                              <td className="border px-3 py-2 text-center">
+                                                {r.year}
+                                              </td>
+                                            </tr>
+                                          ))}
+
+                                          {/* EMPTY STATE */}
+                                          {filteredResearch.length === 0 && (
+                                            <tr>
+                                              <td
+                                                colSpan={3}
+                                                className="text-center py-4 text-gray-500 italic"
+                                              >
+                                                Tidak ada penelitian.
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {/* PAGINATION */}
+                                          {totalResearchPages > 1 && (
+                                            <tr>
+                                              <td colSpan={3} className="py-3">
+                                                <div className="flex justify-end items-center gap-2 text-xs">
+                                                  <button
+                                                    disabled={researchPage === 1}
+                                                    onClick={() => setResearchPage((p) => p - 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &lt;
+                                                  </button>
+
+                                                  <span>
+                                                    {researchPage} / {totalResearchPages}
+                                                  </span>
+
+                                                  <button
+                                                    disabled={researchPage === totalResearchPages}
+                                                    onClick={() => setResearchPage((p) => p + 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &gt;
+                                                  </button>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </tbody>
+
                                 </table>
                               </div>
                             </div>

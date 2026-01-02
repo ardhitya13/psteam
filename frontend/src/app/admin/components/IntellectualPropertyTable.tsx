@@ -58,6 +58,19 @@ export default function IntellectualPropertyTable() {
   /* FILTER TYPE (TETAP ADA, DETAIL DIKOSONGKAN) */
   const [filterType, setFilterType] = useState("Semua");
 
+  /* FILTER TAHUN HKI */
+  const [filterYear, setFilterYear] = useState<string>("Semua");
+
+  /* PAGINATION HKI (DETAIL) */
+  const HKI_PER_PAGE = 10;
+  const [hkiPage, setHkiPage] = useState<number>(1);
+
+  useEffect(() => {
+    setHkiPage(1);
+  }, [filterType, filterYear]);
+
+
+
   /* EDIT MODAL */
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editPayload, setEditPayload] = useState<{
@@ -111,53 +124,53 @@ export default function IntellectualPropertyTable() {
      CRUD HANDLER
   ========================= */
   async function handleUpdateIP(payload: {
-  lecId: number;
-  intellectualpropertyList: IPItem[];
-}) {
-  const { lecId, intellectualpropertyList } = payload;
+    lecId: number;
+    intellectualpropertyList: IPItem[];
+  }) {
+    const { lecId, intellectualpropertyList } = payload;
 
-  try {
-    const lecturer = lecturers.find((l) => l.id === lecId);
-    const original = lecturer?.intellectualproperty || [];
+    try {
+      const lecturer = lecturers.find((l) => l.id === lecId);
+      const original = lecturer?.intellectualproperty || [];
 
-    // 🔴 HAPUS DATA YANG DIHILANGKAN
-    for (const old of original) {
-      const stillExist = intellectualpropertyList.some(
-        (i) => i.id === old.id
-      );
-      if (!stillExist && old.id) {
-        await deleteIntellectualProperty(old.id);
+      // 🔴 HAPUS DATA YANG DIHILANGKAN
+      for (const old of original) {
+        const stillExist = intellectualpropertyList.some(
+          (i) => i.id === old.id
+        );
+        if (!stillExist && old.id) {
+          await deleteIntellectualProperty(old.id);
+        }
       }
-    }
 
-    // 🟢 ADD / UPDATE
-    for (const item of intellectualpropertyList) {
-      if (!item.title.trim()) continue;
+      // 🟢 ADD / UPDATE
+      for (const item of intellectualpropertyList) {
+        if (!item.title.trim()) continue;
 
-      if (!item.id) {
-        // ADD (ADMIN)
-        await addIntellectualPropertyByAdmin(lecId, {
-          title: item.title,
-          type: item.type,
-          year: item.year,
-        });
-      } else {
-        // UPDATE
-        await updateIntellectualProperty(item.id, {
-          title: item.title,
-          type: item.type,
-          year: item.year,
-        });
+        if (!item.id) {
+          // ADD (ADMIN)
+          await addIntellectualPropertyByAdmin(lecId, {
+            title: item.title,
+            type: item.type,
+            year: item.year,
+          });
+        } else {
+          // UPDATE
+          await updateIntellectualProperty(item.id, {
+            title: item.title,
+            type: item.type,
+            year: item.year,
+          });
+        }
       }
-    }
 
-    // 🔥 LOAD ULANG SETELAH SEMUA SELESAI
-    await loadLecturers();
-  } catch (err) {
-    console.error("UPDATE HKI ERROR:", err);
-    alert("Gagal menyimpan HKI.");
+      // 🔥 LOAD ULANG SETELAH SEMUA SELESAI
+      await loadLecturers();
+    } catch (err) {
+      console.error("UPDATE HKI ERROR:", err);
+      alert("Gagal menyimpan HKI.");
+    }
   }
-}
 
   /* =========================
      SEARCH FILTER
@@ -409,44 +422,131 @@ export default function IntellectualPropertyTable() {
                                           >
                                             <option value="Semua">Semua</option>
                                             <option value="Hak Cipta Nasional">Hak Cipta Nasional</option>
+                                            <option value="Hak Cipta Internasional">Hak Cipta Internasional</option>
+                                            <option value="Desain Industri">Desain Industri</option>
+                                            <option value="Paten Sederhana">Paten Sederhana</option>
+                                            <option value="Paten">Paten</option>
                                             <option value="Paten Nasional">Paten Nasional</option>
+                                            <option value="Merek">Merek</option>
+                                            <option value="Rahasia Dagang">Rahasia Dagang</option>
+                                            <option value="Lain-Lain">Lain-Lain</option>
                                           </select>
                                         </div>
                                       </th>
                                       <th className="border px-3 py-2 w-32">
-                                        Tahun
+                                        <div className="flex flex-col items-center gap-1">
+                                          <span>Tahun</span>
+                                          <select
+                                            value={filterYear}
+                                            onChange={(e) => setFilterYear(e.target.value)}
+                                            className="border rounded px-6 py-1 text-xs bg-white"
+                                          >
+                                            <option value="Semua">Semua</option>
+                                            {[...new Set(lec.intellectualproperty.map(i => i.year))]
+                                              .sort((a, b) => b - a)
+                                              .map((year) => (
+                                                <option key={year} value={year}>
+                                                  {year}
+                                                </option>
+                                              ))}
+                                          </select>
+                                        </div>
                                       </th>
+
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {lec.intellectualproperty
-                                      .filter((i) =>
-                                        filterType === "Semua" ? true : i.type === filterType
-                                      )
-                                      .map((i, idx) => (
-                                        <tr key={i.id ?? idx} className="hover:bg-blue-50">
-                                          <td className="border px-3 py-2 text-center">
-                                            {idx + 1}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            {i.title}
-                                          </td>
-                                          <td className="border px-3 py-2">
-                                            {i.type}
-                                          </td>
-                                          <td className="border px-3 py-2 text-center">
-                                            {i.year}
-                                          </td>
-                                        </tr>
-                                      ))}
+                                    {(() => {
+                                      /* ===============================
+                                         FILTER HKI (TYPE + YEAR)
+                                      =============================== */
+                                      const filteredHKI = lec.intellectualproperty.filter((i) => {
+                                        const matchType =
+                                          filterType === "Semua" || i.type === filterType;
 
-                                    {lec.intellectualproperty.length === 0 && (
-                                      <tr>
-                                        <td colSpan={4} className="text-center py-4 text-gray-500 italic">
-                                          Tidak ada HKI.
-                                        </td>
-                                      </tr>
-                                    )}
+                                        const matchYear =
+                                          filterYear === "Semua" || i.year === Number(filterYear);
+
+                                        return matchType && matchYear;
+                                      });
+
+                                      /* ===============================
+                                         PAGINATION HKI
+                                      =============================== */
+                                      const totalHKIPages = Math.max(
+                                        1,
+                                        Math.ceil(filteredHKI.length / HKI_PER_PAGE)
+                                      );
+
+                                      const start = (hkiPage - 1) * HKI_PER_PAGE;
+                                      const paginatedHKI = filteredHKI.slice(
+                                        start,
+                                        start + HKI_PER_PAGE
+                                      );
+
+                                      return (
+                                        <>
+                                          {/* DATA HKI */}
+                                          {paginatedHKI.map((i, idx) => (
+                                            <tr key={i.id ?? idx} className="hover:bg-blue-50">
+                                              <td className="border px-3 py-2 text-center">
+                                                {start + idx + 1}
+                                              </td>
+                                              <td className="border px-3 py-2">
+                                                {i.title}
+                                              </td>
+                                              <td className="border px-3 py-2">
+                                                {i.type}
+                                              </td>
+                                              <td className="border px-3 py-2 text-center">
+                                                {i.year}
+                                              </td>
+                                            </tr>
+                                          ))}
+
+                                          {/* EMPTY STATE */}
+                                          {filteredHKI.length === 0 && (
+                                            <tr>
+                                              <td
+                                                colSpan={4}
+                                                className="text-center py-4 text-gray-500 italic"
+                                              >
+                                                Tidak ada HKI.
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {/* PAGINATION CONTROL */}
+                                          {totalHKIPages > 1 && (
+                                            <tr>
+                                              <td colSpan={4} className="py-3">
+                                                <div className="flex justify-end items-center gap-2 text-xs">
+                                                  <button
+                                                    disabled={hkiPage === 1}
+                                                    onClick={() => setHkiPage((p) => p - 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &lt;
+                                                  </button>
+
+                                                  <span>
+                                                    {hkiPage} / {totalHKIPages}
+                                                  </span>
+
+                                                  <button
+                                                    disabled={hkiPage === totalHKIPages}
+                                                    onClick={() => setHkiPage((p) => p + 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &gt;
+                                                  </button>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </tbody>
                                 </table>
                               </div>

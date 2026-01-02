@@ -51,6 +51,13 @@ export default function CommunityServiceTable() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageGroup, setPageGroup] = useState<number>(0);
 
+  const [filterYear, setFilterYear] = useState("Semua");
+  const [communityPage, setCommunityPage] = useState(1);
+
+  useEffect(() => {
+    setCommunityPage(1);
+  }, [filterYear]);
+
   /* EDIT MODAL */
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editPayload, setEditPayload] = useState<{
@@ -377,26 +384,115 @@ export default function CommunityServiceTable() {
                                     <tr>
                                       <th className="border px-3 py-2 w-12 text-center">No</th>
                                       <th className="border px-3 py-2">Judul Pengabdian</th>
-                                      <th className="border px-3 py-2 w-32">Tahun</th>
+                                      <th className="border px-3 py-2 w-32">
+                                        <div className="flex flex-col items-center gap-1">
+                                          <span>Tahun</span>
+                                          <select
+                                            value={filterYear}
+                                            onChange={(e) => setFilterYear(e.target.value)}
+                                            className="border rounded px-6 py-1 text-xs bg-white"
+                                          >
+                                            <option value="Semua">Semua</option>
+                                            {[...new Set(lec.communityservice.map(c => c.year))]
+                                              .sort((a, b) => b - a)
+                                              .map((year) => (
+                                                <option key={year} value={year}>
+                                                  {year}
+                                                </option>
+                                              ))}
+                                          </select>
+                                        </div>
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {lec.communityservice.length > 0 ? (
-                                      lec.communityservice.map((c, idx) => (
-                                        <tr key={c.id} className="hover:bg-blue-50">
-                                          <td className="border px-3 py-2 text-center">
-                                            {idx + 1}
-                                          </td>
-                                          <td className="border px-3 py-2">{c.title}</td>
-                                          <td className="border px-3 py-2 text-center">{c.year}</td>
-                                        </tr>
-                                      ))
-                                    ) : (
-                                      <tr>
-                                        <td colSpan={2} className="text-center py-4 text-gray-500 italic">Tidak ada pengabdian.</td>
-                                      </tr>
-                                    )}
+                                    {(() => {
+                                      /* ===============================
+                                         FILTER COMMUNITY SERVICE
+                                      =============================== */
+                                      const filteredCommunity = lec.communityservice.filter((c) => {
+                                        const matchYear =
+                                          filterYear === "Semua" || c.year === Number(filterYear);
+                                        return matchYear;
+                                      });
+
+                                      /* ===============================
+                                         PAGINATION COMMUNITY SERVICE
+                                      =============================== */
+                                      const COMMUNITY_PER_PAGE = 10;
+                                      const totalCommunityPages = Math.max(
+                                        1,
+                                        Math.ceil(filteredCommunity.length / COMMUNITY_PER_PAGE)
+                                      );
+
+                                      const start = (communityPage - 1) * COMMUNITY_PER_PAGE;
+                                      const paginatedCommunity = filteredCommunity.slice(
+                                        start,
+                                        start + COMMUNITY_PER_PAGE
+                                      );
+
+                                      return (
+                                        <>
+                                          {/* DATA */}
+                                          {paginatedCommunity.map((c, idx) => (
+                                            <tr key={c.id ?? idx} className="hover:bg-blue-50">
+                                              <td className="border px-3 py-2 text-center">
+                                                {start + idx + 1}
+                                              </td>
+                                              <td className="border px-3 py-2">
+                                                {c.title}
+                                              </td>
+                                              <td className="border px-3 py-2 text-center">
+                                                {c.year}
+                                              </td>
+                                            </tr>
+                                          ))}
+
+                                          {/* EMPTY STATE */}
+                                          {filteredCommunity.length === 0 && (
+                                            <tr>
+                                              <td
+                                                colSpan={3}
+                                                className="text-center py-4 text-gray-500 italic"
+                                              >
+                                                Tidak ada pengabdian.
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {/* PAGINATION */}
+                                          {totalCommunityPages > 1 && (
+                                            <tr>
+                                              <td colSpan={3} className="py-3">
+                                                <div className="flex justify-end items-center gap-2 text-xs">
+                                                  <button
+                                                    disabled={communityPage === 1}
+                                                    onClick={() => setCommunityPage((p) => p - 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &lt;
+                                                  </button>
+
+                                                  <span>
+                                                    {communityPage} / {totalCommunityPages}
+                                                  </span>
+
+                                                  <button
+                                                    disabled={communityPage === totalCommunityPages}
+                                                    onClick={() => setCommunityPage((p) => p + 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &gt;
+                                                  </button>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </tbody>
+
                                 </table>
                               </div>
                             </div>

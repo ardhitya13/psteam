@@ -52,6 +52,14 @@ export default function ScientificWorkTable() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageGroup, setPageGroup] = useState<number>(0);
 
+  const [filterYear, setFilterYear] = useState("Semua");
+  const [workPage, setWorkPage] = useState(1);
+
+  useEffect(() => {
+    setWorkPage(1);
+  }, [filterType, filterYear]);
+
+
   /* EDIT MODAL */
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editPayload, setEditPayload] = useState<{
@@ -378,33 +386,120 @@ export default function ScientificWorkTable() {
                                           </select>
                                         </div>
                                       </th>
-                                      <th className="border px-3 py-2 w-32">Tahun</th>
+                                      <th className="border px-3 py-2 w-32">
+                                        <div className="flex flex-col items-center gap-1">
+                                          <span>Tahun</span>
+                                          <select
+                                            value={filterYear}
+                                            onChange={(e) => setFilterYear(e.target.value)}
+                                            className="border rounded px-6 py-1 text-xs bg-white"
+                                          >
+                                            <option value="Semua">Semua</option>
+                                            {[...new Set(lec.scientificwork.map(s => s.year))]
+                                              .sort((a, b) => b - a)
+                                              .map((year) => (
+                                                <option key={year} value={year}>
+                                                  {year}
+                                                </option>
+                                              ))}
+                                          </select>
+                                        </div>
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {lec.scientificwork
-                                      .filter((s) =>
-                                        filterType === "Semua" ? true : s.type === filterType
-                                      )
-                                      .map((s, idx) => (
-                                        <tr key={s.id ?? idx}>
-                                          <td className="border px-3 py-2 text-center">{idx + 1}</td>
-                                          <td className="border px-3 py-2">{s.title}</td>
-                                          <td className="border px-3 py-2">{s.type}</td>
-                                          <td className="border px-3 py-2 text-center">{s.year}</td>
-                                        </tr>
-                                      ))}
+                                    {(() => {
+                                      /* ===============================
+                                         FILTER SCIENTIFIC WORK
+                                      =============================== */
+                                      const filteredWorks = lec.scientificwork.filter((s) => {
+                                        const matchType =
+                                          filterType === "Semua" || s.type === filterType;
 
-                                    {lec.scientificwork.length === 0 && (
-                                      <tr>
-                                        <td
-                                          colSpan={4}
-                                          className="text-center py-4 text-gray-500 italic"
-                                        >
-                                          Tidak ada karya ilmiah.
-                                        </td>
-                                      </tr>
-                                    )}
+                                        const matchYear =
+                                          filterYear === "Semua" || s.year === Number(filterYear);
+
+                                        return matchType && matchYear;
+                                      });
+
+                                      /* ===============================
+                                         PAGINATION SCIENTIFIC WORK
+                                      =============================== */
+                                      const WORKS_PER_PAGE = 10;
+                                      const totalWorkPages = Math.max(
+                                        1,
+                                        Math.ceil(filteredWorks.length / WORKS_PER_PAGE)
+                                      );
+
+                                      const start = (workPage - 1) * WORKS_PER_PAGE;
+                                      const paginatedWorks = filteredWorks.slice(
+                                        start,
+                                        start + WORKS_PER_PAGE
+                                      );
+
+                                      return (
+                                        <>
+                                          {/* DATA */}
+                                          {paginatedWorks.map((s, idx) => (
+                                            <tr key={s.id ?? idx} className="hover:bg-blue-50">
+                                              <td className="border px-3 py-2 text-center">
+                                                {start + idx + 1}
+                                              </td>
+                                              <td className="border px-3 py-2">
+                                                {s.title}
+                                              </td>
+                                              <td className="border px-3 py-2">
+                                                {s.type}
+                                              </td>
+                                              <td className="border px-3 py-2 text-center">
+                                                {s.year}
+                                              </td>
+                                            </tr>
+                                          ))}
+
+                                          {/* EMPTY STATE */}
+                                          {filteredWorks.length === 0 && (
+                                            <tr>
+                                              <td
+                                                colSpan={4}
+                                                className="text-center py-4 text-gray-500 italic"
+                                              >
+                                                Tidak ada karya ilmiah.
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {/* PAGINATION CONTROL */}
+                                          {totalWorkPages > 1 && (
+                                            <tr>
+                                              <td colSpan={4} className="py-3">
+                                                <div className="flex justify-end items-center gap-2 text-xs">
+                                                  <button
+                                                    disabled={workPage === 1}
+                                                    onClick={() => setWorkPage((p) => p - 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &lt;
+                                                  </button>
+
+                                                  <span>
+                                                    {workPage} / {totalWorkPages}
+                                                  </span>
+
+                                                  <button
+                                                    disabled={workPage === totalWorkPages}
+                                                    onClick={() => setWorkPage((p) => p + 1)}
+                                                    className="px-2 py-1 border bg-blue-600 rounded disabled:opacity-50"
+                                                  >
+                                                    &gt;
+                                                  </button>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </tbody>
                                 </table>
                               </div>
