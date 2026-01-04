@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Swal from "sweetalert2";
 import { KeyRound, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { logout } from "../../../lib/logout";
@@ -64,9 +65,24 @@ export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
   /* =========================
      LOGOUT
   ========================= */
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  const result = await Swal.fire({
+    title: "Yakin ingin keluar?",
+    text: "Anda akan keluar dari halaman admin.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, Keluar",
+    cancelButtonText: "Batal",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#9ca3af",
+    reverseButtons: true,
+  });
+
+  if (result.isConfirmed) {
     logout(router);
-  };
+  }
+};
+
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md">

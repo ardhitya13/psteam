@@ -187,35 +187,45 @@ export const createManyUsers = async (req: any, res: Response) => {
 export const deleteUser = async (req: any, res: Response) => {
   try {
     const requesterRole = req.user.role;
+    const requesterId = req.user.id;
     const id = Number(req.params.id);
+
+    // ❌ TIDAK BOLEH HAPUS DIRI SENDIRI (TERMASUK SUPERADMIN)
+    if (requesterId === id) {
+      return res.status(403).json({
+        error: "Anda tidak dapat menghapus akun Anda sendiri",
+      });
+    }
 
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return res.status(404).json({ error: "User tidak ditemukan" });
     }
 
-    // ❌ Superadmin tidak boleh dihapus
+    // ❌ SUPERADMIN TIDAK BOLEH DIHAPUS OLEH SIAPAPUN
     if (user.role === "superadmin") {
-      return res
-        .status(403)
-        .json({ error: "Superadmin tidak boleh dihapus" });
+      return res.status(403).json({
+        error: "Superadmin tidak boleh dihapus",
+      });
     }
 
     // ADMIN → hanya boleh hapus DOSEN
     if (requesterRole === "admin" && user.role !== "dosen") {
-      return res
-        .status(403)
-        .json({ error: "Admin hanya boleh menghapus dosen" });
+      return res.status(403).json({
+        error: "Admin hanya boleh menghapus dosen",
+      });
     }
 
+    // Validasi role peminta
     if (!["admin", "superadmin"].includes(requesterRole)) {
       return res.status(403).json({ error: "Akses ditolak" });
     }
 
     await prisma.user.delete({ where: { id } });
 
-    res.json({ message: "User berhasil dihapus" });
+    return res.json({ message: "User berhasil dihapus" });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
+

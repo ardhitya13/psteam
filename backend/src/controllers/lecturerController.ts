@@ -55,7 +55,7 @@ export const getLecturerProfile = async (
   const userId = Number(req.params.userId);
   if (forbidIfNotOwner(req, userId, res)) return;
 
-  const profile = await prisma.lecturerprofile.findUnique({
+  let profile = await prisma.lecturerprofile.findUnique({
     where: { userId },
     include: {
       user: {
@@ -73,8 +73,34 @@ export const getLecturerProfile = async (
     },
   });
 
+  // 🔥 INI KUNCI UTAMANYA
+  if (!profile) {
+    profile = await prisma.lecturerprofile.create({
+      data: {
+        userId,
+        studyProgram: "",
+        specialization: "",
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        educationhistory: true,
+        research: true,
+        communityservice: true,
+        scientificwork: true,
+        intellectualproperty: true,
+      },
+    });
+  }
+
   return res.json(profile);
 };
+
 
 /* =============================================================
    UPDATE PROFILE

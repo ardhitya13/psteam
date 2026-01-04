@@ -97,7 +97,7 @@ export default function EditEducationModal({
 
         {/* FOOTER */}
         <div className="flex justify-end px-8 py-5 bg-gray-50 border-t gap-4">
-          <button onClick={onClose} className="px-8 py-3 rounded-xl border hover:bg-gray-100">Batal</button>
+          <button onClick={onClose} className="px-8 py-3 rounded-xl border text-gray-700 hover:bg-gray-100">Batal</button>
           <button onClick={handleSubmit} className="px-8 py-3 bg-[#0a3b91] text-white rounded-xl hover:bg-blue-800">Simpan Perubahan</button>
         </div>
 

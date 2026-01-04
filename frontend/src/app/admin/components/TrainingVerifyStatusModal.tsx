@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { XCircle, CheckCircle, X } from "lucide-react";
+import { XCircle, CheckCircle } from "lucide-react";
 import ModalWrapper from "./ModalWrapper";
-import { Registration } from "./TrainingVerifyAdmin";
+import type { Registration } from "@/types/trainingRegistration";
 
 export default function TrainingVerificationStatusModal({
   data,
@@ -46,7 +46,9 @@ export default function TrainingVerificationStatusModal({
 
           <button
             className={`px-4 py-2 rounded text-white ${
-              isApprove ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
+              isApprove
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-red-600 hover:bg-red-700"
             }`}
             onClick={onConfirm}
           >

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Swal from "sweetalert2";
 import { Mail, BookOpen, Users, ShieldCheck, Briefcase, Edit, Trash2 } from "lucide-react";
 
 import NavbarLecturer from "./NavbarLecturer";
@@ -64,6 +65,29 @@ export default function LecturerProfile() {
     try {
       const prof = await getLecturerProfile(uid);
 
+      // 🔥 GUARD WAJIB: JIKA DATA BELUM ADA
+      if (!prof) {
+        console.warn("Lecturer profile belum tersedia");
+
+        setProfile({
+          name: "",
+          email: "",
+          studyProgram: "",
+          specialization: "",
+          photo: "/images/default-user.png",
+        });
+
+        setEducation([]);
+        setStats({
+          research: 0,
+          communityService: 0,
+          intellectualProperty: 0,
+          scientificWork: 0,
+        });
+
+        return;
+      }
+
       /* FOTO */
       let photoUrl = "/images/default-user.png";
       if (prof?.imageUrl) {
@@ -72,33 +96,34 @@ export default function LecturerProfile() {
           : prof.imageUrl;
       }
 
-      /* 🔥 AMBIL LANGSUNG DARI DATABASE */
+      /* SET PROFILE */
       setProfile({
-        name: prof.user?.name ?? "",
-        email: prof.user?.email ?? "",
-        studyProgram: prof.studyProgram ?? "",
-        specialization: prof.specialization ?? "",
+        name: prof?.user?.name ?? "",
+        email: prof?.user?.email ?? "",
+        studyProgram: prof?.studyProgram ?? "",
+        specialization: prof?.specialization ?? "",
         photo: photoUrl,
       });
 
-      /* SIMPAN UNTUK NAVBAR (OPSIONAL) */
-      localStorage.setItem("userName", prof.user?.name ?? "");
-      localStorage.setItem("userEmail", prof.user?.email ?? "");
-      localStorage.setItem("userStudyProgram", prof.studyProgram ?? "");
+      /* LOCAL STORAGE (AMAN) */
+      localStorage.setItem("userName", prof?.user?.name ?? "");
+      localStorage.setItem("userEmail", prof?.user?.email ?? "");
+      localStorage.setItem("userStudyProgram", prof?.studyProgram ?? "");
       localStorage.setItem("userPhoto", photoUrl);
 
+      /* EDUCATION */
       setEducation(
-        Array.isArray(prof.educationhistory)
+        Array.isArray(prof?.educationhistory)
           ? prof.educationhistory
           : []
       );
 
-      /* STATISTIK AKADEMIK */
+      /* STATISTIK */
       setStats({
-        research: prof.research?.length ?? 0,
-        communityService: prof.communityservice?.length ?? 0,
-        intellectualProperty: prof.intellectualproperty?.length ?? 0,
-        scientificWork: prof.scientificwork?.length ?? 0,
+        research: prof?.research?.length ?? 0,
+        communityService: prof?.communityservice?.length ?? 0,
+        intellectualProperty: prof?.intellectualproperty?.length ?? 0,
+        scientificWork: prof?.scientificwork?.length ?? 0,
       });
     } catch (err) {
       console.error("LOAD PROFILE ERROR:", err);
@@ -107,25 +132,66 @@ export default function LecturerProfile() {
 
   /* ================= SAVE PROFILE ================= */
   const handleSave = async (updated: any) => {
-    if (!userId) return;
+  if (!userId) return;
 
-    try {
-      const formData = new FormData();
-      formData.append("studyProgram", updated.studyProgram);
-      formData.append("specialization", updated.specialization);
+  try {
+    const formData = new FormData();
+    formData.append("studyProgram", updated.studyProgram);
+    formData.append("specialization", updated.specialization);
 
-      if (updated.photoFile) {
-        formData.append("photo", updated.photoFile);
-      }
+    const isPhotoUpdated = !!updated.photoFile;
+    const isProfileUpdated =
+      updated.studyProgram !== profile.studyProgram ||
+      updated.specialization !== profile.specialization;
 
-      await updateLecturerProfile(userId, formData);
-      loadProfile(userId);
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error(err);
-      alert("Gagal update profil");
+    if (updated.photoFile) {
+      formData.append("photo", updated.photoFile);
     }
-  };
+
+    // ⏳ LOADING
+    Swal.fire({
+      title: "Menyimpan perubahan...",
+      text: "Mohon tunggu sebentar",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    await updateLecturerProfile(userId, formData);
+    await loadProfile(userId);
+
+    // 🔥 PENTING: TUTUP MODAL DULU
+    setIsModalOpen(false);
+
+    // 🔥 TRIGGER NAVBAR
+    window.dispatchEvent(new Event("profile-updated"));
+
+    Swal.close();
+
+    // ✅ ALERT SUKSES (SETELAH MODAL TERTUTUP)
+    await Swal.fire({
+  icon: "success",
+  title: "Profil Berhasil Diperbarui",
+  html: `
+    <div style="text-align:center;font-size:14px;line-height:1.8">
+      ${isPhotoUpdated ? "✅ Foto profil diperbarui<br/>" : ""}
+      ${isProfileUpdated ? "✅ Data profil diperbarui<br/>" : ""}
+      ${!isPhotoUpdated && !isProfileUpdated ? "Tidak ada perubahan data" : ""}
+    </div>
+  `,
+  confirmButtonColor: "#16a34a",
+});
+  } catch (err) {
+    console.error(err);
+
+    Swal.fire({
+      icon: "error",
+      title: "Gagal Memperbarui Profil",
+      text: "Terjadi kesalahan saat menyimpan data. Silakan coba lagi.",
+      confirmButtonColor: "#dc2626",
+    });
+  }
+};
+
 
   /* ================= EDUCATION CRUD ================= */
   const handleAddEducation = async (newEdu: any) => {
@@ -198,7 +264,7 @@ export default function LecturerProfile() {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#facc15] hover:bg-yellow-400 text-[#0a3b91] font-semibold px-4 py-2 rounded-xl shadow"
+            className="bg-[#facc15] hover:bg-yellow-400 text-white font-semibold px-4 py-2 rounded-xl shadow"
           >
             Edit Profil
           </button>
@@ -262,7 +328,7 @@ export default function LecturerProfile() {
             <h2 className="text-black font-semibold text-lg">Riwayat Pendidikan</h2>
             <button
               onClick={() => setIsAddEduOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-black px-4 py-2 rounded-xl shadow text-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow text-sm"
             >
               + Tambah
             </button>

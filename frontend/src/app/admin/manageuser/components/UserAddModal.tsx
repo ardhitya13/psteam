@@ -3,6 +3,17 @@
 import React, { useState, useEffect } from "react";
 import ModalWrapper from "../../components/ModalWrapper";
 import { Eye, EyeOff } from "lucide-react";
+import Swal from "sweetalert2"; // ✅ TAMBAHAN
+
+
+// =========================
+// VALIDASI PASSWORD
+// =========================
+function isStrongPassword(password: string) {
+  return password.length >= 8;
+}
+
+
 
 export default function UserAddModal({
   isOpen,
@@ -28,7 +39,6 @@ export default function UserAddModal({
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [successAlert, setSuccessAlert] = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -46,23 +56,68 @@ export default function UserAddModal({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const submit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      await onSubmit(form);
-      setSuccessAlert(true);
+  // =========================
+  // VALIDASI PASSWORD
+  // =========================
+  if (!isStrongPassword(form.password)) {
+    Swal.fire({
+      icon: "warning",
+      title: "Password Terlalu Pendek",
+      text: "Password harus terdiri dari minimal 8 karakter.",
+      confirmButtonColor: "#2563eb",
+    });
+    return;
+  }
 
-      setForm({
-        name: "",
-        role: "dosen",
-        email: "",
-        password: "",
-      });
-    } catch (err: any) {
-      alert(err.message || "Gagal menambahkan user");
-    }
-  };
+  try {
+    await onSubmit(form);
+
+    // 🔥 TUTUP MODAL DULU (PENTING)
+    onClose();
+
+    // 🔥 RESET FORM SETELAH MODAL DITUTUP
+    setForm({
+      name: "",
+      role: "dosen",
+      email: "",
+      password: "",
+    });
+
+    // =========================
+    // ALERT SUKSES (DI DEPAN)
+    // =========================
+    await Swal.fire({
+      icon: "success",
+      title: "User Berhasil Ditambahkan",
+      html: `
+        <div style="text-align:left; margin-top:8px">
+          <p><b>Nama</b> : ${form.name}</p>
+          <p><b>Email</b> : ${form.email}</p>
+          <p><b>Role</b> : ${form.role === "admin" ? "Admin" : "Dosen"}</p>
+        </div>
+      `,
+      confirmButtonText: "OK",
+      confirmButtonColor: "#2563eb",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      backdrop: true,
+      customClass: {
+        popup: "z-[9999]",
+      },
+    });
+  } catch (err: any) {
+    Swal.fire({
+      icon: "error",
+      title: "Gagal Menambahkan User",
+      text: err.message || "Terjadi kesalahan pada server.",
+      confirmButtonColor: "#dc2626",
+    });
+  }
+};
+
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose} width="max-w-2xl">
@@ -130,11 +185,20 @@ export default function UserAddModal({
               <input
                 required
                 type={showPassword ? "text" : "password"}
-                placeholder="Minimal 8 karakter"
+                placeholder="Minimal 8 karakter (huruf & angka)"
                 value={form.password}
                 onChange={(e) => handleChange("password", e.target.value)}
-                className="mt-2 w-full border rounded-lg px-4 py-3 text-sm pr-12 bg-white text-black"
+                className={`mt-2 w-full border rounded-lg px-4 py-3 text-sm pr-12 bg-white text-black ${form.password && !isStrongPassword(form.password)
+                    ? "border-red-500"
+                    : ""
+                  }`}
               />
+              {form.password && !isStrongPassword(form.password) && (
+                <p className="text-xs text-red-500 mt-1">
+                  Password minimal 8 karakter dan harus mengandung huruf serta angka.
+                </p>
+              )}
+
 
               <button
                 type="button"
@@ -165,27 +229,7 @@ export default function UserAddModal({
         </div>
       </form>
 
-      {successAlert && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
-            <h3 className="text-lg font-semibold mb-3 text-blue-600">
-              Berhasil!
-            </h3>
-            <p className="text-sm text-gray-700 mb-6">
-              User <b>{form.name}</b> berhasil ditambahkan.
-            </p>
-            <button
-              onClick={() => {
-                setSuccessAlert(false);
-                onClose();
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded text-sm"
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
+    
     </ModalWrapper>
   );
 }

@@ -52,14 +52,6 @@ export default function AddResearchCard({
 
       await onSubmit(form);
 
-      // ✅ ALERT SUKSES
-      await Swal.fire({
-        icon: "success",
-        title: "Berhasil",
-        text: "Penelitian berhasil ditambahkan.",
-        confirmButtonColor: "#2563eb",
-      });
-
       onClose();
     } catch (err: any) {
       Swal.fire({

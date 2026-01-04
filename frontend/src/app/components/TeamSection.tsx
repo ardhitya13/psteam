@@ -61,7 +61,7 @@ export default function TeamSection() {
     {
       name: "Ardhitya Danur Siswondo",
       role: "Anggota Tim Produksi PSTeam",
-      image: "/team/mahasiswa1.png",
+      image: "/team/ardhitya.jpg",
       email: "ardhityasiswondo@gmail.com",
       website: "https://github.com/ardhitya13",
       github: "https://github.com/ardhitya13",

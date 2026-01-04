@@ -137,12 +137,12 @@ export default function TrainingAddModal({ onClose, onAdd }: Props) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
-            <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
             <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh] p-6">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold text-black">Tambah Pelatihan Baru</h2>
-                    <button onClick={onClose} className="p-2"><X /></button>
+                    <button onClick={onClose} className="p-2 text-black"><X /></button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">

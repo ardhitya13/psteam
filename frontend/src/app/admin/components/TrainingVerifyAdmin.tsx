@@ -350,7 +350,7 @@ export default function VerifyTrainingAdmin() {
       {confirmAccept && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
-            <h3 className="text-lg font-semibold mb-3">Konfirmasi Terima</h3>
+            <h3 className="text-lg font-semibold text-green-600 mb-3">Konfirmasi Terima</h3>
             <p className="text-sm text-gray-700 mb-6">
               Terima peserta <b>{confirmAccept.name}</b>?
             </p>
@@ -358,14 +358,14 @@ export default function VerifyTrainingAdmin() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmAccept(null)}
-                className="px-4 py-2 bg-gray-300 rounded text-sm"
+                className="px-4 py-2 text-white bg-gray-600 rounded"
               >
                 Batal
               </button>
 
               <button
                 onClick={() => approveNow(confirmAccept.id)}
-                className="px-4 py-2 bg-blue-600 text-white rounded text-sm"
+                className="px-4 py-2 bg-blue-600 rounded text-sm"
               >
                 Ya, Terima
               </button>
@@ -388,7 +388,7 @@ export default function VerifyTrainingAdmin() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmReject(null)}
-                className="px-4 py-2 bg-gray-300 rounded text-sm"
+                className="px-4 py-2 bg-gray-600 rounded text-sm"
               >
                 Batal
               </button>

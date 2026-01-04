@@ -209,9 +209,8 @@ export default function TeamAdmin() {
         />
 
         <main
-          className={`flex-1 transition-all duration-300 px-8 py-6 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          } mt-[85px]`}
+          className={`flex-1 transition-all duration-300 px-8 py-6 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            } mt-[85px]`}
           style={{ minHeight: "calc(100vh - 85px)" }}
         >
           {/* TITLE */}
@@ -255,11 +254,10 @@ export default function TeamAdmin() {
                 onBlur={() => {
                   if (searchTerm.trim() === "") setIsSearchOpen(false);
                 }}
-                className={`transition-all duration-300 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-900 placeholder-gray-400 ${
-                  isSearchOpen
+                className={`transition-all duration-300 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-900 placeholder-gray-400 ${isSearchOpen
                     ? "w-56 pl-10 pr-3 py-2 opacity-100 z-30"
                     : "w-10 pl-0 pr-0 py-2 opacity-0 pointer-events-none z-10"
-                }`}
+                  }`}
               />
 
               {isSearchOpen && (
@@ -831,8 +829,8 @@ export default function TeamAdmin() {
             </table>
 
             {/* PAGINATION */}
-            <div className="flex justify-end px-4 py-4">
-              <div className="flex items-center gap-2">
+            <div className="flex justify-end px-3 py-2 bg-gray-50 border-t">
+              <div className="flex items-center gap-1">
                 {(() => {
                   const safeTotalPages = Math.max(totalPages, 1);
                   const safeCurrentPageFixed = Math.min(
@@ -842,37 +840,37 @@ export default function TeamAdmin() {
 
                   return (
                     <>
+                      {/* PREV */}
                       <button
                         disabled={safeCurrentPageFixed === 1}
                         onClick={() =>
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
-                        className={`w-10 h-10 rounded-md border flex items-center justify-center ${
-                          safeCurrentPageFixed === 1
+                        className={`w-7 h-7 rounded border text-xs flex items-center justify-center ${safeCurrentPageFixed === 1
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-700 hover:bg-gray-100"
-                        }`}
+                            : "bg-white hover:bg-gray-200 text-gray-700"
+                          }`}
                       >
-                        {"<"}
+                        &lt;
                       </button>
 
-                      {Array.from(
-                        { length: safeTotalPages },
-                        (_, i) => i + 1
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-10 h-10 rounded-md border flex items-center justify-center text-sm font-medium ${
-                            safeCurrentPageFixed === page
-                              ? "bg-blue-600 text-white border-blue-600"
-                              : "bg-white text-gray-700 hover:bg-gray-100"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      {/* PAGE NUMBERS */}
+                      {Array.from({ length: safeTotalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-7 h-7 rounded border text-xs flex items-center justify-center ${safeCurrentPageFixed === page
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white hover:bg-gray-200 text-gray-700"
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      )}
 
+                      {/* NEXT */}
                       <button
                         disabled={safeCurrentPageFixed === safeTotalPages}
                         onClick={() =>
@@ -880,19 +878,19 @@ export default function TeamAdmin() {
                             Math.min(prev + 1, safeTotalPages)
                           )
                         }
-                        className={`w-10 h-10 rounded-md border flex items-center justify-center ${
-                          safeCurrentPageFixed === safeTotalPages
+                        className={`w-7 h-7 rounded border text-xs flex items-center justify-center ${safeCurrentPageFixed === safeTotalPages
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-700 hover:bg-gray-100"
-                        }`}
+                            : "bg-white hover:bg-gray-200 text-gray-700"
+                          }`}
                       >
-                        {">"}
+                        &gt;
                       </button>
                     </>
                   );
                 })()}
               </div>
             </div>
+
           </div>
 
           {/* MODALS */}

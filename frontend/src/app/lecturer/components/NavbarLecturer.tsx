@@ -2,6 +2,7 @@
 
 import { LogOut, User, KeyRound } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { logout } from "../../../lib/logout";
@@ -16,44 +17,52 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
   const [photo, setPhoto] = useState("");
   const [initial, setInitial] = useState("U");
 
-  /* ================= LOAD USER FROM LOCAL STORAGE ================= */
-  useEffect(() => {
-  async function loadUser() {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  /* ================= LOAD USER ================= */
+const loadUser = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
 
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const userId = payload.id;
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  const userId = payload.id;
 
-    // 🔥 FETCH PROFIL LANGSUNG
-    const res = await fetch(
-      `http://localhost:4000/api/lecturer/${userId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+  const res = await fetch(
+    `http://localhost:4000/api/lecturer/${userId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store", // 🔥 penting
+    }
+  );
 
-    const profile = await res.json();
+  const profile = await res.json();
 
-    const name = profile?.user?.name ?? "";
-    const study = profile?.studyProgram ?? "";
-    const photo = profile?.imageUrl
-      ? `http://localhost:4000${profile.imageUrl}`
-      : "";
+  const name = profile?.user?.name ?? "";
+  const study = profile?.studyProgram ?? "";
+  const photo = profile?.imageUrl
+    ? `http://localhost:4000${profile.imageUrl}?t=${Date.now()}`
+    : "";
 
-    setName(name);
-    setStudyProgram(study);
-    setPhoto(photo);
-    setInitial(name ? name[0].toUpperCase() : "U");
+  setName(name);
+  setStudyProgram(study);
+  setPhoto(photo);
+  setInitial(name ? name[0].toUpperCase() : "U");
 
-    // cache
-    localStorage.setItem("userName", name);
-    localStorage.setItem("userStudyProgram", study);
-    localStorage.setItem("userPhoto", photo);
-  }
+  localStorage.setItem("userName", name);
+  localStorage.setItem("userStudyProgram", study);
+  localStorage.setItem("userPhoto", photo);
+};
 
+/* ================= INIT + LISTENER ================= */
+useEffect(() => {
   loadUser();
+
+  const handler = () => loadUser();
+  window.addEventListener("profile-updated", handler);
+
+  return () => {
+    window.removeEventListener("profile-updated", handler);
+  };
 }, []);
+
 
   /* ================= CLOSE DROPDOWN ================= */
   useEffect(() => {
@@ -70,9 +79,24 @@ export default function NavbarLecturer({ toggle }: { toggle: () => void }) {
   }, []);
 
   /* ================= LOGOUT ================= */
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  const result = await Swal.fire({
+    title: "Yakin ingin keluar?",
+    text: "Anda akan keluar dari sistem.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, Keluar",
+    cancelButtonText: "Batal",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#9ca3af",
+    reverseButtons: true,
+  });
+
+  if (result.isConfirmed) {
     logout(router);
-  };
+  }
+};
+
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-md">

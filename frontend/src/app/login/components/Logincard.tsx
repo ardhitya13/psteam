@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
@@ -12,6 +12,15 @@ export default function Logincard() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const isFormValid = useMemo(() => {
+    return role !== "" && email !== "" && password !== "";
+  }, [role, email, password]);
+
+  const buttonText = useMemo(() => {
+    if (loading) return "Memproses...";
+    return "Masuk";
+  }, [loading]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,9 +211,10 @@ export default function Logincard() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2 rounded-md text-sm mt-4"
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60
+             text-white font-semibold py-2 rounded-md text-sm mt-4"
         >
-          {loading ? "Memproses..." : "Masuk"}
+          {buttonText}
         </button>
       </form>
     </div>

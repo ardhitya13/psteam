@@ -5,7 +5,21 @@ import ModalWrapper from "./ModalWrapper";
 import { Lecturer, EducationHistory } from "./LecturersTable";
 import { createPortal } from "react-dom";
 
-type SuccessMode = "add" | "edit";
+type SuccessMode = "add" | "edit" | "delete";
+
+
+type LecturerSubmitPayload = Lecturer & {
+  deletedEducationIds?: number[];
+};
+
+type EducationHistoryForm = EducationHistory & {
+  tempId: string;
+};
+
+type LecturerForm = Omit<Lecturer, "educationHistory"> & {
+  educationHistory: EducationHistoryForm[];
+};
+
 
 export default function EditLecturerModal({
   isOpen,
@@ -16,9 +30,9 @@ export default function EditLecturerModal({
   isOpen: boolean;
   onClose: () => void;
   defaultData: Lecturer | null;
-  onSubmit: (updated: Lecturer) => void;
+  onSubmit: (updated: LecturerSubmitPayload) => void;
 }) {
-  const [formData, setFormData] = useState<Lecturer | null>(null);
+  const [formData, setFormData] = useState<LecturerForm | null>(null);
 
   /* ALERT */
   const [successAlert, setSuccessAlert] = useState(false);
@@ -27,15 +41,29 @@ export default function EditLecturerModal({
 
   const [deleteAlert, setDeleteAlert] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
+  const [deletedList, setDeletedList] = useState<EducationHistory[]>([]);
+  const generateTempId = () => crypto.randomUUID();
+
+
+
 
   /* LOAD DEFAULT */
   useEffect(() => {
-    if (defaultData) {
-      const clone = JSON.parse(JSON.stringify(defaultData));
-      if (!clone.educationHistory) clone.educationHistory = [];
-      setFormData(clone);
-    }
-  }, [defaultData]);
+  if (defaultData) {
+    const clone = JSON.parse(JSON.stringify(defaultData));
+
+    clone.educationHistory = (clone.educationHistory || []).map(
+      (e: EducationHistory) => ({
+        ...e,
+        tempId: e.id ?? crypto.randomUUID(),
+      })
+    );
+
+    setFormData(clone);
+  }
+}, [defaultData]);
+
 
   /* RESET */
   useEffect(() => {
@@ -45,6 +73,8 @@ export default function EditLecturerModal({
       setDeleteAlert(false);
       setDeleteIndex(null);
       setSuccessList([]);
+      setDeletedIds([]);
+      setDeletedList([]);
     }
   }, [isOpen]);
 
@@ -65,18 +95,24 @@ export default function EditLecturerModal({
   }
 
   function addEduRow() {
-    setFormData((prev) =>
-      prev
-        ? {
-            ...prev,
-            educationHistory: [
-              ...prev.educationHistory,
-              { degree: "", university: "", major: "" },
-            ],
-          }
-        : prev
-    );
-  }
+  setFormData((prev) =>
+    prev
+      ? {
+          ...prev,
+          educationHistory: [
+            ...prev.educationHistory,
+            {
+              tempId: crypto.randomUUID(),
+              degree: "",
+              university: "",
+              major: "",
+            },
+          ],
+        }
+      : prev
+  );
+}
+
 
   function askDelete(index: number) {
     setDeleteIndex(index);
@@ -88,6 +124,18 @@ export default function EditLecturerModal({
 
     setFormData((prev) => {
       if (!prev) return prev;
+
+      const target = prev.educationHistory[deleteIndex];
+
+      // 🔥 SIMPAN ID JIKA ADA (DATA LAMA)
+      if (target.id) {
+        setDeletedIds((prevIds) => [...prevIds, target.id!]);
+        setDeletedList((prev) =>
+          prev.some((e) => e.id === target.id) ? prev : [...prev, target]
+        );
+      }
+
+
       return {
         ...prev,
         educationHistory: prev.educationHistory.filter(
@@ -99,6 +147,7 @@ export default function EditLecturerModal({
     setDeleteAlert(false);
     setDeleteIndex(null);
   }
+
 
   /* SUBMIT */
   function submit(e: React.FormEvent) {
@@ -128,14 +177,21 @@ export default function EditLecturerModal({
     if (added.length > 0) {
       setSuccessMode("add");
       setSuccessList(added);
-    } else {
+    }
+    else if (edited.length > 0) {
       setSuccessMode("edit");
       setSuccessList(edited);
     }
+    else if (deletedList.length > 0) {
+      setSuccessMode("delete");
+      setSuccessList(deletedList);
+    }
+
 
     onSubmit({
       ...formData,
       educationHistory: clean,
+      deletedEducationIds: deletedIds,
     });
 
     setSuccessAlert(true);
@@ -192,10 +248,11 @@ export default function EditLecturerModal({
             </div>
 
             {formData.educationHistory.map((edu, index) => (
-              <div
-                key={index}
-                className="bg-white p-4 rounded-lg shadow mb-4"
-              >
+  <div
+    key={edu.tempId}
+    className="bg-white p-4 rounded-lg shadow mb-4"
+  >
+
                 <select
                   className="border rounded-lg p-2 w-full mb-3 text-gray-900 bg-white"
                   value={edu.degree}
@@ -263,21 +320,32 @@ export default function EditLecturerModal({
         {/* SUCCESS ALERT */}
         {successAlert && (
           <Alert
+            danger={successMode === "delete"} // 🔥 INI KUNCI NYA
             title={
               successMode === "add"
                 ? "Riwayat Pendidikan Ditambahkan"
-                : "Riwayat Pendidikan Diperbarui"
+                : successMode === "edit"
+                  ? "Riwayat Pendidikan Diperbarui"
+                  : "Riwayat Pendidikan Dihapus"
             }
             message={
               <div className="text-left text-gray-900">
                 <p className="mb-2 font-semibold">
                   {successMode === "add"
                     ? "Riwayat pendidikan baru:"
-                    : "Riwayat pendidikan diperbarui:"}
+                    : successMode === "edit"
+                      ? "Riwayat pendidikan diperbarui:"
+                      : "Riwayat pendidikan dihapus:"}
                 </p>
+
                 <ul className="list-disc pl-5 space-y-1">
-                  {successList.map((s, idx) => (
-                    <li key={idx}>
+                  {successList.map((s) => (
+                    <li
+                      key={
+                        s.id ??
+                        `${s.degree}-${s.university}-${s.major}`
+                      }
+                    >
                       {s.degree} — {s.university} ({s.major})
                     </li>
                   ))}
@@ -290,6 +358,7 @@ export default function EditLecturerModal({
             }}
           />
         )}
+
 
         {/* DELETE ALERT */}
         {deleteAlert && (
@@ -325,9 +394,8 @@ function Alert({ title, message, onOk, onCancel, danger }: any) {
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-xl p-6 w-full max-w-sm border shadow-lg">
         <h3
-          className={`font-bold mb-3 text-lg ${
-            danger ? "text-red-600" : "text-blue-700"
-          }`}
+          className={`font-bold mb-3 text-lg ${danger ? "text-red-600" : "text-blue-700"
+            }`}
         >
           {title}
         </h3>
@@ -338,16 +406,15 @@ function Alert({ title, message, onOk, onCancel, danger }: any) {
           {onCancel && (
             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-gray-300 rounded"
+              className="px-4 py-2 text-black bg-gray-300 rounded"
             >
               Batal
             </button>
           )}
           <button
             onClick={onOk}
-            className={`px-4 py-2 rounded text-white ${
-              danger ? "bg-red-600" : "bg-blue-600"
-            }`}
+            className={`px-4 py-2 rounded text-white ${danger ? "bg-red-600" : "bg-blue-600"
+              }`}
           >
             OK
           </button>

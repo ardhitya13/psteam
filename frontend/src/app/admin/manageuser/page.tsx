@@ -2,13 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { Search, Trash2, Plus } from "lucide-react";
+import Swal from "sweetalert2";
+
 
 import AdminNavbar from "../components/AdminNavbar";
 import AdminSidebar from "../components/AdminSidebar";
 import UserAddModal from "./components/UserAddModal";
 
 /* =========================
-   USER TYPE (NO PHONE)
+   USER TYPE 
 ========================= */
 type User = {
   id: number;
@@ -16,6 +18,13 @@ type User = {
   email: string;
   role: string;
 };
+
+type CurrentUser = {
+  id: number;
+  name: string;
+  role: string;
+};
+
 
 export default function UserAdminPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -27,7 +36,25 @@ export default function UserAdminPage() {
   const [pageGroup, setPageGroup] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
+
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (!stored) return;
+
+    try {
+      const user = JSON.parse(stored);
+      setCurrentUser({
+        id: user.id,
+        name: user.name,
+        role: user.role,
+      });
+    } catch (e) {
+      console.error("Gagal parsing user dari localStorage", e);
+    }
+  }, []);
+
 
   /* =========================
      LOAD USERS
@@ -82,17 +109,59 @@ export default function UserAdminPage() {
     if (!confirmDelete) return;
 
     const token = localStorage.getItem("token");
+    if (!token) {
+      Swal.fire({
+        icon: "error",
+        title: "Token tidak ditemukan",
+        text: "Silakan login ulang.",
+      });
+      return;
+    }
 
-    await fetch(`http://localhost:4000/api/users/${confirmDelete}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/users/${confirmDelete.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    setConfirmDelete(null);
-    loadUsers();
+      const result = await res.json();
+
+      if (!res.ok) {
+        Swal.fire({
+          icon: "error",
+          title: "Gagal menghapus user",
+          text: result.error || "Terjadi kesalahan.",
+        });
+        return;
+      }
+
+      await Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: `User "${confirmDelete.name}" berhasil dihapus.`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      setConfirmDelete(null);
+      loadUsers();
+    } catch (err) {
+      console.error("DELETE USER ERROR:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Terjadi kesalahan saat menghapus user.",
+      });
+    }
   };
+
+
+
 
   /* =========================
      ADD USER (FIX PALING PENTING)
@@ -134,9 +203,8 @@ export default function UserAdminPage() {
         />
 
         <main
-          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${
-            isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
-          }`}
+          className={`flex-1 px-8 py-6 mt-[85px] transition-all duration-300 ${isSidebarOpen ? "ml-[232px]" : "ml-[80px]"
+            }`}
         >
           {/* JUDUL */}
           <div className="text-center mb-8">
@@ -172,12 +240,11 @@ export default function UserAdminPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onBlur={() => searchTerm === "" && setIsSearchOpen(false)}
                 placeholder="Cari user..."
-                className={`transition-all duration-300 border border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 
-                ${
-                  isSearchOpen
+                className={`transition-all duration-300 border text-black border-gray-300 bg-white rounded-md shadow-sm text-sm h-10 
+                ${isSearchOpen
                     ? "w-56 pl-10 pr-3 opacity-100"
                     : "w-10 opacity-0 pointer-events-none"
-                }`}
+                  }`}
               />
             </div>
 
@@ -247,18 +314,87 @@ export default function UserAdminPage() {
                         {l.role}
                       </td>
                       <td className="border border-gray-300 px-4 py-2">
-                        <button
-                          onClick={() => setConfirmDelete(l.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {currentUser &&
+                          currentUser.id !== l.id &&
+                          (
+                            (currentUser.role === "superadmin" && l.role !== "superadmin") ||
+                            (currentUser.role === "admin" && l.role === "dosen")
+                          ) && (
+                            <button
+                              onClick={() => setConfirmDelete(l)}
+                              className="text-red-600 hover:text-red-800"
+                              title={`Hapus user ${l.name}`}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
+
+
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+
+            <div className="flex justify-end items-center py-2 px-4 gap-1 text-xs bg-gray-50 border-t">
+  {/* PREV */}
+  <button
+    onClick={() => {
+      if (currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+        setPageGroup(Math.floor((currentPage - 2) / 3));
+      }
+    }}
+    disabled={currentPage === 1}
+    className={`px-2 py-1 rounded border ${
+      currentPage === 1
+        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+        : "bg-white hover:bg-blue-200"
+    }`}
+  >
+    &lt;
+  </button>
+
+  {/* PAGE NUMBER (GROUP 3) */}
+  {Array.from({ length: 3 }, (_, i) => {
+    const pageNum = pageGroup * 3 + (i + 1);
+    if (pageNum > totalPages) return null;
+
+    return (
+      <button
+        key={pageNum}
+        onClick={() => setCurrentPage(pageNum)}
+        className={`px-2 py-1 rounded border ${
+          currentPage === pageNum
+            ? "bg-blue-600 text-white"
+            : "bg-white hover:bg-blue-200"
+        }`}
+      >
+        {pageNum}
+      </button>
+    );
+  })}
+
+  {/* NEXT */}
+  <button
+    onClick={() => {
+      if (currentPage < totalPages) {
+        setCurrentPage((prev) => prev + 1);
+        setPageGroup(Math.floor(currentPage / 3));
+      }
+    }}
+    disabled={currentPage === totalPages}
+    className={`px-2 py-1 rounded border ${
+      currentPage === totalPages
+        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+        : "bg-white hover:bg-gray-200"
+    }`}
+  >
+    &gt;
+  </button>
+</div>
+
           </div>
 
           <UserAddModal
@@ -266,6 +402,49 @@ export default function UserAdminPage() {
             onClose={() => setOpenAdd(false)}
             onSubmit={handleAddUser}
           />
+
+          {confirmDelete && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+                <h3 className="text-lg font-bold text-red-600 mb-3">
+                  Konfirmasi Hapus User
+                </h3>
+
+                <p className="text-gray-700 text-sm mb-4">
+                  Anda yakin ingin menghapus user:
+                </p>
+
+                <div className="bg-gray-100 rounded-md p-3 mb-4">
+                  <p className="font-semibold text-black">{confirmDelete.name}</p>
+                  <p className="text-sm text-gray-600">{confirmDelete.email}</p>
+                  <p className="text-xs text-gray-500 capitalize">
+                    Role: {confirmDelete.role}
+                  </p>
+                </div>
+
+                <p className="text-sm text-red-500 mb-6">
+                  Tindakan ini tidak dapat dibatalkan.
+                </p>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setConfirmDelete(null)}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    onClick={deleteNow}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                  >
+                    Ya, Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
     </div>
