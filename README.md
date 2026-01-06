@@ -22,6 +22,21 @@ Proyek ini dibuat untuk memenuhi tugas mata kuliah **PBL**.
 
 ---
 
+🔗 Link Penting (Wajib PBL)
+
+📂 Google Drive (Laporan, ERD, Use Case, SKPL, RPL, Manual Book, PPT, dll)
+https://drive.google.com/drive/folders/1b8We3T2theBdYy9z2IBSppO6r_AANPkM?usp=sharing
+
+🎥 Video Presentasi AAS PBL
+https://youtu.be/Ioi8somLV8s?si=_k8GCLocqsFrjTJF
+
+🎬 Video Demo Aplikasi PBL PSTEAM
+https://www.youtube.com/watch?v=hSTbZXXII8g
+
+💻 Source Code Aplikasi PBL
+(Repository GitHub ini)
+
+
 ## 🧩 Teknologi yang Digunakan
 
 ### Frontend
