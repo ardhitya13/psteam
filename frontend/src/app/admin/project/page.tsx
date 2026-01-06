@@ -393,7 +393,7 @@ export default function DaftarProyekPage() {
                                 setSelectedDetail(item.raw);
                                 setIsDetailOpen(true);
                               }}
-                              className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                              className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md font-semibold hover:bg-blue-700 transition"
                             >
                               <FileText size={14} /> Detail
                             </button>
