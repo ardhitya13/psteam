@@ -118,10 +118,10 @@ export default function NavBar() {
           <Image
             src="/images/logopsteam(modify).png"
             alt="PSTeam Logo"
-            width={160}
-            height={150}
+            width={200}
+            height={190}
             priority
-            className="transition duration-300 group-hover:scale-105 p-3"
+            className="transition duration-300 group-hover:scale-105 p-1.5"
           />
         </Link>
 
