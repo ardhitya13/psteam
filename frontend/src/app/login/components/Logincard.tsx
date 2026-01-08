@@ -155,9 +155,9 @@ export default function Logincard() {
   return (
     <div className="flex flex-col items-center">
       <img
-        src="/logopsteam1.png"
+        src="/images/logopsteam(modify).png"
         alt="Logo PSTEAM"
-        className="w-28 mb-3"
+        className="w-55 mb-3"
       />
 
       <h1 className="text-center text-[15px] text-gray-700 font-medium mb-6">

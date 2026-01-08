@@ -106,7 +106,7 @@ useEffect(() => {
         <div className="flex items-center space-x-3">
           <div className="relative w-[120px] h-[30px] overflow-hidden">
             <Image
-              src="/logopsteam1.png"
+              src="/images/logopsteam(modify).png"
               alt="PSTEAM Logo"
               fill
               className="object-cover object-center"

@@ -116,12 +116,12 @@ export default function NavBar() {
         {/* LOGO */}
         <Link href="/" className="flex items-center space-x-3 group">
           <Image
-            src="/images/logopsteam4.png"
+            src="/images/logopsteam(modify).png"
             alt="PSTeam Logo"
-            width={78}
-            height={80}
+            width={160}
+            height={150}
             priority
-            className="transition duration-300 group-hover:scale-105"
+            className="transition duration-300 group-hover:scale-105 p-3"
           />
         </Link>
 
