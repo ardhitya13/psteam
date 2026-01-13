@@ -125,7 +125,7 @@ export default function DetailProductModal({
         <div className="flex justify-end mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 border rounded-md bg-gray-100 hover:bg-gray-200"
+            className="px-4 py-2 text-sm rounded-md bg-gray-500 text-white hover:bg-gray-600"
           >
             Tutup
           </button>

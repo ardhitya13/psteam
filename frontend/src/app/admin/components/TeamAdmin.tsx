@@ -333,7 +333,7 @@ export default function TeamAdmin() {
                           <div className="flex justify-center gap-2 items-center">
                             <button
                               onClick={() => toggleExpand(project.id)}
-                              className="bg-green-500 hover:bg-[#BFDBFE] text-white px-3 py-1 rounded-md flex items-center gap-1 text-sm font-semibold"
+                              className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md font-semibold hover:bg-green-700 transition"
                             >
                               <Users size={14} />
                               {expandedProject === project.id
@@ -354,7 +354,7 @@ export default function TeamAdmin() {
                                     prev === project.id ? null : project.id
                                   )
                                 }
-                                className="bg-blue-600 hover:bg-[#059e9d] text-white px-3 py-1 rounded-md flex items-center gap-2 text-sm font-semibold"
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md flex items-center gap-2 text-sm font-semibold"
                               >
                                 <span className="font-bold">+</span> Tambah
                                 Anggota ▾

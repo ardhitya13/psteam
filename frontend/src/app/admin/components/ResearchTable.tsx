@@ -329,7 +329,7 @@ export default function ResearchTable() {
 
                         <td className="px-4 py-3 border border-gray-300 text-center">
                           <div className="flex justify-center gap-2">
-                            <button className="px-3 py-1 bg-green-500 text-white rounded-md flex gap-1" onClick={() => setExpandedId(expandedId === lec.id ? null : lec.id)}>
+                            <button className="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-700 flex gap-1" onClick={() => setExpandedId(expandedId === lec.id ? null : lec.id)}>
                               <Users size={15} className="pt-1" /> Detail
                             </button>
 

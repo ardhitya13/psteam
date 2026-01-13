@@ -112,7 +112,7 @@ export default function ProductTable({
                     <div className="inline-flex justify-center gap-2 whitespace">
                       <button
                         onClick={() => onDetail(p)}
-                        className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+                        className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md font-semibold hover:bg-green-700 transition"
                       >
                         <FileText size={14} /> Detail
                       </button>

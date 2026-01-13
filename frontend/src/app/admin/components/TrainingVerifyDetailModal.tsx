@@ -68,7 +68,7 @@ export default function TrainingVerifyDetailModal({
         <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
+            className="px-4 py-2 text-sm rounded-md bg-gray-500 text-white hover:bg-gray-600"
           >
             Tutup
           </button>

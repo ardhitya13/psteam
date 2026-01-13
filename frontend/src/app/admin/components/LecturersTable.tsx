@@ -286,7 +286,7 @@ export default function LecturersTable() {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => toggleExpand(lect.id)}
-                              className="px-3 py-1 bg-green-500 font-semibold rounded-md text-white flex gap-1 hover:bg-blue-200"
+                              className="px-3 py-1 bg-green-500 font-semibold rounded-md text-white flex gap-1 hover:bg-green-700"
                             >
                               <Users className="pt-1" size={15} />
                               Detail

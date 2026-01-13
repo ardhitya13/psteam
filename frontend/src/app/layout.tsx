@@ -6,7 +6,9 @@ import "flowbite-react";
 export const metadata = {
   title: "PSTeam",
   description: "Website resmi PSTeam - Web, IoT, Mobile, dan AI Solution",
-  icons: { icon: "/logopsteam4.png" },
+  icons: {
+    icon: "/logopsteam1.png",
+  },
 };
 
 export default function RootLayout({
@@ -16,14 +18,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="scroll-smooth">
-      <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
-        />
-        <link rel="icon" href="/logopsteam4.png" sizes="any" type="image/png" />
-        <link rel="shortcut icon" href="/logopsteam4.png" type="image/png" />
-      </head>
 
       {/* 🌈 Background global gradasi vertikal — tanpa shorthand supaya aman */}
       <body

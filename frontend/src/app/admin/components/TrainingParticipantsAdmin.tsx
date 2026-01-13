@@ -284,7 +284,7 @@ export default function TrainingParticipantsAdmin() {
                                   p.training.thumbnail ?? null,
                               })
                             }
-                            className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md font-semibold"
+                            className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md font-semibold hover:bg-green-700 transition"
                           >
                             <FileText size={14} /> Detail
                           </button>

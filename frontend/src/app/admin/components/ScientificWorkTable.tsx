@@ -303,7 +303,7 @@ export default function ScientificWorkTable() {
                         <td className="border border-gray-300 px-4 py-3 text-center">
                           <div className="flex justify-center gap-2">
                             <button
-                              className="px-3 py-1 bg-green-500 font-semibold rounded-md text-white flex gap-1 hover:bg-blue-200"
+                              className="px-3 py-1 bg-green-500 font-semibold rounded-md text-white flex gap-1 hover:bg-green-700"
                               onClick={() =>
                                 setExpandedId(
                                   expandedId === lec.id ? null : lec.id
