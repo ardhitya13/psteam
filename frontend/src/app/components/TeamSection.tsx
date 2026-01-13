@@ -65,16 +65,15 @@ export default function TeamSection() {
       email: "ardhityasiswondo@gmail.com",
       website: "https://ardhitya-danur-siswondo-portofolio-7tx68mxgq-ardhityas-projects.vercel.app/",
       github: "https://github.com/ardhitya13",
-      linkedin:
-        "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
+      linkedin: "https://www.linkedin.com/in/ardhitya-danur-siswondo-7361552b8/",
       facebook: "https://www.facebook.com/ardhitya.siswondo.3/",
       instagram: "https://www.instagram.com/ardhitya__/",
     },
     {
       name: "Arifah Husaini",
       role: "Anggota Tim Produksi PSTeam",
-      image: "/team/mahasiswa2.png",
-      email: "arifah@example.com",
+      image: "/team/Arifah.jpeg",
+      email: "Arifahhusaini03@gmail.com",
       website: "#",
       github: "#",
       linkedin: "https://github.com/arifah336",
@@ -84,24 +83,23 @@ export default function TeamSection() {
     {
       name: "Anggun Salsa Faradita",
       role: "Anggota Tim Produksi PSTeam",
-      image: "/team/mahasiswa3.png",
+      image: "/team/Anggun.jpeg",
       email: "anggunsalsa2807@gmail.com",
       website: "#",
       github: "https://github.com/anggun07",
-      linkedin:
-        "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
+      linkedin: "https://www.linkedin.com/in/anggun-salsa-faradita-13b0432b3/",
       facebook: "https://www.facebook.com/share/169XkGzGJo/",
       instagram: "https://www.instagram.com/anggunslsa_",
     },
     {
       name: "Farhan",
       role: "Anggota Tim Produksi PSTeam",
-      image: "/team/mahasiswa4.png",
-      email: "farhan@example.com",
+      image: "/team/Farhan.jpeg",
+      email: "farhanrsyidd@egmail.com",
       website: "#",
       github: "https://github.com/farhanrasyid20",
       linkedin: "https://www.linkedin.com/in/farhan-rasyid-88978a27a",
-      facebook: "#",
+      facebook: "https://www.facebook.com/share/16vJEhxjRS/",
       instagram: "https://www.instagram.com/frhanr20",
     },
   ];
@@ -166,7 +164,7 @@ export default function TeamSection() {
             alt={person.name}
             width={160}
             height={160}
-            className="object-cover w-full h-full"
+            className="object-cover object-[center_10%] w-full h-full"
           />
         </div>
 

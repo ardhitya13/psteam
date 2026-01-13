@@ -87,7 +87,7 @@ export default function ServicesSection() {
                   duration: 0.25, // ⚡ Hover cepat, tidak slowmo
                 }}
                 className="bg-white/90 text-gray-900 rounded-2xl p-8 shadow-xl hover:shadow-2xl cursor-pointer 
-                           transition-transform duration-200 border border-gray-100"
+                           transition-transform duration-50 border border-gray-100"
               >
                 <div className="flex flex-col items-center text-center">
                   {service.icon}
