@@ -78,7 +78,7 @@ export default function TeamSection() {
       github: "#",
       linkedin: "https://github.com/arifah336",
       facebook: "https://www.facebook.com/arifa.husain.921",
-      instagram: "https://www.instagram.com/ripahusain_/ ",
+      instagram: "https://www.instagram.com/ripahusain_/",
     },
     {
       name: "Anggun Salsa Faradita",

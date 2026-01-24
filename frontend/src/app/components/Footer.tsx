@@ -29,9 +29,9 @@ export default function Footer() {
           <div className="flex flex-col items-start space-y-4">
             <div className="flex items-center gap-4 mb-3">
               <Image
-                src="/logopsteam4.png"
+                src="/images/logopsteam(modify).png"
                 alt="PSTEAM Logo"
-                width={190}
+                width={200}
                 height={190}
                 className="object-contain drop-shadow-[0_0_10px_rgba(96,165,250,0.6)] hover:scale-105 transition-transform duration-300"
               />
