@@ -33,7 +33,6 @@ export default function EditIntellectualPropertyCard({
     year: new Date().getFullYear(),
   });
 
-  /* ================= SYNC DATA SAAT MODAL DIBUKA ================= */
   useEffect(() => {
     if (isOpen && defaultData) {
       setForm({
@@ -47,7 +46,6 @@ export default function EditIntellectualPropertyCard({
 
   if (!isOpen || !defaultData) return null;
 
-  /* ================= SUBMIT ================= */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -66,7 +64,6 @@ export default function EditIntellectualPropertyCard({
       return;
     }
 
-    // ⬅️ KIRIM KE PAGE (PAGE YANG HANDLE API + ALERT)
     onSubmit({
       id: form.id,
       title: form.title.trim(),
@@ -79,112 +76,94 @@ export default function EditIntellectualPropertyCard({
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <div className="bg-white rounded-lg shadow-md w-[420px] p-6 text-gray-800">
-        <h2 className="text-xl font-semibold mb-5 text-center">
-          Edit HKI / Paten
-        </h2>
+      
+      <h2 className="text-xl font-semibold mb-5 text-center text-gray-800">
+        Edit HKI / Paten
+      </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ================= JUDUL ================= */}
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Judul HKI
-            </label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) =>
-                setForm({ ...form, title: e.target.value })
-              }
-              className="
-                w-full border rounded-lg px-3 py-2 text-sm
-                bg-white text-black placeholder-gray-400
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-              "
-              required
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-4 text-gray-800">
 
-          {/* ================= JENIS ================= */}
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Jenis HKI
-            </label>
-            <select
-              value={form.type}
-              onChange={(e) =>
-                setForm({ ...form, type: e.target.value })
-              }
-              className="
-                w-full border rounded-lg px-3 py-2 text-sm
-                bg-white text-black
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-              "
-              required
-            >
-              <option value="">Pilih jenis HKI</option>
-              <option value="Hak Cipta Nasional">Hak Cipta Nasional</option>
-              <option value="Hak Cipta Internasional">
-                Hak Cipta Internasional
-              </option>
-              <option value="Desain Industri">Desain Industri</option>
-              <option value="Paten Sederhana">Paten Sederhana</option>
-              <option value="Paten">Paten</option>
-              <option value="Merek">Merek</option>
-              <option value="Rahasia Dagang">Rahasia Dagang</option>
-              <option value="Lain-Lain">Lain-Lain</option>
-            </select>
-          </div>
+        {/* JUDUL */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-700">
+            Judul HKI
+          </label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) =>
+              setForm({ ...form, title: e.target.value })
+            }
+            className="w-full border rounded-lg px-3 py-2 text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
 
-          {/* ================= TAHUN ================= */}
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Tahun
-            </label>
-            <input
-              type="number"
-              min={2000}
-              max={2100}
-              value={form.year}
-              onChange={(e) =>
-                setForm({ ...form, year: Number(e.target.value) })
-              }
-              className="
-                w-full border rounded-lg px-3 py-2 text-sm
-                bg-white text-black
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-              "
-              required
-            />
-          </div>
+        {/* JENIS */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-700">
+            Jenis HKI
+          </label>
+          <select
+            value={form.type}
+            onChange={(e) =>
+              setForm({ ...form, type: e.target.value })
+            }
+            className="w-full border rounded-lg px-3 py-2 text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            <option value="">Pilih jenis HKI</option>
+            <option value="Hak Cipta Nasional">Hak Cipta Nasional</option>
+            <option value="Hak Cipta Internasional">
+              Hak Cipta Internasional
+            </option>
+            <option value="Desain Industri">Desain Industri</option>
+            <option value="Paten Sederhana">Paten Sederhana</option>
+            <option value="Paten">Paten</option>
+            <option value="Merek">Merek</option>
+            <option value="Rahasia Dagang">Rahasia Dagang</option>
+            <option value="Lain-Lain">Lain-Lain</option>
+          </select>
+        </div>
 
-          {/* ================= BUTTON ================= */}
-          <div className="flex justify-end gap-2 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="
-                px-4 py-2 rounded-lg
-                bg-gray-200 text-gray-700
-                hover:bg-gray-300
-              "
-            >
-              Batal
-            </button>
+        {/* TAHUN */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-700">
+            Tahun
+          </label>
+          <input
+            type="number"
+            min={2000}
+            max={2100}
+            value={form.year}
+            onChange={(e) =>
+              setForm({ ...form, year: Number(e.target.value) })
+            }
+            className="w-full border rounded-lg px-3 py-2 text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
 
-            <button
-              type="submit"
-              className="
-                px-4 py-2 rounded-lg
-                bg-blue-600 text-white
-                hover:bg-blue-700
-              "
-            >
-              Simpan Perubahan
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* BUTTON */}
+        <div className="flex justify-end gap-2 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            Batal
+          </button>
+
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+          >
+            Simpan Perubahan
+          </button>
+        </div>
+
+      </form>
+
     </ModalWrapper>
   );
 }

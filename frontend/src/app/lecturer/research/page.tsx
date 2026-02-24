@@ -339,7 +339,7 @@ export default function DaftarPenelitianPage() {
           </table>
 
           {/* ================= PAGINATION ================= */}
-          <div className="flex justify-end items-center py-3 px-4 gap-2 text-sm bg-white">
+          <div className="flex justify-end items-center py-1 px-4 gap-2 text-sm bg-white">
             <button
               onClick={() => {
                 if (currentPage > 1) {

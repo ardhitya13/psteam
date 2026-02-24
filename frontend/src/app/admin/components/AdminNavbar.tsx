@@ -86,7 +86,7 @@ export default function NavbarAdmin({ toggle }: NavbarAdminProps) {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-gray-200 shadow-md">
-      <div className="max-w-screen-xl flex items-center justify-between mx-auto p-4">
+      <div className="w-full flex items-center justify-between px-6 py-3">
         
         {/* LOGO */}
         <div className="flex items-center space-x-3">

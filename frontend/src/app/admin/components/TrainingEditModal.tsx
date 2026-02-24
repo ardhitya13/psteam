@@ -49,14 +49,20 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
   /* ======================================
      🔥 NORMALISASI DATA ARRAY DARI DB
   ====================================== */
-  const [costDetails, setCostDetails] = useState<string[]>(parseArray(data.costDetails));
-  const [requirements, setRequirements] = useState<string[]>(parseArray(data.requirements));
+  const [costDetails, setCostDetails] = useState<string[]>(
+    parseArray(data.costDetails),
+  );
+  const [requirements, setRequirements] = useState<string[]>(
+    parseArray(data.requirements),
+  );
   const [schedule, setSchedule] = useState<any[]>(parseArray(data.schedule));
   const [rundown, setRundown] = useState<any[]>(parseArray(data.rundown));
 
   // BASIC
   const [title, setTitle] = useState(data.title);
-  const [shortDescription, setShortDescription] = useState(data.shortDescription ?? "");
+  const [shortDescription, setShortDescription] = useState(
+    data.shortDescription ?? "",
+  );
   const [type, setType] = useState(data.type);
   const [priceNum, setPriceNum] = useState<number | null>(data.price ?? null);
 
@@ -69,6 +75,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
   const [location, setLocation] = useState(data.location ?? "");
   const [certificate, setCertificate] = useState(data.certificate ?? "");
   const [instructor, setInstructor] = useState(data.instructor ?? "");
+
+  // Tambahkan state baru
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [successAlert, setSuccessAlert] = useState(false);
 
@@ -87,17 +96,24 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
   // SCHEDULE HANDLER
   const updateSchedule = (i: number, key: any, val: string) =>
-    setSchedule((s) => s.map((row, idx) => (idx === i ? { ...row, [key]: val } : row)));
+    setSchedule((s) =>
+      s.map((row, idx) => (idx === i ? { ...row, [key]: val } : row)),
+    );
 
   const addScheduleRow = () =>
-    setSchedule((s) => [...s, { batchName: `Batch ${s.length + 1}`, startDate: "", endDate: "" }]);
+    setSchedule((s) => [
+      ...s,
+      { batchName: `Batch ${s.length + 1}`, startDate: "", endDate: "" },
+    ]);
 
   const removeSchedule = (idx: number) =>
     setSchedule((s) => s.filter((_, i) => i !== idx));
 
   // RUNDOWN HANDLER
   const updateRundown = (i: number, key: any, val: string) =>
-    setRundown((r) => r.map((row, idx) => (idx === i ? { ...row, [key]: val } : row)));
+    setRundown((r) =>
+      r.map((row, idx) => (idx === i ? { ...row, [key]: val } : row)),
+    );
 
   const addRundownRow = () =>
     setRundown((r) => [...r, { day: `Hari ${r.length + 1}`, activity: "" }]);
@@ -108,8 +124,12 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
   /* ===========================================
      🔥 SUBMIT
   =========================================== */
+  // Ubah handleSubmit:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) return; // ❌ mencegah submit ganda
+    setIsSubmitting(true);
 
     const payload = {
       id: data.id,
@@ -138,6 +158,8 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
     } catch (err) {
       console.error("updateTraining error:", err);
       alert("Gagal memperbarui pelatihan.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -149,19 +171,24 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh] p-6">
-
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-black">Edit Pelatihan</h2>
-          <button onClick={onClose} className="p-2 text-black hover:bg-gray-100 rounded"><X /></button>
+          <button
+            onClick={onClose}
+            className="p-2 text-black hover:bg-gray-100 rounded"
+          >
+            <X />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
           {/* THUMBNAIL */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium text-black">Thumbnail (file)</label>
+              <label className="text-sm font-medium text-black">
+                Thumbnail (file)
+              </label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -171,7 +198,10 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
               />
 
               <div className="mt-3 w-full h-40 bg-gray-200 rounded overflow-hidden">
-                <img src={thumbnailUrl} className="w-full h-full object-cove text-black" />
+                <img
+                  src={thumbnailUrl}
+                  className="w-full h-full object-cove text-black"
+                />
               </div>
             </div>
 
@@ -189,7 +219,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
               {/* short desc */}
               <div>
-                <label className="text-sm font-medium text-black">Deskripsi Singkat</label>
+                <label className="text-sm font-medium text-black">
+                  Deskripsi Singkat
+                </label>
                 <input
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
@@ -214,7 +246,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                 </div>
 
                 <div className="w-44">
-                  <label className="text-sm font-medium text-black">Harga</label>
+                  <label className="text-sm font-medium text-black">
+                    Harga
+                  </label>
                   <input
                     value={priceNum == null ? "" : formatRp(priceNum)}
                     onChange={handlePriceInput}
@@ -246,7 +280,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-black">Sertifikat</label>
+              <label className="text-sm font-medium text-black">
+                Sertifikat
+              </label>
               <input
                 value={certificate}
                 onChange={(e) => setCertificate(e.target.value)}
@@ -255,7 +291,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-black">Instruktur</label>
+              <label className="text-sm font-medium text-black">
+                Instruktur
+              </label>
               <input
                 value={instructor}
                 onChange={(e) => setInstructor(e.target.value)}
@@ -266,7 +304,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
           {/* DESCRIPTION */}
           <div>
-            <label className="text-sm font-medium text-black">Deskripsi Lengkap</label>
+            <label className="text-sm font-medium text-black">
+              Deskripsi Lengkap
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -277,10 +317,11 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
           {/* COST DETAILS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
             <div>
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-black">Rincian Biaya</label>
+                <label className="text-sm font-medium text-black">
+                  Rincian Biaya
+                </label>
                 <button
                   type="button"
                   onClick={() => setCostDetails((d) => [...d, ""])}
@@ -297,7 +338,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                       value={c}
                       onChange={(e) =>
                         setCostDetails((d) =>
-                          d.map((v, idx) => (idx === i ? e.target.value : v))
+                          d.map((v, idx) => (idx === i ? e.target.value : v)),
                         )
                       }
                       className="flex-1 border rounded px-2 py-1 text-sm text-black"
@@ -319,7 +360,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
             {/* REQUIREMENTS */}
             <div>
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-black">Syarat Peserta</label>
+                <label className="text-sm font-medium text-black">
+                  Syarat Peserta
+                </label>
                 <button
                   type="button"
                   onClick={() => setRequirements((r) => [...r, ""])}
@@ -336,7 +379,7 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                       value={r}
                       onChange={(e) =>
                         setRequirements((rr) =>
-                          rr.map((v, idx) => (idx === i ? e.target.value : v))
+                          rr.map((v, idx) => (idx === i ? e.target.value : v)),
                         )
                       }
                       className="flex-1 border rounded px-2 py-1 text-sm text-black"
@@ -344,7 +387,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                     <button
                       type="button"
                       onClick={() =>
-                        setRequirements((rr) => rr.filter((_, idx) => idx !== i))
+                        setRequirements((rr) =>
+                          rr.filter((_, idx) => idx !== i),
+                        )
                       }
                       className="bg-red-500 text-white px-2 rounded text-xs"
                     >
@@ -354,14 +399,19 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                 ))}
               </div>
             </div>
-
           </div>
 
           {/* SCHEDULE */}
           <div>
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-black">Jadwal Pelaksanaan</label>
-              <button type="button" onClick={addScheduleRow} className="text-sm text-blue-600">
+              <label className="text-sm font-medium text-black">
+                Jadwal Pelaksanaan
+              </label>
+              <button
+                type="button"
+                onClick={addScheduleRow}
+                className="text-sm text-blue-600"
+              >
                 + Tambah Batch
               </button>
             </div>
@@ -371,21 +421,27 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
                 <div key={i} className="flex gap-2 items-end">
                   <input
                     value={s.batchName}
-                    onChange={(e) => updateSchedule(i, "batchName", e.target.value)}
+                    onChange={(e) =>
+                      updateSchedule(i, "batchName", e.target.value)
+                    }
                     className="w-44 border rounded px-2 py-1 text-sm text-black"
                   />
 
                   <input
                     type="date"
                     value={s.startDate}
-                    onChange={(e) => updateSchedule(i, "startDate", e.target.value)}
+                    onChange={(e) =>
+                      updateSchedule(i, "startDate", e.target.value)
+                    }
                     className="border rounded px-2 py-1 text-sm text-black"
                   />
 
                   <input
                     type="date"
                     value={s.endDate}
-                    onChange={(e) => updateSchedule(i, "endDate", e.target.value)}
+                    onChange={(e) =>
+                      updateSchedule(i, "endDate", e.target.value)
+                    }
                     className="border rounded px-2 py-1 text-sm text-black"
                   />
 
@@ -404,8 +460,14 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
           {/* RUNDOWN */}
           <div>
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-black">Rundown Pelatihan</label>
-              <button type="button" onClick={addRundownRow} className="text-sm text-blue-600">
+              <label className="text-sm font-medium text-black">
+                Rundown Pelatihan
+              </label>
+              <button
+                type="button"
+                onClick={addRundownRow}
+                className="text-sm text-blue-600"
+              >
                 + Tambah Hari
               </button>
             </div>
@@ -421,7 +483,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
                   <input
                     value={r.activity}
-                    onChange={(e) => updateRundown(i, "activity", e.target.value)}
+                    onChange={(e) =>
+                      updateRundown(i, "activity", e.target.value)
+                    }
                     className="flex-1 border rounded px-2 py-1 text-sm text-black"
                   />
 
@@ -439,7 +503,9 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
           {/* ORGANIZER */}
           <div>
-            <label className="text-sm font-medium text-black">Penyelenggara</label>
+            <label className="text-sm font-medium text-black">
+              Penyelenggara
+            </label>
             <input
               value={organizer}
               onChange={(e) => setOrganizer(e.target.value)}
@@ -449,14 +515,21 @@ export default function EditTrainingModal({ data, onClose, onUpdate }: Props) {
 
           {/* BUTTONS */}
           <div className="flex justify-end gap-3 pt-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 border bg-black/50 rounded">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border bg-black/50 rounded"
+            >
               Batal
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+              disabled={isSubmitting} // ❌ mencegah klik ganda
+            >
               Simpan Perubahan
             </button>
           </div>
-
         </form>
       </div>
 
